@@ -4,6 +4,7 @@ import type { JSX, ReactNode } from "react";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Beyond the screen",
@@ -56,6 +57,7 @@ export default function RootLayout({
         )}
       >
         {children}
+        <Footer />
         <Toaster richColors={true} />
       </body>
     </html>
