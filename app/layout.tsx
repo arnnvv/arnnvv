@@ -4,6 +4,7 @@ import type { JSX, ReactNode } from "react";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { CustomThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Beyond the screen",
@@ -14,7 +15,17 @@ export const metadata: Metadata = {
     "arnav sharma iit roorkee",
     "arnav sharma iitr",
   ],
-  robots: "index, follow",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   authors: {
     name: "Arnav Sharma",
     url: "https://github.com/arnnvv",
@@ -44,7 +55,7 @@ export default function RootLayout({
           fontSans.variable,
         )}
       >
-        {children}
+        <CustomThemeProvider>{children}</CustomThemeProvider>
         <Toaster richColors={true} />
       </body>
     </html>

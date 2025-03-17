@@ -3,7 +3,7 @@
 import { ThemeProvider as NextThemes } from "next-themes";
 import type { ComponentProps, JSX } from "react";
 
-export function ThemeProvider({
+export function CustomThemeProvider({
   children,
   ...props
 }: ComponentProps<typeof NextThemes>): JSX.Element {
