@@ -4,7 +4,6 @@ import type { JSX, ReactNode } from "react";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
-import { CustomThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Beyond the screen",
@@ -55,7 +54,7 @@ export default function RootLayout({
           fontSans.variable,
         )}
       >
-        <CustomThemeProvider>{children}</CustomThemeProvider>
+        {children}
         <Toaster richColors={true} />
       </body>
     </html>
