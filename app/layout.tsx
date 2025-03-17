@@ -25,6 +25,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  metadataBase: new URL("https://arnnvv.vercel.app"),
   authors: {
     name: "Arnav Sharma",
     url: "https://github.com/arnnvv",
