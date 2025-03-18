@@ -11,13 +11,13 @@ export function Footer(): JSX.Element {
   ];
 
   return (
-    <footer className="bg-gray-100 dark:bg-gray-800 py-4 px-4 border-t border-gray-200 dark:border-gray-700">
+    <footer className="bg-gray-100 dark:bg-zinc-950 py-4 px-4 border-t border-gray-200 dark:border-zinc-800">
       <div className="container mx-auto flex flex-row justify-between items-center">
-        <div className="text-sm text-gray-400 dark:text-gray-500">© 2025</div>
+        <div className="text-sm text-gray-400 dark:text-zinc-400">© 2025</div>
         <div className="flex space-x-4 tracking-tight">
           <a
             href="/contact"
-            className="text-gray-400 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+            className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
             aria-label="Contact me"
           >
             contact me
@@ -28,7 +28,7 @@ export function Footer(): JSX.Element {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+              className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
             >
               {link.name}
             </a>

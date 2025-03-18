@@ -18,11 +18,11 @@ export function Navbar(): JSX.Element {
   };
 
   return (
-    <nav className="bg-gray-100 dark:bg-gray-800 py-4 px-4 border-b border-gray-200 dark:border-gray-700">
+    <nav className="bg-gray-100 dark:bg-zinc-950 py-4 px-4 border-b border-gray-200 dark:border-zinc-800">
       <div className="container mx-auto flex flex-row justify-between items-center">
         <a
           href="/"
-          className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+          className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
           aria-label="Home"
         >
           <Home size={24} />
@@ -30,7 +30,7 @@ export function Navbar(): JSX.Element {
 
         {mounted && (
           <button
-            className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+            className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
             aria-label="Toggle theme"
             type="button"
             onClick={toggleTheme}
