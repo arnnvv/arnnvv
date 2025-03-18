@@ -16,6 +16,7 @@ export function Navbar(): JSX.Element {
         <button
           className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
           aria-label="Toggle theme"
+          type="button"
         >
           <Moon size={24} />
         </button>
