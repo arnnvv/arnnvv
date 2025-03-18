@@ -15,6 +15,13 @@ export function Footer(): JSX.Element {
       <div className="container mx-auto flex flex-row justify-between items-center">
         <div className="text-sm text-gray-400">© 2025</div>
         <div className="flex space-x-4 tracking-tight">
+          <a
+            href="/contact"
+            className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+            aria-label="Contact me"
+          >
+            contact me
+          </a>
           {links.map((link) => (
             <a
               key={link.name}

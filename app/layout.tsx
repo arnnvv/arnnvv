@@ -5,15 +5,19 @@ import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/Footer";
+import { Navbar } from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "Beyond the screen",
+  title: "Arnav Sharna: Beyond the screen",
   description: "Welcome to my digital world",
   keywords: [
     "arnav",
+    "arnavsharma",
     "arnav sharma",
-    "arnav sharma iit roorkee",
+    "arnavsharmaiitr",
     "arnav sharma iitr",
+    "arnavsharmaiitroorkee",
+    "arnav sharma iit roorkee",
   ],
   robots: {
     index: true,
@@ -57,6 +61,7 @@ export default function RootLayout({
         )}
       >
         <div className="min-h-screen flex flex-col bg-gray-100">
+          <Navbar />
           {children}
           <Footer />
         </div>
