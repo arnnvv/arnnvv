@@ -1,9 +1,24 @@
+"use client";
+
 import type { JSX } from "react";
-import { Home, Moon } from "lucide-react";
+import { Home, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function Navbar(): JSX.Element {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   return (
-    <nav className="bg-gray-100 py-4 px-4 border-b border-gray-200">
+    <nav className="bg-gray-100 dark:bg-gray-800 py-4 px-4 border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto flex flex-row justify-between items-center">
         <a
           href="/"
@@ -13,13 +28,16 @@ export function Navbar(): JSX.Element {
           <Home size={24} />
         </a>
 
-        <button
-          className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
-          aria-label="Toggle theme"
-          type="button"
-        >
-          <Moon size={24} />
-        </button>
+        {mounted && (
+          <button
+            className="text-gray-400 hover:text-blue-500 transition-colors duration-200"
+            aria-label="Toggle theme"
+            type="button"
+            onClick={toggleTheme}
+          >
+            {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
+          </button>
+        )}
       </div>
     </nav>
   );

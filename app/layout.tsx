@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
+import { ThemeProvider } from "next-themes";
 
 export const metadata: Metadata = {
   title: "Arnav Sharna: Beyond the screen",
@@ -60,12 +61,14 @@ export default function RootLayout({
           fontSans.variable,
         )}
       >
-        <div className="min-h-screen flex flex-col bg-gray-100">
-          <Navbar />
-          {children}
-          <Footer />
-        </div>
-        <Toaster richColors={true} />
+        <ThemeProvider attribute="class">
+          <div className="min-h-screen flex flex-col bg-gray-100">
+            <Navbar />
+            {children}
+            <Footer />
+          </div>
+          <Toaster richColors={true} />
+        </ThemeProvider>
       </body>
     </html>
   );
