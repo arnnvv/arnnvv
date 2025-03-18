@@ -1,29 +1,24 @@
 "use client";
 
-import type { ActionResult } from "@/type";
-import { useState, useTransition } from "react";
-import type { JSX, ReactNode } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
+import type { JSX, ReactNode } from "react";
+import type { ActionResult } from "@/type";
 import { Spinner } from "./Spinner";
 
-export const ContactFormWrapper = ({
+export const SignOutFormComponent = ({
   children,
   action,
 }: {
   children: ReactNode;
-  action: (formdata: FormData) => Promise<ActionResult>;
+  action: () => Promise<ActionResult>;
 }): JSX.Element => {
   const [isPending, startTransition] = useTransition();
-  const [, setFormState] = useState<ActionResult>({
-    success: false,
-    message: "",
-  });
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = () => {
     startTransition(async () => {
       try {
-        const result = await action(formData);
-        setFormState(result);
+        const result = await action();
 
         if (result.success) {
           toast.success(result.message, {
@@ -33,10 +28,7 @@ export const ContactFormWrapper = ({
               onClick: () => toast.dismiss("success-toast"),
             },
           });
-
-          const form = document.querySelector("form") as HTMLFormElement;
-          if (form) form.reset();
-        } else if (result.message) {
+        } else {
           toast.error(result.message, {
             id: "error-toast",
             action: {
@@ -58,7 +50,12 @@ export const ContactFormWrapper = ({
   };
 
   return (
-    <form action={handleSubmit}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit();
+      }}
+    >
       {children}
       {isPending && <Spinner />}
     </form>
