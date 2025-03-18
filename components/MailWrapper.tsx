@@ -58,11 +58,9 @@ export const ContactFormWrapper = ({
   };
 
   return (
-    <>
-      <form action={handleSubmit}>
-        {children}
-        {isPending && <Spinner />}
-      </form>
-    </>
+    <form action={handleSubmit}>
+      {children}
+      {isPending && <Spinner />}
+    </form>
   );
 };
