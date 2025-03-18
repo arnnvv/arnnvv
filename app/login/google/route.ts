@@ -1,23 +1,7 @@
 import { cookies } from "next/headers";
 import { generateState, google } from "@/lib/oauth";
-import { getCurrentSession } from "@/app/actions";
-import { globalGETRateLimit } from "@/lib/request";
 
 export async function GET(): Promise<Response> {
-  const { session } = await getCurrentSession();
-  if (session !== null)
-    return new Response("Logged In", {
-      status: 302,
-      headers: {
-        Location: "/",
-      },
-    });
-  if (!globalGETRateLimit()) {
-    return new Response("Too many requests", {
-      status: 429,
-    });
-  }
-
   const state = generateState();
   const codeVerifier = generateState();
   const url = google.createAuthorizationURL(state, codeVerifier, [

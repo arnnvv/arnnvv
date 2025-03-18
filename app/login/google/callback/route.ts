@@ -5,10 +5,15 @@ import { createSession, generateSessionToken } from "@/lib/auth";
 import { setSessionTokenCookie } from "@/lib/session";
 import { ObjectParser } from "@/lib/parser";
 import type { OAuth2Tokens } from "@/lib/oauth-token";
-import { getCurrentSession } from "@/app/actions";
 import { globalGETRateLimit } from "@/lib/request";
+import { getCurrentSession } from "@/app/actions";
 
 export async function GET(request: Request): Promise<Response> {
+  if (!globalGETRateLimit()) {
+    return new Response("Too many requests", {
+      status: 429,
+    });
+  }
   const { session } = await getCurrentSession();
   if (session !== null)
     return new Response("Logged In", {
@@ -17,12 +22,6 @@ export async function GET(request: Request): Promise<Response> {
         Location: "/",
       },
     });
-
-  if (!globalGETRateLimit()) {
-    return new Response("Too many requests", {
-      status: 429,
-    });
-  }
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");

@@ -2,11 +2,17 @@ import type { JSX } from "react";
 
 export function Footer(): JSX.Element {
   const links = [
-    { name: "@arnnnvvv", url: "https://x.com/arnnnvvv" },
-    { name: "github", url: "https://github.com/arnnvv" },
+    {
+      name: "@arnnnvvv",
+      url: "https://x.com/arnnnvvv",
+    },
+    {
+      name: "github",
+      url: "https://github.com/arnnvv",
+    },
     {
       name: "linkedin",
-      url: "https://www.linkedin.com/in/arnav-sharma-142716261/",
+      url: "https://www.linkedin.com/in/arnav-sharma-142716261",
     },
   ];
 
