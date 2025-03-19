@@ -16,21 +16,21 @@ export async function Navbar(): Promise<JSX.Element> {
   const { session, user } = await getCurrentSession();
 
   return (
-    <nav className="bg-gray-100 dark:bg-zinc-950 py-4 px-4 border-b border-gray-200 dark:border-zinc-800">
+    <nav className="bg-gray-100 dark:bg-zinc-950 py-2 sm:py-3 md:py-4 px-3 sm:px-4 border-b border-gray-200 dark:border-zinc-800">
       <div className="container mx-auto flex flex-row justify-between items-center">
         <a
           href="/"
           className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
           aria-label="Home"
         >
-          <Home size={24} />
+          <Home size={20} className="w-5 h-5 sm:w-6 sm:h-6" />
         </a>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           {session ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Avatar className="cursor-pointer">
+                <Avatar className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 cursor-pointer">
                   <AvatarImage
                     src={user.picture || "/default-avatar.png"}
                     alt={`${user.name || "User"}'s avatar`}
@@ -54,11 +54,11 @@ export async function Navbar(): Promise<JSX.Element> {
           ) : (
             <a
               href="/login/google"
-              className="group gsi-material-button dark:[color-scheme:dark] bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-gray-100 border dark:border-zinc-500 rounded-full px-4 py-2 hover:shadow-sm transition-all duration-200 relative overflow-hidden"
+              className="group gsi-material-button dark:[color-scheme:dark] bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-gray-100 border dark:border-zinc-500 rounded-full text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 hover:shadow-sm transition-all duration-200 relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-black dark:bg-white opacity-0 group-hover:opacity-[8%] group-focus:opacity-[12%] transition-opacity duration-200" />
               <div className="flex items-center">
-                <div className="mr-3 w-5 h-5">
+                <div className="mr-1.5 sm:mr-2 md:mr-3 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5">
                   <svg version="1.1" viewBox="0 0 48 48" className="block">
                     <title id="google">Google</title>
                     <path
@@ -79,7 +79,7 @@ export async function Navbar(): Promise<JSX.Element> {
                     />
                   </svg>
                 </div>
-                <span className="font-medium">Sign in</span>
+                <span className="font-medium text-xs sm:text-sm">Sign in</span>
                 <span className="sr-only">Sign in with Google</span>
               </div>
             </a>

@@ -17,10 +17,12 @@ export function Footer(): JSX.Element {
   ];
 
   return (
-    <footer className="bg-gray-100 dark:bg-zinc-950 py-4 px-4 border-t border-gray-200 dark:border-zinc-800">
-      <div className="container mx-auto flex flex-row justify-between items-center">
-        <div className="text-sm text-gray-400 dark:text-zinc-400">© 2025</div>
-        <div className="flex space-x-4 tracking-tight">
+    <footer className="bg-gray-100 dark:bg-zinc-950 py-2 sm:py-3 md:py-4 px-3 sm:px-4 border-t border-gray-200 dark:border-zinc-800">
+      <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
+        <div className="text-xs sm:text-sm text-gray-400 dark:text-zinc-400">
+          © 2025
+        </div>
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm tracking-tight">
           <a
             href="/contact"
             className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"

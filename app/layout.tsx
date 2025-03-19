@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import type { JSX, ReactNode } from "react";
 import { Inter } from "next/font/google";
@@ -43,6 +43,11 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1.0,
+};
+
 const fontSans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -62,7 +67,7 @@ export default function RootLayout({
         )}
       >
         <ThemeProvider attribute="class">
-          <div className="min-h-screen flex flex-col bg-gray-100">
+          <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-zinc-950">
             <Navbar />
             {children}
             <Footer />
