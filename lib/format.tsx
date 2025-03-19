@@ -6,12 +6,13 @@ interface ListContext {
   items: JSX.Element[];
   indent: number;
   counter: number;
+  start: number;
 }
 
 export const formatContent = (content: string): JSX.Element[] => {
   const lines = content.split("\n");
   const elements: JSX.Element[] = [];
-  let listStack: ListContext[] = [];
+  const listStack: ListContext[] = [];
   let inCodeBlock = false;
   let codeBlockContent: string[] = [];
   let codeBlockLanguage = "";
@@ -32,9 +33,7 @@ export const formatContent = (content: string): JSX.Element[] => {
             className={`${
               ListTag === "ul" ? "list-disc" : "list-decimal"
             } list-inside mb-4 pl-4`}
-            {...(list.type === "ol"
-              ? { start: list.counter - list.items.length }
-              : {})}
+            {...(list.type === "ol" ? { start: list.start } : {})}
           >
             {list.items}
           </ListTag>,
@@ -258,6 +257,8 @@ export const formatContent = (content: string): JSX.Element[] => {
       flushParagraph();
       const indent = listMatch[1].length;
       const type = listMatch[2].match(/\d+/) ? "ol" : "ul";
+      const listNumber =
+        type === "ol" ? Number.parseInt(listMatch[2], 10) || 1 : 0;
       let currentList = listStack[listStack.length - 1];
 
       while (
@@ -272,7 +273,8 @@ export const formatContent = (content: string): JSX.Element[] => {
           type,
           items: [],
           indent,
-          counter: type === "ol" ? parseInt(listMatch[2], 10) || 1 : 0,
+          counter: listNumber,
+          start: listNumber,
         };
         listStack.push(currentList);
       }
@@ -294,6 +296,10 @@ export const formatContent = (content: string): JSX.Element[] => {
           {parseInline(content)}
         </li>,
       );
+
+      if (type === "ol") {
+        currentList.counter++;
+      }
 
       lineIndex++;
       continue;
@@ -409,7 +415,7 @@ const parseInline = (text: string): ReactNode[] => {
         );
       }
     } else {
-      part.split(/(  \n|\n)/).forEach((segment, segIndex) => {
+      part.split(/( {2}\n|\n)/).forEach((segment, segIndex) => {
         if (segment === "\n" || segment === "  \n") {
           elements.push(<br key={`br-${index}-${segIndex}`} />);
         } else if (segment) {
