@@ -204,7 +204,8 @@ export const formatContent = (content: string): JSX.Element[] => {
       blockquoteContent.push(line.replace(/^> /, "").trim());
       lineIndex++;
       continue;
-    } else if (inBlockquote) {
+    }
+    if (inBlockquote) {
       flushBlockquote();
       inBlockquote = false;
     }
@@ -219,7 +220,8 @@ export const formatContent = (content: string): JSX.Element[] => {
       tableLines.push(originalLine);
       lineIndex++;
       continue;
-    } else if (inTable) {
+    }
+    if (inTable) {
       const tableElement = renderTable(tableLines, elements.length);
       if (tableElement) elements.push(tableElement);
       inTable = false;
