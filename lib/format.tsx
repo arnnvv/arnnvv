@@ -17,10 +17,10 @@ export const formatContent = (content: string): JSX.Element[] => {
   let codeBlockContent: string[] = [];
   let codeBlockLanguage = "";
   let currentParagraph: string[] = [];
-  let tableLines: string[] = [];
+  let tableLines: Array<{ line: string; lineIndex: number }> = [];
   let inTable = false;
   let inBlockquote = false;
-  let blockquoteContent: string[] = [];
+  let blockquoteContent: Array<{ content: string; lineIndex: number }> = [];
 
   const flushListStack = () => {
     while (listStack.length > 0) {
@@ -46,7 +46,7 @@ export const formatContent = (content: string): JSX.Element[] => {
     if (currentParagraph.length > 0) {
       elements.push(
         <p key={`p-${elements.length}`} className="mb-4 leading-relaxed">
-          {parseInline(currentParagraph.join(" "))}
+          {parseInline(currentParagraph.join(" "), elements.length)}
         </p>,
       );
       currentParagraph = [];
@@ -79,8 +79,10 @@ export const formatContent = (content: string): JSX.Element[] => {
           key={`blockquote-${elements.length}`}
           className="border-l-4 border-gray-300 pl-4 my-4 text-gray-600"
         >
-          {blockquoteContent.map((line, idx) => (
-            <p key={idx}>{parseInline(line)}</p>
+          {blockquoteContent.map((entry) => (
+            <p key={`blockquote-line-${entry.lineIndex}`}>
+              {parseInline(entry.content, entry.lineIndex)}
+            </p>
           ))}
         </blockquote>,
       );
@@ -113,20 +115,20 @@ export const formatContent = (content: string): JSX.Element[] => {
   };
 
   const renderTable = (
-    tableData: string[],
+    tableData: Array<{ line: string; lineIndex: number }>,
     key: number,
   ): JSX.Element | null => {
     if (tableData.length < 2) return null;
 
-    const headers = parseTableRow(tableData[0]);
-    const separator = parseTableRow(tableData[1]);
+    const headers = parseTableRow(tableData[0].line);
+    const separator = parseTableRow(tableData[1].line);
     const alignments = separator.map(getColumnAlignment);
 
-    const rows: string[][] = [];
+    const rows: Array<{ cells: string[]; lineIndex: number }> = [];
     for (let i = 2; i < tableData.length; i++) {
-      const row = parseTableRow(tableData[i]);
+      const row = parseTableRow(tableData[i].line);
       if (row.length === headers.length) {
-        rows.push(row);
+        rows.push({ cells: row, lineIndex: tableData[i].lineIndex });
       }
     }
 
@@ -141,23 +143,23 @@ export const formatContent = (content: string): JSX.Element[] => {
           <tr>
             {headers.map((header, index) => (
               <th
-                key={index}
+                key={`th-${tableData[0].lineIndex}-${index}`}
                 className={`border border-gray-300 p-2 font-semibold ${alignments[index]}`}
               >
-                {parseInline(header)}
+                {parseInline(header, tableData[0].lineIndex)}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {row.map((cell, cellIndex) => (
+          {rows.map((rowEntry) => (
+            <tr key={`tr-${rowEntry.lineIndex}`}>
+              {rowEntry.cells.map((cell, cellIndex) => (
                 <td
-                  key={cellIndex}
+                  key={`td-${rowEntry.lineIndex}-${cellIndex}`}
                   className={`border border-gray-300 p-2 ${alignments[cellIndex]}`}
                 >
-                  {parseInline(cell)}
+                  {parseInline(cell, rowEntry.lineIndex + cellIndex)}
                 </td>
               ))}
             </tr>
@@ -201,7 +203,10 @@ export const formatContent = (content: string): JSX.Element[] => {
         flushParagraph();
         inBlockquote = true;
       }
-      blockquoteContent.push(line.replace(/^> /, "").trim());
+      blockquoteContent.push({
+        content: line.replace(/^> /, "").trim(),
+        lineIndex: lineIndex,
+      });
       lineIndex++;
       continue;
     }
@@ -217,7 +222,7 @@ export const formatContent = (content: string): JSX.Element[] => {
         inTable = true;
         tableLines = [];
       }
-      tableLines.push(originalLine);
+      tableLines.push({ line: originalLine, lineIndex: lineIndex });
       lineIndex++;
       continue;
     }
@@ -247,7 +252,7 @@ export const formatContent = (content: string): JSX.Element[] => {
           key={`h-${elements.length}`}
           className={`${sizes[level - 1]} font-bold mt-6 mb-4`}
         >
-          {parseInline(headerMatch[2])}
+          {parseInline(headerMatch[2], elements.length)}
         </Tag>,
       );
       lineIndex++;
@@ -286,7 +291,7 @@ export const formatContent = (content: string): JSX.Element[] => {
       const checked = taskMatch ? taskMatch[1] === "x" : false;
 
       currentList.items.push(
-        <li key={`li-${currentList.items.length}`} className="mb-2">
+        <li key={`li-${lineIndex}`} className="mb-2">
           {taskMatch && (
             <input
               type="checkbox"
@@ -295,7 +300,7 @@ export const formatContent = (content: string): JSX.Element[] => {
               className="mr-2 align-middle"
             />
           )}
-          {parseInline(content)}
+          {parseInline(content, lineIndex)}
         </li>,
       );
 
@@ -342,7 +347,10 @@ export const formatContent = (content: string): JSX.Element[] => {
   return elements;
 };
 
-const parseInline = (text: string): ReactNode[] => {
+const parseInline = (
+  text: string,
+  keySeed: string | number = "",
+): ReactNode[] => {
   const elements: ReactNode[] = [];
   const regex =
     /(\*\*.*?\*\*|_.*?_|\*.*?\*|~~.*?~~|`.*?`|!\[.*?\]\(.*?\)|\[.*?\]\(.*?\))/g;
@@ -351,10 +359,12 @@ const parseInline = (text: string): ReactNode[] => {
   parts.forEach((part, index) => {
     if (!part) return;
 
+    const uniqueKey = `${keySeed}-${part}-${index}`;
+
     if (part.startsWith("**") && part.endsWith("**")) {
       const content = part.slice(2, -2);
       elements.push(
-        <strong key={`bold-${index}`} className="font-semibold">
+        <strong key={`bold-${uniqueKey}`} className="font-semibold">
           {content}
         </strong>,
       );
@@ -364,14 +374,14 @@ const parseInline = (text: string): ReactNode[] => {
     ) {
       const content = part.slice(1, -1);
       elements.push(
-        <em key={`italic-${index}`} className="italic">
+        <em key={`italic-${uniqueKey}`} className="italic">
           {content}
         </em>,
       );
     } else if (part.startsWith("~~") && part.endsWith("~~")) {
       const content = part.slice(2, -2);
       elements.push(
-        <del key={`del-${index}`} className="line-through">
+        <del key={`del-${uniqueKey}`} className="line-through">
           {content}
         </del>,
       );
@@ -379,7 +389,7 @@ const parseInline = (text: string): ReactNode[] => {
       const content = part.slice(1, -1);
       elements.push(
         <code
-          key={`code-${index}`}
+          key={`code-${uniqueKey}`}
           className="font-mono bg-gray-100 px-1 py-0.5 rounded"
         >
           {content}
@@ -391,7 +401,7 @@ const parseInline = (text: string): ReactNode[] => {
         const [, alt, src, title] = match;
         elements.push(
           <img
-            key={`img-${index}`}
+            key={`img-${uniqueKey}`}
             src={src}
             alt={alt}
             title={title}
@@ -405,7 +415,7 @@ const parseInline = (text: string): ReactNode[] => {
         const [, text, href, title] = match;
         elements.push(
           <a
-            key={`link-${index}`}
+            key={`link-${uniqueKey}`}
             href={href}
             className="text-blue-600 hover:underline"
             title={title}
@@ -418,10 +428,11 @@ const parseInline = (text: string): ReactNode[] => {
       }
     } else {
       part.split(/( {2}\n|\n)/).forEach((segment, segIndex) => {
+        const segmentKey = `${uniqueKey}-seg-${segIndex}`;
         if (segment === "\n" || segment === "  \n") {
-          elements.push(<br key={`br-${index}-${segIndex}`} />);
+          elements.push(<br key={`br-${segmentKey}`} />);
         } else if (segment) {
-          elements.push(segment);
+          elements.push(<span key={`span-${segmentKey}`}>{segment}</span>);
         }
       });
     }
