@@ -1,39 +1,45 @@
 import type { JSX, ReactNode } from "react";
 
 type ListType = "ul" | "ol" | null;
+interface ListContext {
+  type: ListType;
+  items: JSX.Element[];
+  indent: number;
+  counter: number;
+}
 
 export const formatContent = (content: string): JSX.Element[] => {
   const lines = content.split("\n");
   const elements: JSX.Element[] = [];
-  let currentListItems: JSX.Element[] = [];
-  let currentListType: ListType = null;
-  let listKey = 0;
-  let orderedListCounter = 1;
+  let listStack: ListContext[] = [];
   let inCodeBlock = false;
   let codeBlockContent: string[] = [];
+  let codeBlockLanguage = "";
   let currentParagraph: string[] = [];
   let tableLines: string[] = [];
   let inTable = false;
+  let inBlockquote = false;
+  let blockquoteContent: string[] = [];
 
-  const flushList = () => {
-    if (currentListItems.length > 0 && currentListType) {
-      const ListTag = currentListType === "ol" ? "ol" : "ul";
-      elements.push(
-        <ListTag
-          key={`${ListTag}-${listKey++}`}
-          className={`${
-            ListTag === "ul" ? "list-disc" : "list-decimal"
-          } list-inside mb-4 pl-4`}
-          {...(ListTag === "ol"
-            ? { start: orderedListCounter - currentListItems.length }
-            : {})}
-        >
-          {currentListItems}
-        </ListTag>,
-      );
-      currentListItems = [];
-      currentListType = null;
-      orderedListCounter = 1;
+  const flushListStack = () => {
+    while (listStack.length > 0) {
+      const list = listStack.pop();
+      if (list && list.items.length > 0) {
+        const ListTag = list.type === "ol" ? "ol" : "ul";
+        elements.push(
+          <ListTag
+            key={`${ListTag}-${elements.length}`}
+            className={`${
+              ListTag === "ul" ? "list-disc" : "list-decimal"
+            } list-inside mb-4 pl-4`}
+            {...(list.type === "ol"
+              ? { start: list.counter - list.items.length }
+              : {})}
+          >
+            {list.items}
+          </ListTag>,
+        );
+      }
     }
   };
 
@@ -55,10 +61,31 @@ export const formatContent = (content: string): JSX.Element[] => {
           key={`pre-${elements.length}`}
           className="bg-gray-100 p-4 rounded-lg my-4 overflow-x-auto"
         >
-          <code>{codeBlockContent.join("\n")}</code>
+          <code
+            className={codeBlockLanguage ? `language-${codeBlockLanguage}` : ""}
+          >
+            {codeBlockContent.join("\n")}
+          </code>
         </pre>,
       );
       codeBlockContent = [];
+      codeBlockLanguage = "";
+    }
+  };
+
+  const flushBlockquote = () => {
+    if (blockquoteContent.length > 0) {
+      elements.push(
+        <blockquote
+          key={`blockquote-${elements.length}`}
+          className="border-l-4 border-gray-300 pl-4 my-4 text-gray-600"
+        >
+          {blockquoteContent.map((line, idx) => (
+            <p key={idx}>{parseInline(line)}</p>
+          ))}
+        </blockquote>,
+      );
+      blockquoteContent = [];
     }
   };
 
@@ -71,16 +98,6 @@ export const formatContent = (content: string): JSX.Element[] => {
     );
   };
 
-  const isTableSeparator = (line: string): boolean => {
-    const trimmed = line.trim();
-    return (
-      trimmed.startsWith("|") &&
-      trimmed.endsWith("|") &&
-      trimmed.includes("-") &&
-      trimmed.split("|").filter((cell) => cell.trim().match(/^-+$/)).length > 0
-    );
-  };
-
   const parseTableRow = (line: string): string[] => {
     return line
       .trim()
@@ -89,22 +106,25 @@ export const formatContent = (content: string): JSX.Element[] => {
       .map((cell) => cell.trim());
   };
 
+  const getColumnAlignment = (cell: string): string => {
+    if (cell.startsWith(":") && cell.endsWith(":")) return "text-center";
+    if (cell.endsWith(":")) return "text-right";
+    if (cell.startsWith(":")) return "text-left";
+    return "text-left";
+  };
+
   const renderTable = (
     tableData: string[],
     key: number,
   ): JSX.Element | null => {
-    if (tableData.length < 3) return null;
+    if (tableData.length < 2) return null;
 
     const headers = parseTableRow(tableData[0]);
+    const separator = parseTableRow(tableData[1]);
+    const alignments = separator.map(getColumnAlignment);
 
     const rows: string[][] = [];
     for (let i = 2; i < tableData.length; i++) {
-      if (
-        isTableSeparator(tableData[i]) ||
-        tableData[i].trim().replace(/\|/g, "").trim() === ""
-      ) {
-        continue;
-      }
       const row = parseTableRow(tableData[i]);
       if (row.length === headers.length) {
         rows.push(row);
@@ -123,7 +143,7 @@ export const formatContent = (content: string): JSX.Element[] => {
             {headers.map((header, index) => (
               <th
                 key={index}
-                className="border border-gray-300 p-2 font-semibold text-left"
+                className={`border border-gray-300 p-2 font-semibold ${alignments[index]}`}
               >
                 {parseInline(header)}
               </th>
@@ -134,7 +154,10 @@ export const formatContent = (content: string): JSX.Element[] => {
           {rows.map((row, rowIndex) => (
             <tr key={rowIndex}>
               {row.map((cell, cellIndex) => (
-                <td key={cellIndex} className="border border-gray-300 p-2">
+                <td
+                  key={cellIndex}
+                  className={`border border-gray-300 p-2 ${alignments[cellIndex]}`}
+                >
                   {parseInline(cell)}
                 </td>
               ))}
@@ -156,8 +179,11 @@ export const formatContent = (content: string): JSX.Element[] => {
         flushCodeBlock();
         inCodeBlock = false;
       } else {
-        flushList();
+        const languageMatch = trimmedLine.match(/^```(\S*)/);
+        codeBlockLanguage = languageMatch ? languageMatch[1] : "";
+        flushListStack();
         flushParagraph();
+        flushBlockquote();
         inCodeBlock = true;
       }
       lineIndex++;
@@ -170,35 +196,40 @@ export const formatContent = (content: string): JSX.Element[] => {
       continue;
     }
 
+    if (trimmedLine.startsWith("> ")) {
+      if (!inBlockquote) {
+        flushListStack();
+        flushParagraph();
+        inBlockquote = true;
+      }
+      blockquoteContent.push(line.replace(/^> /, "").trim());
+      lineIndex++;
+      continue;
+    } else if (inBlockquote) {
+      flushBlockquote();
+      inBlockquote = false;
+    }
+
     if (isTableRow(originalLine)) {
-      if (
-        !inTable &&
-        lineIndex + 1 < lines.length &&
-        isTableSeparator(lines[lineIndex + 1])
-      ) {
+      if (!inTable) {
+        flushListStack();
+        flushParagraph();
         inTable = true;
         tableLines = [];
-        flushList();
-        flushParagraph();
       }
-
-      if (inTable) {
-        tableLines.push(originalLine);
-        lineIndex++;
-        continue;
-      }
+      tableLines.push(originalLine);
+      lineIndex++;
+      continue;
     } else if (inTable) {
-      const tableElement = renderTable(tableLines, listKey++);
-      if (tableElement) {
-        elements.push(tableElement);
-      }
+      const tableElement = renderTable(tableLines, elements.length);
+      if (tableElement) elements.push(tableElement);
       inTable = false;
       tableLines = [];
     }
 
     const headerMatch = trimmedLine.match(/^(#+)\s(.*)/);
     if (headerMatch) {
-      flushList();
+      flushListStack();
       flushParagraph();
       const level = Math.min(headerMatch[1].length, 6);
       const Tag = `h${level}` as keyof JSX.IntrinsicElements;
@@ -225,37 +256,51 @@ export const formatContent = (content: string): JSX.Element[] => {
     const listMatch = originalLine.match(/^(\s*)(\*|\-|\d+\.)\s(.*)/);
     if (listMatch) {
       flushParagraph();
+      const indent = listMatch[1].length;
       const type = listMatch[2].match(/\d+/) ? "ol" : "ul";
+      let currentList = listStack[listStack.length - 1];
 
-      if (type !== currentListType) {
-        flushList();
-        currentListType = type;
-        if (type === "ol") {
-          const numberMatch = listMatch[2].match(/(\d+)\./);
-          if (numberMatch && numberMatch[1]) {
-            orderedListCounter = parseInt(numberMatch[1], 10);
-          } else {
-            orderedListCounter = 1;
-          }
-        }
+      while (
+        listStack.length > 0 &&
+        listStack[listStack.length - 1].indent > indent
+      ) {
+        listStack.pop();
       }
 
-      currentListItems.push(
-        <li key={`li-${currentListItems.length}`} className="mb-2">
-          {parseInline(listMatch[3])}
+      if (!currentList || currentList.indent < indent) {
+        currentList = {
+          type,
+          items: [],
+          indent,
+          counter: type === "ol" ? parseInt(listMatch[2], 10) || 1 : 0,
+        };
+        listStack.push(currentList);
+      }
+
+      const taskMatch = listMatch[3].match(/^\[( |x)\]\s(.*)/);
+      const content = taskMatch ? taskMatch[2] : listMatch[3];
+      const checked = taskMatch ? taskMatch[1] === "x" : false;
+
+      currentList.items.push(
+        <li key={`li-${currentList.items.length}`} className="mb-2">
+          {taskMatch && (
+            <input
+              type="checkbox"
+              checked={checked}
+              readOnly
+              className="mr-2 align-middle"
+            />
+          )}
+          {parseInline(content)}
         </li>,
       );
-
-      if (type === "ol") {
-        orderedListCounter++;
-      }
 
       lineIndex++;
       continue;
     }
 
     if (/^(---|\*\*\*)$/.test(trimmedLine)) {
-      flushList();
+      flushListStack();
       flushParagraph();
       elements.push(
         <hr
@@ -268,27 +313,23 @@ export const formatContent = (content: string): JSX.Element[] => {
     }
 
     if (trimmedLine === "") {
-      flushList();
+      flushListStack();
       flushParagraph();
-      elements.push(<br key={`br-${elements.length}`} />);
     } else {
-      if (!isTableRow(originalLine)) {
-        currentParagraph.push(originalLine);
-      }
+      currentParagraph.push(originalLine);
     }
 
     lineIndex++;
   }
 
-  if (inTable) {
-    const tableElement = renderTable(tableLines, listKey++);
-    if (tableElement) {
-      elements.push(tableElement);
-    }
-  }
+  flushBlockquote();
   flushCodeBlock();
-  flushList();
+  flushListStack();
   flushParagraph();
+  if (inTable) {
+    const tableElement = renderTable(tableLines, elements.length);
+    if (tableElement) elements.push(tableElement);
+  }
 
   return elements;
 };
@@ -296,7 +337,7 @@ export const formatContent = (content: string): JSX.Element[] => {
 const parseInline = (text: string): ReactNode[] => {
   const elements: ReactNode[] = [];
   const regex =
-    /(\*\*.*?\*\*|_.*?_|\*.*?\*|`.*?`|!\[.*?\]\(.*?\)|\[.*?\]\(.*?\))/g;
+    /(\*\*.*?\*\*|_.*?_|\*.*?\*|~~.*?~~|`.*?`|!\[.*?\]\(.*?\)|\[.*?\]\(.*?\))/g;
   const parts = text.split(regex);
 
   parts.forEach((part, index) => {
@@ -319,6 +360,13 @@ const parseInline = (text: string): ReactNode[] => {
           {content}
         </em>,
       );
+    } else if (part.startsWith("~~") && part.endsWith("~~")) {
+      const content = part.slice(2, -2);
+      elements.push(
+        <del key={`del-${index}`} className="line-through">
+          {content}
+        </del>,
+      );
     } else if (part.startsWith("`") && part.endsWith("`")) {
       const content = part.slice(1, -1);
       elements.push(
@@ -330,27 +378,29 @@ const parseInline = (text: string): ReactNode[] => {
         </code>,
       );
     } else if (part.startsWith("![")) {
-      const match = part.match(/!\[(.*?)\]\((.*?)\)/);
+      const match = part.match(/!\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)/);
       if (match) {
-        const [, alt, src] = match;
+        const [, alt, src, title] = match;
         elements.push(
           <img
             key={`img-${index}`}
             src={src}
             alt={alt}
+            title={title}
             className="my-4 max-w-full h-auto rounded-lg"
           />,
         );
       }
     } else if (part.startsWith("[") && part.includes("](")) {
-      const match = part.match(/\[(.*?)\]\((.*?)\)/);
+      const match = part.match(/\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)/);
       if (match) {
-        const [, text, href] = match;
+        const [, text, href, title] = match;
         elements.push(
           <a
             key={`link-${index}`}
             href={href}
             className="text-blue-600 hover:underline"
+            title={title}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -359,7 +409,13 @@ const parseInline = (text: string): ReactNode[] => {
         );
       }
     } else {
-      elements.push(part);
+      part.split(/(  \n|\n)/).forEach((segment, segIndex) => {
+        if (segment === "\n" || segment === "  \n") {
+          elements.push(<br key={`br-${index}-${segIndex}`} />);
+        } else if (segment) {
+          elements.push(segment);
+        }
+      });
     }
   });
 
