@@ -1,7 +1,10 @@
 "use server";
 
-import type { SessionValidationResult } from "@/lib/auth";
-import { invalidateSession, validateSessionToken } from "@/lib/auth";
+import {
+  invalidateSession,
+  type SessionValidationResult,
+  validateSessionToken,
+} from "@/lib/auth";
 import { globalPOSTRateLimit } from "@/lib/request";
 import { deleteSessionTokenCookie } from "@/lib/session";
 import type { ActionResult } from "@/type";

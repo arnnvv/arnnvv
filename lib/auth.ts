@@ -1,6 +1,5 @@
 import { db } from "./db";
-import type { User, Session } from "./db/schema";
-import { users, sessions } from "./db/schema";
+import { users, sessions, type User, type Session } from "./db/schema";
 import { eq } from "drizzle-orm";
 import { sha256 } from "./sha";
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from "./encoding";

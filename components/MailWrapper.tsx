@@ -1,8 +1,7 @@
 "use client";
 
 import type { ActionResult } from "@/type";
-import { useState, useTransition } from "react";
-import type { JSX, ReactNode } from "react";
+import { type JSX, type ReactNode, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Spinner } from "./Spinner";
 
