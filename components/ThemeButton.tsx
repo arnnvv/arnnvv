@@ -30,7 +30,7 @@ export function ThemeButton(): JSX.Element {
       className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
       aria-label="Toggle theme"
       type="button"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      onMouseDown={() => setTheme(theme === "dark" ? "light" : "dark")}
     >
       {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
     </button>
