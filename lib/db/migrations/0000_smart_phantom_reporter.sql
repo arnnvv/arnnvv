@@ -14,4 +14,7 @@ CREATE TABLE "arnnvv_users" (
 	CONSTRAINT "arnnvv_users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-ALTER TABLE "arnnvv_sessions" ADD CONSTRAINT "arnnvv_sessions_user_id_arnnvv_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."arnnvv_users"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "arnnvv_sessions" ADD CONSTRAINT "arnnvv_sessions_user_id_arnnvv_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."arnnvv_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "session_user_id_idx" ON "arnnvv_sessions" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "google_id_idx" ON "arnnvv_users" USING btree ("google_id");--> statement-breakpoint
+CREATE INDEX "email_idx" ON "arnnvv_users" USING btree ("email");
