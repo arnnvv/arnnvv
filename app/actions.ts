@@ -13,7 +13,7 @@ import { createTransport } from "nodemailer";
 import { cache } from "react";
 
 export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
-  if (!globalPOSTRateLimit()) {
+  if (!(await globalPOSTRateLimit())) {
     return {
       success: false,
       message: "Rate Limit",
@@ -96,7 +96,7 @@ export const signOutAction = async (): Promise<ActionResult> => {
       message: "Not authenticated",
     };
 
-  if (!globalPOSTRateLimit()) {
+  if (!(await globalPOSTRateLimit())) {
     return {
       success: false,
       message: "Too many requests",

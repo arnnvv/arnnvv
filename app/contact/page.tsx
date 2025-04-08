@@ -4,9 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { JSX } from "react";
 import { getCurrentSession, sendEmailAtn } from "@/app/actions";
+import { globalGETRateLimit } from "@/lib/request";
 
 export default async function ContactForm(): Promise<JSX.Element> {
   const { session, user } = await getCurrentSession();
+
+  if (!(await globalGETRateLimit())) {
+    return <>TOO MANY REQs</>;
+  }
 
   return (
     <main className="bg-gray-100 dark:bg-zinc-950 flex-grow flex items-center py-6 sm:py-8 md:py-12 px-4">
