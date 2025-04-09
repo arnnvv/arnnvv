@@ -88,7 +88,7 @@ async function AuthControlsContent(): Promise<JSX.Element> {
   );
 }
 
-export async function Navbar(): Promise<JSX.Element> {
+export function Navbar(): JSX.Element {
   return (
     <nav className="bg-gray-100 dark:bg-zinc-950 py-2 sm:py-3 md:py-4 px-3 sm:px-4 border-b border-gray-200 dark:border-zinc-800">
       <div className="container mx-auto flex flex-row justify-between items-center">
