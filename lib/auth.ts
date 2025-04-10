@@ -34,6 +34,7 @@ export async function createSession(
 export async function validateSessionToken(
   token: string,
 ): Promise<SessionValidationResult> {
+  "use cache";
   const sessionId = encodeHexLowerCase(
     await sha256(new TextEncoder().encode(token)),
   );
