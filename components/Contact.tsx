@@ -4,6 +4,7 @@ import { ContactFormWrapper } from "./MailWrapper";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
+import { globalGETRateLimit } from "@/lib/request";
 
 export function ContactFormSkeleton(): JSX.Element {
   return (
@@ -20,6 +21,10 @@ export function ContactFormSkeleton(): JSX.Element {
 
 export async function ContactFormContent(): Promise<JSX.Element> {
   const { session, user } = await getCurrentSession();
+
+  if (!(await globalGETRateLimit())) {
+    return <>Rate Limited! Don't Spam</>;
+  }
 
   return (
     <div className="w-full max-w-sm sm:max-w-md mx-auto">

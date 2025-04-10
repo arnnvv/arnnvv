@@ -1,11 +1,6 @@
-import { globalGETRateLimit } from "@/lib/request";
 import type { JSX } from "react";
 
-export default async function Home(): Promise<JSX.Element> {
-  if (!(await globalGETRateLimit())) {
-    return <>TOO MANY REQs</>;
-  }
-
+export default function Home(): JSX.Element {
   return (
     <main className="flex-grow flex items-center justify-center px-4 py-8 md:p-0 dark:bg-zinc-950">
       <div className="max-w-xl w-full p-4 sm:p-8 text-center">

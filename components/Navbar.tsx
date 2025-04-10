@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { SignOutFormComponent } from "./SignOutForm";
+import { globalGETRateLimit } from "@/lib/request";
 
 function AuthControlsSkeleton(): JSX.Element {
   return (
@@ -20,6 +21,10 @@ function AuthControlsSkeleton(): JSX.Element {
 
 async function AuthControlsContent(): Promise<JSX.Element> {
   const { session, user } = await getCurrentSession();
+
+  if (!(await globalGETRateLimit())) {
+    return <>Rate Limited! Don't Spam</>;
+  }
 
   return (
     <>
