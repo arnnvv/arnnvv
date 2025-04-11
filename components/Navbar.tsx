@@ -1,5 +1,5 @@
 import { type JSX, Suspense } from "react";
-import { Home, LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
 import { ThemeButton } from "./ThemeButton";
 import { getCurrentSession, signOutAction } from "@/app/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,7 +12,6 @@ import {
 import { Button } from "./ui/button";
 import { SignOutFormComponent } from "./SignOutForm";
 import { globalGETRateLimit } from "@/lib/request";
-import Link from "next/link";
 import { HomeLink } from "./HomeLink";
 
 function AuthControlsSkeleton(): JSX.Element {

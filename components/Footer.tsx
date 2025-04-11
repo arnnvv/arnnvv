@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { JSX } from "react";
 import { ContactLink } from "./ContactLink";
 
