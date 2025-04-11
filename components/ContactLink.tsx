@@ -8,7 +8,7 @@ function LoadingIndicator(): JSX.Element | null {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShow(true), 100); //If page loads before 100ms don't show loader
+    const timer = setTimeout(() => setShow(true), 50); //If page loads before 50ms don't show loader
     return () => clearTimeout(timer);
   }, []);
 
