@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { JSX } from "react";
 
 export function Footer(): JSX.Element {
@@ -23,13 +24,13 @@ export function Footer(): JSX.Element {
           © 2025
         </div>
         <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm tracking-tight">
-          <a
+          <Link
             href="/contact"
             className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
             aria-label="Contact me"
           >
             contact me
-          </a>
+          </Link>
           {links.map((link) => (
             <a
               key={link.name}

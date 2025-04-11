@@ -12,6 +12,7 @@ import {
 import { Button } from "./ui/button";
 import { SignOutFormComponent } from "./SignOutForm";
 import { globalGETRateLimit } from "@/lib/request";
+import Link from "next/link";
 
 function AuthControlsSkeleton(): JSX.Element {
   return (
@@ -97,13 +98,13 @@ export function Navbar(): JSX.Element {
   return (
     <nav className="bg-gray-100 dark:bg-zinc-950 py-2 sm:py-3 md:py-4 px-3 sm:px-4 border-b border-gray-200 dark:border-zinc-800">
       <div className="container mx-auto flex flex-row justify-between items-center">
-        <a
+        <Link
           href="/"
           className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
           aria-label="Home"
         >
           <Home size={20} className="w-5 h-5 sm:w-6 sm:h-6" />
-        </a>
+        </Link>
 
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           <Suspense fallback={<AuthControlsSkeleton />}>
