@@ -66,7 +66,7 @@ export async function GET(request: Request): Promise<Response> {
   if (existingUser !== null) {
     const sessionToken = generateSessionToken();
     const session2 = await createSession(sessionToken, existingUser.id);
-    setSessionTokenCookie(sessionToken, session2.expiresAt);
+    setSessionTokenCookie(sessionToken, session2.expires_at);
     return new Response(null, {
       status: 302,
       headers: {
@@ -78,7 +78,7 @@ export async function GET(request: Request): Promise<Response> {
   const user = await createUser(googleId, email, name, picture);
   const sessionToken = generateSessionToken();
   const session2 = await createSession(sessionToken, user.id);
-  setSessionTokenCookie(sessionToken, session2.expiresAt);
+  setSessionTokenCookie(sessionToken, session2.expires_at);
   return new Response(null, {
     status: 302,
     headers: {
