@@ -84,6 +84,9 @@ export const getCurrentSession = cache(
       };
     }
     const result = await validateSessionToken(token);
+    if (result.session === null) {
+      await deleteSessionTokenCookie();
+    }
     return result;
   },
 );
