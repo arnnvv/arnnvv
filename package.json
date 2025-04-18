@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "d": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
+    "b": "next build",
+    "st": "next start",
     "l": "pnpm biome lint --write .",
     "f": "pnpm biome format --write .",
     "ua": "pnpm dlx shadcn@latest add"
