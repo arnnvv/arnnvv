@@ -5,6 +5,7 @@ import {
   type SessionValidationResult,
   validateSessionToken,
 } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { globalPOSTRateLimit } from "@/lib/request";
 import { deleteSessionTokenCookie } from "@/lib/session";
 import type { ActionResult } from "@/type";
@@ -116,3 +117,60 @@ export const signOutAction = async (): Promise<ActionResult> => {
     };
   }
 };
+
+export async function writeBlog(formdata: FormData): Promise<ActionResult> {
+  if (!(await globalPOSTRateLimit())) {
+    return {
+      success: false,
+      message: "Rate Limit",
+    };
+  }
+
+  const { user } = await getCurrentSession();
+  if (user?.email !== process.env.EMAILTO) {
+    return {
+      success: false,
+      message: "Not authenticated",
+    };
+  }
+
+  const title = formdata.get("title") as string;
+  const content = formdata.get("description") as string;
+
+  if (!title || title.trim().length === 0) {
+    return {
+      success: false,
+      message: "Title is needed",
+    };
+  }
+
+  if (!content || content.trim().length === 0) {
+    return {
+      success: false,
+      message: "Subject is needed",
+    };
+  }
+
+  try {
+    const result = await db.query<{ id: number }>(
+      `INSERT INTO arnnvv_blogs (title, description)
+       VALUES ($1, $2)
+       RETURNING id`,
+      [title.trim(), content.trim()],
+    );
+    if (result.rowCount === 1) {
+      const newBlogId = result.rows[0].id;
+
+      return {
+        success: true,
+        message: `Blog Written ${newBlogId}`,
+      };
+    }
+    throw new Error("Failed to insert blog post.");
+  } catch {
+    return {
+      success: false,
+      message: "Error Writing blog",
+    };
+  }
+}
