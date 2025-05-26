@@ -4,6 +4,7 @@ import { getBlogPostBySlug } from "@/app/actions";
 import { formatDate } from "@/lib/date";
 import { formatContent } from "@/lib/format";
 import type { Metadata } from "next";
+import { CommentSection } from "@/components/CommentSection";
 
 interface BlogPostPageProps {
   params: Promise<{
@@ -66,25 +67,27 @@ export async function generateMetadata({
 
 async function BlogPostItem({ slug }: { slug: string }): Promise<JSX.Element> {
   const post = await getBlogPostBySlug(slug);
-
   if (!post) {
     notFound();
   }
-
   const formattedDescription = formatContent(post.description);
-
   return (
-    <article className="prose prose-zinc dark:prose-invert lg:prose-xl mx-auto">
-      <header className="mb-8 text-center not-prose">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-zinc-50 !mb-2">
-          {post.title}
-        </h1>
-        <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
-          Published on {formatDate(post.created_at)}
-        </p>
-      </header>
-      <div>{formattedDescription}</div>
-    </article>
+    <>
+      <article className="prose prose-zinc dark:prose-invert lg:prose-xl mx-auto">
+        <header className="mb-8 text-center not-prose">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-zinc-50 !mb-2">
+            {post.title}
+          </h1>
+          <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
+            Published on {formatDate(post.created_at)}
+          </p>
+        </header>
+        <div>{formattedDescription}</div>
+      </article>
+      <div className="max-w-3xl mx-auto">
+        <CommentSection blogId={post.id} />
+      </div>
+    </>
   );
 }
 
