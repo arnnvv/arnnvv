@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   experimental: {
     ppr: "incremental",
     reactCompiler: true,
-    dynamicIO: true,
+    useCache: true,
   },
 };
 
