@@ -58,9 +58,23 @@ async function ProjectsList(): Promise<JSX.Element> {
 export default function WorkPage(): JSX.Element {
   return (
     <main className="flex-grow container mx-auto px-4 py-8">
-      <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-900 dark:text-zinc-50">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-center text-gray-900 dark:text-zinc-50">
         My Work
       </h1>
+
+      <p className="text-sm sm:text-base text-center text-gray-600 dark:text-zinc-400 mb-8">
+        For reference, the best place to look is my{" "}
+        <a
+          href="https://github.com/arnnvv"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 font-medium text-gray-800 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors"
+        >
+          GitHub
+        </a>
+        .
+      </p>
+
       <Suspense fallback={<ProjectsGridSkeleton />}>
         <ProjectsList />
       </Suspense>
