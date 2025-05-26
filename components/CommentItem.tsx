@@ -6,27 +6,28 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDate } from "@/lib/date";
 import { LikeButton } from "./LikeButton";
 import { CommentForm } from "./CommentForm";
-import { MessageSquareReply, Trash2, User as UserIcon } from "lucide-react";
+import {
+  MessageSquareReply,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  User as UserIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { deleteCommentAction } from "@/app/actions";
+import { deleteCommentAction, getRepliesForCommentAction } from "@/app/actions";
 import { toast } from "sonner";
-
-export interface CommentWithReplies extends CommentWithDetails {
-  replies: CommentWithReplies[];
-}
 
 export function CommentItem({
   comment,
   blogId,
   currentUser,
-  onReplyAdded,
   onCommentDeleted,
   depth = 0,
 }: {
-  comment: CommentWithReplies;
+  comment: CommentWithDetails;
   blogId: number;
   currentUser: User | null;
-  onReplyAdded: (newReply: CommentWithDetails, parentId: number) => void;
   onCommentDeleted: (
     deletedCommentId: number,
     parentIdOfDeleted: number | null,
@@ -35,10 +36,36 @@ export function CommentItem({
 }): JSX.Element {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
+  const [loadedReplies, setLoadedReplies] = useState<CommentWithDetails[]>([]);
+  const [areRepliesVisible, setAreRepliesVisible] = useState(false);
+  const [isLoadingReplies, startLoadingRepliesTransition] = useTransition();
+  const [currentReplyCount, setCurrentReplyCount] = useState(
+    comment.reply_count,
+  );
 
-  const handleReplyAdded = (newReply: CommentWithDetails) => {
-    onReplyAdded(newReply, comment.id);
+  const handleLocalReplyAdded = (newReply: CommentWithDetails) => {
+    setLoadedReplies((prev) =>
+      [...prev, newReply].sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      ),
+    );
+    setCurrentReplyCount((prev) => prev + 1);
+    if (!areRepliesVisible) setAreRepliesVisible(true);
     setShowReplyForm(false);
+  };
+
+  const handleChildReplyDeleted = (
+    deletedReplyId: number,
+    parentIdOfDeleted: number | null,
+  ) => {
+    if (parentIdOfDeleted === comment.id) {
+      setLoadedReplies((prevReplies) =>
+        prevReplies.filter((reply) => reply.id !== deletedReplyId),
+      );
+      setCurrentReplyCount((prevCount) => Math.max(0, prevCount - 1));
+    }
+    onCommentDeleted(deletedReplyId, parentIdOfDeleted);
   };
 
   const handleDelete = () => {
@@ -46,7 +73,6 @@ export function CommentItem({
       toast.error("You are not authorized to delete this comment.");
       return;
     }
-
     startDeleteTransition(async () => {
       const result = await deleteCommentAction(comment.id);
       if (result.success) {
@@ -56,6 +82,30 @@ export function CommentItem({
         toast.error(result.message || "Failed to delete comment.");
       }
     });
+  };
+
+  const toggleReplies = async () => {
+    if (isLoadingReplies) return;
+
+    if (areRepliesVisible) {
+      setAreRepliesVisible(false);
+    } else {
+      if (loadedReplies.length === 0 && currentReplyCount > 0) {
+        startLoadingRepliesTransition(async () => {
+          const repliesData = await getRepliesForCommentAction(comment.id);
+          setLoadedReplies(
+            repliesData.sort(
+              (a, b) =>
+                new Date(a.created_at).getTime() -
+                new Date(b.created_at).getTime(),
+            ),
+          );
+          setAreRepliesVisible(true);
+        });
+      } else {
+        setAreRepliesVisible(true);
+      }
+    }
   };
 
   const isOwnComment = currentUser?.id === comment.user_id;
@@ -93,7 +143,7 @@ export function CommentItem({
                 aria-label="Delete comment"
               >
                 {isDeleting ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                  <Loader2 size={14} className="animate-spin" />
                 ) : (
                   <Trash2 size={14} />
                 )}
@@ -123,6 +173,29 @@ export function CommentItem({
                 <span>Reply</span>
               </Button>
             )}
+            {currentReplyCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleReplies}
+                disabled={isLoadingReplies}
+                className="flex items-center gap-1 p-1 h-auto text-xs text-gray-500 dark:text-zinc-400 hover:text-blue-500"
+                aria-expanded={areRepliesVisible}
+                aria-label={areRepliesVisible ? "Hide replies" : "View replies"}
+              >
+                {isLoadingReplies ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : areRepliesVisible ? (
+                  <ChevronDown size={14} />
+                ) : (
+                  <ChevronRight size={14} />
+                )}
+                <span>
+                  {currentReplyCount}{" "}
+                  {currentReplyCount === 1 ? "Reply" : "Replies"}
+                </span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -135,7 +208,7 @@ export function CommentItem({
             blogId={blogId}
             parentCommentId={comment.id}
             currentUser={currentUser}
-            onCommentAdded={handleReplyAdded}
+            onCommentAdded={handleLocalReplyAdded}
             onCancel={() => setShowReplyForm(false)}
             placeholder={`Replying to ${comment.user_name}...`}
             submitButtonText="Post Reply"
@@ -143,21 +216,28 @@ export function CommentItem({
         </div>
       )}
 
-      {comment.replies && comment.replies.length > 0 && (
+      {areRepliesVisible && loadedReplies.length > 0 && (
         <div className="mt-3">
-          {comment.replies.map((reply) => (
+          {loadedReplies.map((reply) => (
             <CommentItem
               key={reply.id}
               comment={reply}
               blogId={blogId}
               currentUser={currentUser}
-              onReplyAdded={onReplyAdded}
-              onCommentDeleted={onCommentDeleted}
+              onCommentDeleted={handleChildReplyDeleted}
               depth={depth + 1}
             />
           ))}
         </div>
       )}
+      {areRepliesVisible &&
+        loadedReplies.length === 0 &&
+        currentReplyCount > 0 &&
+        !isLoadingReplies && (
+          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-2 pl-8 sm:pl-10">
+            No replies found or they may have been deleted.
+          </p>
+        )}
     </div>
   );
 }

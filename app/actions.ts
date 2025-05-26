@@ -247,18 +247,12 @@ export async function addCommentAction(
   formData: FormData,
 ): Promise<ActionResult & { comment?: CommentWithDetails }> {
   if (!(await globalPOSTRateLimit())) {
-    return {
-      success: false,
-      message: "Rate limit exceeded.",
-    };
+    return { success: false, message: "Rate limit exceeded." };
   }
 
   const { session, user } = await getCurrentSession();
   if (!session || !user) {
-    return {
-      success: false,
-      message: "You must be logged in to comment.",
-    };
+    return { success: false, message: "You must be logged in to comment." };
   }
 
   const content = formData.get("content") as string;
@@ -370,14 +364,58 @@ export async function getCommentsForBlogAction(
           WHERE parent_comment_id IS NOT NULL
           GROUP BY parent_comment_id
       ) r ON c.id = r.parent_comment_id
-      WHERE c.blog_id = $1
+      WHERE c.blog_id = $1 AND c.parent_comment_id IS NULL
       ORDER BY c.created_at ASC;
       `,
       [blogId, currentUserId ?? null],
     );
     return result.rows;
   } catch (e) {
-    console.error("Error fetching comments:", e);
+    console.error("Error fetching top-level comments:", e);
+    return [];
+  }
+}
+
+export async function getRepliesForCommentAction(
+  parentCommentId: number,
+): Promise<CommentWithDetails[]> {
+  const { user: currentUser } = await getCurrentSession();
+  const currentUserId = currentUser?.id;
+
+  try {
+    const result = await db.query<CommentWithDetails>(
+      `
+      SELECT
+          c.id, c.blog_id, c.user_id, c.parent_comment_id, c.content, c.created_at, c.updated_at,
+          u.name AS user_name,
+          u.picture AS user_picture,
+          COALESCE(l.like_count, 0) AS like_count,
+          EXISTS(
+              SELECT 1 FROM arnnvv_comment_likes cl_user
+              WHERE cl_user.comment_id = c.id AND cl_user.user_id = $2
+          ) AS is_liked_by_current_user,
+          COALESCE(r.reply_count, 0) as reply_count
+      FROM arnnvv_comments c
+      JOIN arnnvv_users u ON c.user_id = u.id
+      LEFT JOIN (
+          SELECT comment_id, COUNT(*) as like_count
+          FROM arnnvv_comment_likes
+          GROUP BY comment_id
+      ) l ON c.id = l.comment_id
+      LEFT JOIN (
+          SELECT parent_comment_id AS sub_parent_id, COUNT(*) as reply_count
+          FROM arnnvv_comments
+          WHERE parent_comment_id IS NOT NULL
+          GROUP BY parent_comment_id
+      ) r ON c.id = r.sub_parent_id
+      WHERE c.parent_comment_id = $1
+      ORDER BY c.created_at ASC;
+      `,
+      [parentCommentId, currentUserId ?? null],
+    );
+    return result.rows;
+  } catch (e) {
+    console.error(`Error fetching replies for comment ${parentCommentId}:`, e);
     return [];
   }
 }
@@ -405,7 +443,7 @@ export async function toggleLikeCommentAction(
 
     let isLikedAfterToggle: boolean;
 
-    if (existingLike?.rowCount && existingLike.rowCount > 0) {
+    if ((existingLike.rowCount ?? 0) > 0) {
       await db.query(
         "DELETE FROM arnnvv_comment_likes WHERE user_id = $1 AND comment_id = $2",
         [user.id, commentId],
@@ -448,10 +486,7 @@ export async function toggleLikeCommentAction(
   } catch (e) {
     console.error("Error toggling like:", e);
     if (e instanceof DatabaseError && e.code === "23503") {
-      return {
-        success: false,
-        message: "Comment not found or user invalid.",
-      };
+      return { success: false, message: "Comment not found or user invalid." };
     }
     return {
       success: false,
