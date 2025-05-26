@@ -185,7 +185,8 @@ export async function writeBlog(formdata: FormData): Promise<ActionResult> {
     if (result.rowCount === 1) {
       const newBlogId = result.rows[0].id;
       const newBlogSlug = result.rows[0].slug;
-
+      revalidatePath("/blogs");
+      revalidatePath(`/blogs/${newBlogSlug}`);
       return {
         success: true,
         message: `Blog Written (ID: ${newBlogId}, Slug: ${newBlogSlug})`,
@@ -462,20 +463,6 @@ export async function toggleLikeCommentAction(
       [commentId],
     );
     const newLikeCount = Number.parseInt(likeCountResult.rows[0].count, 10);
-
-    const commentData = await db.query<{ blog_id: number }>(
-      "SELECT blog_id FROM arnnvv_comments WHERE id = $1",
-      [commentId],
-    );
-    if (commentData.rows.length > 0) {
-      const blogPost = await db.query<{ slug: string }>(
-        "SELECT slug FROM arnnvv_blogs WHERE id = $1",
-        [commentData.rows[0].blog_id],
-      );
-      if (blogPost.rows.length > 0) {
-        revalidatePath(`/blogs/${blogPost.rows[0].slug}`);
-      }
-    }
 
     return {
       success: true,
