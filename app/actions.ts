@@ -247,12 +247,18 @@ export async function addCommentAction(
   formData: FormData,
 ): Promise<ActionResult & { comment?: CommentWithDetails }> {
   if (!(await globalPOSTRateLimit())) {
-    return { success: false, message: "Rate limit exceeded." };
+    return {
+      success: false,
+      message: "Rate limit exceeded.",
+    };
   }
 
   const { session, user } = await getCurrentSession();
   if (!session || !user) {
-    return { success: false, message: "You must be logged in to comment." };
+    return {
+      success: false,
+      message: "You must be logged in to comment.",
+    };
   }
 
   const content = formData.get("content") as string;
@@ -314,7 +320,7 @@ export async function addCommentAction(
       if (blogPost.rows.length > 0) {
         revalidatePath(`/blogs/${blogPost.rows[0].slug}`);
       } else {
-        revalidatePath("/blogs"); // Fallback revalidation
+        revalidatePath("/blogs");
       }
       return {
         success: true,
@@ -450,6 +456,74 @@ export async function toggleLikeCommentAction(
     return {
       success: false,
       message: "Error processing like. Please try again.",
+    };
+  }
+}
+
+export async function deleteCommentAction(
+  commentId: number,
+): Promise<ActionResult> {
+  if (!(await globalPOSTRateLimit())) {
+    return { success: false, message: "Rate limit exceeded." };
+  }
+
+  const { session, user } = await getCurrentSession();
+  if (!session || !user) {
+    return {
+      success: false,
+      message: "You must be logged in to delete comments.",
+    };
+  }
+
+  try {
+    const commentResult = await db.query<{ user_id: number; blog_id: number }>(
+      "SELECT user_id, blog_id FROM arnnvv_comments WHERE id = $1",
+      [commentId],
+    );
+
+    if (commentResult.rowCount === 0) {
+      return { success: false, message: "Comment not found." };
+    }
+
+    const commentOwnerId = commentResult.rows[0].user_id;
+    const blogIdOfComment = commentResult.rows[0].blog_id;
+
+    if (commentOwnerId !== user.id) {
+      return {
+        success: false,
+        message: "You are not authorized to delete this comment.",
+      };
+    }
+
+    const deleteOp = await db.query(
+      "DELETE FROM arnnvv_comments WHERE id = $1",
+      [commentId],
+    );
+
+    if (deleteOp.rowCount === 0) {
+      return {
+        success: false,
+        message: "Failed to delete comment or comment already deleted.",
+      };
+    }
+
+    const blogPost = await db.query<{ slug: string }>(
+      "SELECT slug FROM arnnvv_blogs WHERE id = $1",
+      [blogIdOfComment],
+    );
+    if (blogPost.rows.length > 0) {
+      revalidatePath(`/blogs/${blogPost.rows[0].slug}`);
+    } else {
+      revalidatePath("/blogs");
+    }
+
+    return { success: true, message: "Comment deleted successfully." };
+  } catch (e) {
+    console.error("Error deleting comment:", e);
+    return {
+      success: false,
+      message:
+        "An error occurred while deleting the comment. Please try again.",
     };
   }
 }

@@ -67,20 +67,9 @@ export function ActionFormWrapper<TData = unknown>({
       action={handleSubmit}
       className={className}
       ref={formRef}
-      onSubmit={(e) => {
-        // If you are not using the native form action, prevent default
-        // e.preventDefault(); handleSubmit(new FormData(e.currentTarget));
-      }}
+      onSubmit={() => {}}
     >
       {children}
-      {/*
-        If you want a generic submit button handled by this wrapper:
-        {submitButtonContent && (
-          <Button type="submit" disabled={isPending}>
-            {isPending ? <Spinner /> : submitButtonContent}
-          </Button>
-        )}
-      */}
       {errorMessage && (
         <p className="mt-2 text-sm text-red-600 dark:text-red-400">
           {errorMessage}

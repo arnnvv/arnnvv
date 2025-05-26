@@ -6,24 +6,18 @@ import { CommentItem, type CommentWithReplies } from "./CommentItem";
 
 function buildCommentTree(
   comments: CommentWithDetails[],
+  parentId: number | null = null,
 ): CommentWithReplies[] {
-  const commentMap: { [key: number]: CommentWithReplies } = {};
-  const rootComments: CommentWithReplies[] = [];
-
-  for (const comment of comments) {
-    commentMap[comment.id] = { ...comment, replies: [] };
-  }
-
-  for (const comment of comments) {
-    if (comment.parent_comment_id && commentMap[comment.parent_comment_id]) {
-      commentMap[comment.parent_comment_id].replies.push(
-        commentMap[comment.id],
-      );
-    } else {
-      rootComments.push(commentMap[comment.id]);
-    }
-  }
-  return rootComments;
+  return comments
+    .filter((comment) => comment.parent_comment_id === parentId)
+    .map((comment) => ({
+      ...comment,
+      replies: buildCommentTree(comments, comment.id),
+    }))
+    .sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    );
 }
 
 export function CommentList({
@@ -35,15 +29,20 @@ export function CommentList({
   blogId: number;
   currentUser: User | null;
 }): JSX.Element {
-  const [comments, setComments] =
+  const [allCommentsFlat, setAllCommentsFlat] =
     useState<CommentWithDetails[]>(initialComments);
 
   useEffect(() => {
-    setComments(initialComments);
+    setAllCommentsFlat(
+      initialComments.sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      ),
+    );
   }, [initialComments]);
 
   const handleCommentOrReplyAdded = (newComment: CommentWithDetails) => {
-    setComments((prevComments) =>
+    setAllCommentsFlat((prevComments) =>
       [...prevComments, newComment].sort(
         (a, b) =>
           new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
@@ -51,9 +50,33 @@ export function CommentList({
     );
   };
 
-  const commentTree = buildCommentTree(comments);
+  const handleCommentDeleted = (deletedCommentId: number) => {
+    const commentsToDelete = new Set<number>();
+    const queue: number[] = [deletedCommentId];
+    commentsToDelete.add(deletedCommentId);
 
-  if (commentTree.length === 0) {
+    while (queue.length > 0) {
+      const currentParentId = queue.shift();
+      if (currentParentId === undefined) {
+        throw new Error(
+          "Invariant violated: queue should never be empty here.",
+        );
+      }
+      for (const comment of allCommentsFlat) {
+        if (comment.parent_comment_id === currentParentId) {
+          commentsToDelete.add(comment.id);
+          queue.push(comment.id);
+        }
+      }
+    }
+    setAllCommentsFlat((prevComments) =>
+      prevComments.filter((c) => !commentsToDelete.has(c.id)),
+    );
+  };
+
+  const commentTreeToRender = buildCommentTree(allCommentsFlat, null);
+
+  if (commentTreeToRender.length === 0) {
     return (
       <p className="text-sm text-gray-500 dark:text-zinc-400 my-4">
         Be the first to comment!
@@ -63,13 +86,14 @@ export function CommentList({
 
   return (
     <div className="space-y-4 divide-y divide-gray-200 dark:divide-zinc-700">
-      {commentTree.map((comment) => (
+      {commentTreeToRender.map((comment) => (
         <CommentItem
           key={comment.id}
           comment={comment}
           blogId={blogId}
           currentUser={currentUser}
           onReplyAdded={handleCommentOrReplyAdded}
+          onCommentDeleted={handleCommentDeleted}
         />
       ))}
     </div>
