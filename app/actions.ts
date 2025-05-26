@@ -12,6 +12,9 @@ import type { ActionResult } from "@/type";
 import { cookies } from "next/headers";
 import { createTransport } from "nodemailer";
 import { cache } from "react";
+import { slugify } from "@/lib/utils";
+import type { BlogSummary, BlogPost } from "@/lib/db/types";
+import { DatabaseError } from "pg";
 
 export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
   if (!(await globalPOSTRateLimit())) {
@@ -118,6 +121,24 @@ export const signOutAction = async (): Promise<ActionResult> => {
   }
 };
 
+async function findUniqueSlug(title: string): Promise<string> {
+  const baseSlug = slugify(title);
+  let uniqueSlug = baseSlug;
+  let counter = 0;
+
+  while (true) {
+    const { rows } = await db.query<{ slug: string }>(
+      "SELECT slug FROM arnnvv_blogs WHERE slug = $1",
+      [uniqueSlug],
+    );
+    if (rows.length === 0) {
+      return uniqueSlug;
+    }
+    counter++;
+    uniqueSlug = `${baseSlug}-${counter}`;
+  }
+}
+
 export async function writeBlog(formdata: FormData): Promise<ActionResult> {
   if (!(await globalPOSTRateLimit())) {
     return {
@@ -147,30 +168,76 @@ export async function writeBlog(formdata: FormData): Promise<ActionResult> {
   if (!content || content.trim().length === 0) {
     return {
       success: false,
-      message: "Subject is needed",
+      message: "Content is needed",
     };
   }
 
   try {
-    const result = await db.query<{ id: number }>(
-      `INSERT INTO arnnvv_blogs (title, description)
-       VALUES ($1, $2)
-       RETURNING id`,
-      [title.trim(), content.trim()],
+    const slug = await findUniqueSlug(title.trim());
+
+    const result = await db.query<{ id: number; slug: string }>(
+      `INSERT INTO arnnvv_blogs (title, slug, description)
+       VALUES ($1, $2, $3)
+       RETURNING id, slug`,
+      [title.trim(), slug, content.trim()],
     );
     if (result.rowCount === 1) {
       const newBlogId = result.rows[0].id;
+      const newBlogSlug = result.rows[0].slug;
 
       return {
         success: true,
-        message: `Blog Written ${newBlogId}`,
+        message: `Blog Written (ID: ${newBlogId}, Slug: ${newBlogSlug})`,
       };
     }
     throw new Error("Failed to insert blog post.");
-  } catch {
+  } catch (e) {
+    console.error("Error writing blog:", e);
+    if (e instanceof DatabaseError && e.code === "23505") {
+      return {
+        success: false,
+        message:
+          "A blog with a similar title already exists. Please try a different title.",
+      };
+    }
     return {
       success: false,
-      message: "Error Writing blog",
+      message: "Error Writing blog. Please try again.",
     };
+  }
+}
+
+export async function getBlogSummaries(): Promise<BlogSummary[]> {
+  try {
+    const result = await db.query<BlogSummary>(
+      `SELECT id, title, slug, created_at
+       FROM arnnvv_blogs
+       ORDER BY created_at DESC`,
+    );
+    return result.rows;
+  } catch (e) {
+    console.error("Error fetching blog summaries:", e);
+    return [];
+  }
+}
+
+export async function getBlogPostBySlug(
+  slug: string,
+): Promise<BlogPost | null> {
+  try {
+    const result = await db.query<BlogPost>(
+      `SELECT id, title, slug, description, created_at
+       FROM arnnvv_blogs
+       WHERE slug = $1
+       LIMIT 1`,
+      [slug],
+    );
+    if (result.rowCount === 0) {
+      return null;
+    }
+    return result.rows[0];
+  } catch (e) {
+    console.error(`Error fetching blog post by slug (${slug}):`, e);
+    return null;
   }
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { JSX } from "react";
 
 export default function Home(): JSX.Element {
@@ -16,10 +17,18 @@ export default function Home(): JSX.Element {
           Code is just the tool; the real obsession lies in figuring out how
           things work (or how they can work better).
         </p>
-        <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-zinc-200">
+        <p className="text-sm sm:text-base md:text-lg mb-6 md:mb-8 text-gray-600 dark:text-zinc-200">
           Whether it's designing scalable systems, launching new ideas, or
           pushing the limits of what's possible, there's always something in the
           pipeline.
+        </p>
+        <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-zinc-200">
+          <Link
+            href="/blogs"
+            className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-500 underline transition-colors duration-200"
+          >
+            read my writings
+          </Link>
         </p>
       </div>
     </main>
