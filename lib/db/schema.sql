@@ -40,6 +40,39 @@ CREATE TABLE "arnnvv_comment_likes" (
     PRIMARY KEY ("user_id", "comment_id")
 );
 
+CREATE TABLE "arnnvv_projects" (
+    "id"            SERIAL PRIMARY KEY NOT NULL,
+    "title"         VARCHAR NOT NULL,
+    "description"   TEXT NOT NULL
+);
+
+CREATE TABLE "arnnvv_project_technologies" (
+    "id"            SERIAL PRIMARY KEY NOT NULL,
+    "project_id"    INTEGER NOT NULL,
+    "technology"    VARCHAR NOT NULL
+);
+
+CREATE TABLE "arnnvv_project_links" (
+    "id"            SERIAL PRIMARY KEY NOT NULL,
+    "project_id"    INTEGER NOT NULL,
+    "link_type"     VARCHAR NOT NULL,
+    "url"           TEXT NOT NULL
+);
+
+ALTER TABLE "arnnvv_project_technologies"
+ADD CONSTRAINT "arnnvv_project_technologies_project_id_arnnvv_projects_id_fk"
+FOREIGN KEY ("project_id")
+REFERENCES "arnnvv_projects"("id")
+ON DELETE CASCADE
+ON UPDATE NO ACTION;
+
+ALTER TABLE "arnnvv_project_links"
+ADD CONSTRAINT "arnnvv_project_links_project_id_arnnvv_projects_id_fk"
+FOREIGN KEY ("project_id")
+REFERENCES "arnnvv_projects"("id")
+ON DELETE CASCADE
+ON UPDATE NO ACTION;
+
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN

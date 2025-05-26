@@ -50,3 +50,27 @@ export type CommentWithDetails = Comment & {
   is_liked_by_current_user: boolean;
   reply_count: number;
 };
+
+export type ProjectTechnology = {
+  id: number;
+  project_id: number;
+  technology: string;
+};
+
+export type ProjectLink = {
+  id: number;
+  project_id: number;
+  link_type: string;
+  url: string;
+};
+
+export type Project = {
+  id: number;
+  title: string;
+  description: string;
+};
+
+export type ProjectWithDetails = Project & {
+  technologies: string[];
+  links: Array<{ link_type: string; url: string }>;
+};

@@ -4,6 +4,7 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { ContactFormWrapper } from "./MailWrapper";
+import { ProjectForm } from "./ProjectsForm";
 
 export async function Write(): Promise<JSX.Element> {
   const { user } = await getCurrentSession();
@@ -66,6 +67,12 @@ export async function Write(): Promise<JSX.Element> {
             </Button>
           </div>
         </ContactFormWrapper>
+      </div>
+      <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-900 dark:text-zinc-50">
+        Add New Project
+      </h1>
+      <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 p-6 sm:p-8 rounded-lg shadow-md">
+        <ProjectForm />
       </div>
     </main>
   );
