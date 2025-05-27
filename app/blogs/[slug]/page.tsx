@@ -64,14 +64,18 @@ export async function generateMetadata({
           width: 1200,
           height: 630,
           alt: post.title,
+          type: "image/png",
         },
       ],
+      siteName: "Arnav Sharma's Blog",
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: excerpt,
       images: [imageUrl],
+      creator: "@arnnvv",
+      site: "@arnnvv",
     },
   };
 }
