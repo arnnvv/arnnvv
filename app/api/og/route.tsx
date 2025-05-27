@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     [slug],
   );
   if (result.rowCount === 0) {
-    return null;
+    return new Response("Post not found", { status: 404 });
   }
   const post = result.rows[0];
 
