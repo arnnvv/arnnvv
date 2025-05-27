@@ -111,8 +111,9 @@ export async function GET(request: Request) {
       width: 1200,
       height: 630,
       headers: {
-        "Content-Type": "image/png",
+        "Content-Type": "image/jpeg",
         "Cache-Control": "public, max-age=31536000, immutable",
+        "Content-Length": "auto",
       },
     },
   );

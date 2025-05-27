@@ -64,7 +64,7 @@ export async function generateMetadata({
           width: 1200,
           height: 630,
           alt: post.title,
-          type: "image/png",
+          type: "image/jpeg",
         },
       ],
       siteName: "Arnav Sharma's Blog",
@@ -76,6 +76,10 @@ export async function generateMetadata({
       images: [imageUrl],
       creator: "@arnnvv",
       site: "@arnnvv",
+    },
+    other: {
+      "twitter:image": imageUrl,
+      "twitter:image:alt": post.title,
     },
   };
 }
