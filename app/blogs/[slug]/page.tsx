@@ -46,7 +46,7 @@ export async function generateMetadata({
       ? `${post.description.substring(0, 150).replace(/\s+\S*$/, "")}...`
       : post.description;
 
-  const imageUrl = `https://arnnvv.vercel.app/api/og?slug=${slug}`;
+  const imageUrl = `https://www.arnnvv.sbs/api/og?slug=${slug}`;
 
   return {
     title: `${post.title} | Arnav Sharma`,
@@ -68,7 +68,7 @@ export async function generateMetadata({
       type: "article",
       publishedTime: post.created_at.toISOString(),
       authors: ["Arnav Sharma"],
-      url: `https://arnnvv.vercel.app/blogs/${post.slug}`,
+      url: `https://www.arnnvv.sbs/blogs/${post.slug}`,
       images: [
         {
           url: imageUrl,
