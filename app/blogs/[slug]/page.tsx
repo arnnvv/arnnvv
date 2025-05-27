@@ -81,6 +81,7 @@ export async function generateMetadata({
     twitter: {
       title: post.title,
       description: excerpt,
+      card: "summary_large_image",
       images: [
         {
           url: imageUrl,
