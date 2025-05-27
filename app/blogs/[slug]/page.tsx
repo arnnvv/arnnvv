@@ -58,7 +58,14 @@ export async function generateMetadata({
       publishedTime: post.created_at.toISOString(),
       authors: ["Arnav Sharma"],
       url: `https://arnnvv.vercel.app/blogs/${post.slug}`,
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: post.title }],
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
