@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
-import { getBlogPostBySlug } from "@/app/actions";
+import { db } from "@/lib/db";
+import type { BlogPost } from "@/lib/db/types";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -9,7 +10,17 @@ export async function GET(request: Request) {
     return new Response("Missing slug", { status: 400 });
   }
 
-  const post = await getBlogPostBySlug(slug);
+  const result = await db.query<BlogPost>(
+    `SELECT id, title, slug, description, created_at
+       FROM arnnvv_blogs
+       WHERE slug = $1
+       LIMIT 1`,
+    [slug],
+  );
+  if (result.rowCount === 0) {
+    return null;
+  }
+  const post = result.rows[0];
 
   if (!post) {
     return new Response("Post not found", { status: 404 });
@@ -116,14 +127,5 @@ export async function GET(request: Request) {
         </div>
       </div>
     </div>,
-    {
-      width: 1200,
-      height: 630,
-      headers: {
-        "Content-Type": "image/jpeg",
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "Content-Length": "auto",
-      },
-    },
   );
 }
