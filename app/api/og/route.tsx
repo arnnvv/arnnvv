@@ -15,6 +15,15 @@ export async function GET(request: Request) {
     return new Response("Post not found", { status: 404 });
   }
 
+  if (!post.title || !post.description || !post.created_at) {
+    console.error("Post missing required fields:", {
+      title: !!post.title,
+      description: !!post.description,
+      created_at: !!post.created_at,
+    });
+    return new Response("Post data incomplete", { status: 500 });
+  }
+
   const formattedDate = new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "long",
