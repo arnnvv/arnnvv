@@ -27,25 +27,23 @@ export default function Home(): JSX.Element {
         <div className="space-y-6 text-base sm:text-lg leading-relaxed">
           <p className="text-muted-foreground">
             Currently navigating my undergrad at{" "}
-            <span className="text-primary font-semibold">IIT Roorkee</span>, I
-            spend most of my time building, breaking, and rebuilding
-            things—sometimes for fun, sometimes because curiosity gets the
-            better of me.
+            <span className="text-primary font-semibold">IIT Roorkee</span>,
+            exploring systems, software, and the thinking behind how things
+            work. I spend most of my time building small tools, testing ideas,
+            and learning by doing.
           </p>
 
           <p className="text-muted-foreground">
-            Code is just the tool; the real obsession lies in figuring out how
-            things work{" "}
-            <span className="italic text-foreground">
-              (or how they can work better)
-            </span>
-            .
+            My focus is on clarity, leverage, and execution—finding what
+            compounds over time and cutting out what doesn’t. I care about how
+            systems scale, how decisions age, and how to make things that are
+            simple, robust, and useful.
           </p>
 
           <p className="text-muted-foreground">
-            Whether it's designing scalable systems, launching new ideas, or
-            pushing the limits of what's possible, there's always something in
-            the pipeline.
+            I don’t have all the answers, but I ask better questions each week.
+            For me, building is a way to think—about design, about tradeoffs,
+            and about what matters.
           </p>
         </div>
 
@@ -64,24 +62,6 @@ export default function Home(): JSX.Element {
           >
             Look at my work
           </Link>
-        </div>
-
-        <div className="mt-16 flex justify-center">
-          <div className="animate-bounce">
-            <svg
-              className="w-6 h-6 text-muted-foreground"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
-              />
-            </svg>
-          </div>
         </div>
       </div>
     </main>

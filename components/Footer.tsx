@@ -18,8 +18,10 @@ export function Footer(): JSX.Element {
   ];
 
   return (
-    <footer className="bg-gray-100 dark:bg-zinc-950 py-2 sm:py-3 md:py-4 px-3 sm:px-4 border-t border-gray-200 dark:border-zinc-800">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
+    <footer className="relative backdrop-blur-md bg-card/70 border-t border-border/50 py-2 sm:py-3 md:py-4 px-3 sm:px-4">
+      <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-transparent to-primary/5 dark:from-accent/10 dark:to-primary/10" />
+
+      <div className="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
         <div className="text-xs sm:text-sm text-gray-400 dark:text-zinc-400">
           © 2025
         </div>

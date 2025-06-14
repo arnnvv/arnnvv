@@ -96,8 +96,10 @@ async function AuthControlsContent(): Promise<JSX.Element> {
 
 export function Navbar(): JSX.Element {
   return (
-    <nav className="bg-gray-100 dark:bg-zinc-950 py-2 sm:py-3 md:py-4 px-3 sm:px-4 border-b border-gray-200 dark:border-zinc-800">
-      <div className="flex flex-row justify-between items-center">
+    <nav className="relative backdrop-blur-md bg-card/70 border-b border-border/50 py-2 sm:py-3 md:py-4 px-3 sm:px-4">
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
+
+      <div className="relative z-10 flex flex-row justify-between items-center">
         <HomeLink />
 
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">

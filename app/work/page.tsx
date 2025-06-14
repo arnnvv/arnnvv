@@ -92,10 +92,8 @@ async function ProjectsGrid(): Promise<JSX.Element> {
 export default function WorkPage(): JSX.Element {
   return (
     <main className="flex-grow relative overflow-hidden">
-      {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
 
-      {/* Floating elements */}
       <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float" />
       <div
         className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
@@ -108,31 +106,14 @@ export default function WorkPage(): JSX.Element {
 
       <div className="container mx-auto px-4 py-12 relative z-10">
         <header className="text-center mb-16">
-          <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 border border-primary/20">
-            <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse" />
-            Built with passion and precision
-          </div>
-
           <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             My Work
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            A showcase of projects that represent my journey in technology,
-            innovation, and problem-solving.
-          </p>
         </header>
 
         <Suspense fallback={<ProjectsGridSkeleton />}>
           <ProjectsGrid />
         </Suspense>
-
-        {/* Bottom decorative section */}
-        <div className="mt-20 text-center">
-          <div className="w-12 h-px bg-gradient-to-r from-transparent via-border to-transparent mx-auto mb-8" />
-          <p className="text-sm text-muted-foreground">
-            Each project tells a story of curiosity, learning, and growth
-          </p>
-        </div>
       </div>
     </main>
   );
