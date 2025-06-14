@@ -97,7 +97,6 @@ async function BlogList(): Promise<JSX.Element> {
                 {formatDate(blog.created_at)}
               </time>
               <span className="mx-2">•</span>
-              <span>Article</span>
             </div>
           </Link>
         </article>
@@ -115,10 +114,6 @@ export default function BlogsPage(): JSX.Element {
             <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               My Writings
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              A collection of thoughts, insights, and stories from my journey in
-              technology and beyond.
-            </p>
           </header>
 
           <Suspense fallback={<BlogListSkeleton />}>
