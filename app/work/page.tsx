@@ -5,29 +5,37 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "My Work",
-  description: "A showcase of projects built by me.",
+  description: "An artist's gallery lol",
 };
 
 function ProjectsGridSkeleton(): JSX.Element {
   const skeletonItems = Array.from(
-    { length: 3 },
+    { length: 6 },
     (_, i) => `project-skeleton-${i}`,
   );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
-      {skeletonItems.map((id) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse">
+      {skeletonItems.map((id, index) => (
         <div
           key={id}
-          className="p-6 border border-gray-200 dark:border-zinc-700 rounded-lg shadow-sm space-y-4"
+          className="p-6 rounded-2xl border border-border bg-card/50 backdrop-blur-sm"
+          style={{ animationDelay: `${index * 0.1}s` }}
         >
-          <div className="h-6 bg-gray-300 dark:bg-zinc-600 rounded w-3/4" />
-          <div className="h-4 bg-gray-300 dark:bg-zinc-600 rounded w-full" />
-          <div className="h-4 bg-gray-300 dark:bg-zinc-600 rounded w-5/6" />
-          <div className="h-4 bg-gray-300 dark:bg-zinc-600 rounded w-1/2 mt-2" />
-          <div className="flex gap-2 mt-3">
-            <div className="h-5 w-16 bg-gray-300 dark:bg-zinc-600 rounded-full" />
-            <div className="h-5 w-20 bg-gray-300 dark:bg-zinc-600 rounded-full" />
+          <div className="h-8 bg-muted rounded-lg w-3/4 mb-4" />
+          <div className="space-y-3 mb-6">
+            <div className="h-4 bg-muted rounded w-full" />
+            <div className="h-4 bg-muted rounded w-full" />
+            <div className="h-4 bg-muted rounded w-2/3" />
+          </div>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-6 bg-muted rounded-full w-16" />
+            ))}
+          </div>
+          <div className="flex gap-3">
+            <div className="h-8 bg-muted rounded w-20" />
+            <div className="h-8 bg-muted rounded w-16" />
           </div>
         </div>
       ))}
@@ -35,21 +43,47 @@ function ProjectsGridSkeleton(): JSX.Element {
   );
 }
 
-async function ProjectsList(): Promise<JSX.Element> {
+async function ProjectsGrid(): Promise<JSX.Element> {
   const projects = await getProjectsAction();
 
   if (projects.length === 0) {
     return (
-      <p className="text-center text-gray-500 dark:text-zinc-400 col-span-full">
-        No projects to display yet. Check back soon!
-      </p>
+      <div className="text-center py-16">
+        <div className="w-24 h-24 mx-auto mb-6 bg-muted rounded-full flex items-center justify-center">
+          <svg
+            className="w-12 h-12 text-muted-foreground"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+            />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-2">
+          No projects yet
+        </h3>
+        <p className="text-muted-foreground">
+          Stay tuned for upcoming projects and innovations!
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-      {projects.map((project) => (
-        <ProjectCard key={project.id} project={project} />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {projects.map((project, index) => (
+        <div
+          key={project.id}
+          className="animate-fade-in"
+          style={{ animationDelay: `${index * 0.1}s` }}
+        >
+          <ProjectCard project={project} />
+        </div>
       ))}
     </div>
   );
@@ -57,27 +91,49 @@ async function ProjectsList(): Promise<JSX.Element> {
 
 export default function WorkPage(): JSX.Element {
   return (
-    <main className="flex-grow container mx-auto px-4 py-8">
-      <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-center text-gray-900 dark:text-zinc-50">
-        My Work
-      </h1>
+    <main className="flex-grow relative overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
 
-      <p className="text-sm sm:text-base text-center text-gray-600 dark:text-zinc-400 mb-8">
-        For reference, the best place to look is my{" "}
-        <a
-          href="https://github.com/arnnvv"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 font-medium text-gray-800 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors"
-        >
-          GitHub
-        </a>
-        .
-      </p>
+      {/* Floating elements */}
+      <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float" />
+      <div
+        className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
+        style={{ animationDelay: "3s" }}
+      />
+      <div
+        className="absolute top-1/2 left-1/4 w-16 h-16 bg-primary/5 rounded-full blur-lg animate-float"
+        style={{ animationDelay: "1.5s" }}
+      />
 
-      <Suspense fallback={<ProjectsGridSkeleton />}>
-        <ProjectsList />
-      </Suspense>
+      <div className="container mx-auto px-4 py-12 relative z-10">
+        <header className="text-center mb-16">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 border border-primary/20">
+            <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse" />
+            Built with passion and precision
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            My Work
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            A showcase of projects that represent my journey in technology,
+            innovation, and problem-solving.
+          </p>
+        </header>
+
+        <Suspense fallback={<ProjectsGridSkeleton />}>
+          <ProjectsGrid />
+        </Suspense>
+
+        {/* Bottom decorative section */}
+        <div className="mt-20 text-center">
+          <div className="w-12 h-px bg-gradient-to-r from-transparent via-border to-transparent mx-auto mb-8" />
+          <p className="text-sm text-muted-foreground">
+            Each project tells a story of curiosity, learning, and growth
+          </p>
+        </div>
+      </div>
     </main>
   );
 }
