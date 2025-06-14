@@ -115,8 +115,13 @@ async function BlogPostItem({ slug }: { slug: string }): Promise<JSX.Element> {
         </header>
         <div>{formattedDescription}</div>
       </article>
-      <div className="max-w-3xl mx-auto">
-        <CommentSection blogId={post.id} />
+
+      <div className="max-w-4xl mx-auto mt-16">
+        <Suspense
+          fallback={<div className="h-64 bg-muted/20 rounded animate-pulse" />}
+        >
+          <CommentSection blogId={post.id} />
+        </Suspense>
       </div>
     </>
   );
@@ -128,10 +133,19 @@ async function BlogPostPageContent({
   const { slug } = await params;
 
   return (
-    <main className="flex-grow container mx-auto px-4 py-8">
-      <Suspense fallback={<BlogPostSkeleton />}>
-        <BlogPostItem slug={slug} />
-      </Suspense>
+    <main className="flex-grow relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
+      <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float" />
+      <div
+        className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
+        style={{ animationDelay: "2s" }}
+      />
+
+      <div className="container mx-auto px-4 py-12 relative z-10">
+        <Suspense fallback={<BlogPostSkeleton />}>
+          <BlogPostItem slug={slug} />
+        </Suspense>
+      </div>
     </main>
   );
 }
