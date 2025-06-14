@@ -9,7 +9,7 @@ import { Navbar } from "@/components/Navbar";
 import { ThemeProvider } from "next-themes";
 
 export const metadata: Metadata = {
-  title: "Arnav Sharna: Beyond the screen",
+  title: "Arnav Sharma: Beyond the screen",
   description: "Welcome to my digital world",
   keywords: [
     "arnav",
@@ -51,6 +51,7 @@ export const viewport: Viewport = {
 const fontSans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
 });
 
 export default function RootLayout({
@@ -66,13 +67,20 @@ export default function RootLayout({
           fontSans.variable,
         )}
       >
-        <ThemeProvider attribute="class">
-          <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-zinc-950">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <div className="min-h-screen flex flex-col relative">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-30" />
+
             <Navbar />
             {children}
             <Footer />
           </div>
-          <Toaster richColors={true} />
+          <Toaster
+            richColors={true}
+            position="top-right"
+            expand={true}
+            duration={4000}
+          />
         </ThemeProvider>
       </body>
     </html>

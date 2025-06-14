@@ -13,16 +13,19 @@ function BlogListSkeleton(): JSX.Element {
   const skeletonItems = Array.from({ length: 3 }, (_, i) => `skeleton-${i}`);
 
   return (
-    <div className="space-y-6 animate-pulse">
+    <div className="space-y-8 animate-pulse">
       {skeletonItems.map((id) => (
-        <div
+        <article
           key={id}
-          className="p-4 border border-gray-200 dark:border-zinc-700 rounded-lg shadow-sm"
+          className="group relative p-6 rounded-2xl border border-border bg-card/50 backdrop-blur-sm"
         >
-          <div className="h-6 bg-gray-300 dark:bg-zinc-600 rounded w-3/4 mb-2" />
-          <div className="h-4 bg-gray-300 dark:bg-zinc-600 rounded w-1/2 mb-3" />
-          <div className="h-4 bg-gray-300 dark:bg-zinc-600 rounded w-1/4" />
-        </div>
+          <div className="h-8 bg-muted rounded-lg w-3/4 mb-3" />
+          <div className="h-4 bg-muted rounded w-1/2 mb-4" />
+          <div className="flex items-center justify-between">
+            <div className="h-4 bg-muted rounded w-1/4" />
+            <div className="h-8 w-8 bg-muted rounded-full" />
+          </div>
+        </article>
       ))}
     </div>
   );
@@ -33,27 +36,70 @@ async function BlogList(): Promise<JSX.Element> {
 
   if (blogs.length === 0) {
     return (
-      <p className="text-center text-gray-500 dark:text-zinc-400">
-        No blog posts yet. Stay tuned!
-      </p>
+      <div className="text-center py-16">
+        <div className="w-24 h-24 mx-auto mb-6 bg-muted rounded-full flex items-center justify-center">
+          <svg
+            className="w-12 h-12 text-muted-foreground"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-2">
+          No posts yet
+        </h3>
+        <p className="text-muted-foreground">
+          Stay tuned for upcoming articles and insights!
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {blogs.map((blog) => (
+    <div className="space-y-8">
+      {blogs.map((blog, index) => (
         <article
           key={blog.id}
-          className="p-4 sm:p-6 border border-gray-200 dark:border-zinc-700 rounded-lg hover:shadow-lg transition-shadow duration-200 ease-in-out"
+          className="group relative p-6 rounded-2xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1"
+          style={{ animationDelay: `${index * 0.1}s` }}
         >
-          <Link href={`/blogs/${blog.slug}`} className="group">
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-zinc-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-              {blog.title}
-            </h2>
+          <Link href={`/blogs/${blog.slug}`} className="block">
+            <div className="flex items-start justify-between mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1 pr-4">
+                {blog.title}
+              </h2>
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <div className="flex items-center text-sm text-muted-foreground">
+              <time dateTime={blog.created_at.toISOString()}>
+                {formatDate(blog.created_at)}
+              </time>
+              <span className="mx-2">•</span>
+              <span>Article</span>
+            </div>
           </Link>
-          <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">
-            Published on {formatDate(blog.created_at)}
-          </p>
         </article>
       ))}
     </div>
@@ -62,13 +108,24 @@ async function BlogList(): Promise<JSX.Element> {
 
 export default function BlogsPage(): JSX.Element {
   return (
-    <main className="flex-grow container mx-auto px-4 py-8">
-      <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-900 dark:text-zinc-50">
-        My Writings
-      </h1>
-      <Suspense fallback={<BlogListSkeleton />}>
-        <BlogList />
-      </Suspense>
+    <main className="flex-grow">
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          <header className="text-center mb-16">
+            <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              My Writings
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              A collection of thoughts, insights, and stories from my journey in
+              technology and beyond.
+            </p>
+          </header>
+
+          <Suspense fallback={<BlogListSkeleton />}>
+            <BlogList />
+          </Suspense>
+        </div>
+      </div>
     </main>
   );
 }
