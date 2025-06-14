@@ -77,7 +77,7 @@ export default function RootLayout({
           </div>
           <Toaster
             richColors={true}
-            position="top-right"
+            position="bottom-center"
             expand={true}
             duration={4000}
           />
