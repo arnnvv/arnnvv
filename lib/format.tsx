@@ -58,7 +58,7 @@ export const formatContent = (content: string): JSX.Element[] => {
       elements.push(
         <pre
           key={`pre-${elements.length}`}
-          className="bg-gray-100 p-4 rounded-lg my-4 overflow-x-auto"
+          className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg my-4 overflow-x-auto"
         >
           <code
             className={codeBlockLanguage ? `language-${codeBlockLanguage}` : ""}
@@ -77,7 +77,7 @@ export const formatContent = (content: string): JSX.Element[] => {
       elements.push(
         <blockquote
           key={`blockquote-${elements.length}`}
-          className="border-l-4 border-gray-300 pl-4 my-4 text-gray-600"
+          className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 my-4 text-gray-600 dark:text-gray-400"
         >
           {blockquoteContent.map((entry) => (
             <p key={`blockquote-line-${entry.lineIndex}`}>
@@ -135,37 +135,42 @@ export const formatContent = (content: string): JSX.Element[] => {
     if (headers.length === 0 || rows.length === 0) return null;
 
     return (
-      <table
-        key={`table-${key}`}
-        className="w-full border-collapse border border-gray-200 mb-4"
-      >
-        <thead>
-          <tr>
-            {headers.map((header, index) => (
-              <th
-                key={`th-${tableData[0].lineIndex}-${index}`}
-                className={`border border-gray-300 p-2 font-semibold ${alignments[index]}`}
-              >
-                {parseInline(header, tableData[0].lineIndex)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((rowEntry) => (
-            <tr key={`tr-${rowEntry.lineIndex}`}>
-              {rowEntry.cells.map((cell, cellIndex) => (
-                <td
-                  key={`td-${rowEntry.lineIndex}-${cellIndex}`}
-                  className={`border border-gray-300 p-2 ${alignments[cellIndex]}`}
+      <div className="my-6 overflow-x-auto">
+        <table
+          key={`table-${key}`}
+          className="w-full text-left border-collapse"
+        >
+          <thead>
+            <tr>
+              {headers.map((header, index) => (
+                <th
+                  key={`th-${tableData[0].lineIndex}-${index}`}
+                  className={`p-4 border-b-2 border-gray-200 dark:border-gray-700 pb-3 text-sm font-semibold text-gray-800 dark:text-gray-200 uppercase tracking-wider ${alignments[index]}`}
                 >
-                  {parseInline(cell, rowEntry.lineIndex + cellIndex)}
-                </td>
+                  {parseInline(header, tableData[0].lineIndex)}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((rowEntry) => (
+              <tr
+                key={`tr-${rowEntry.lineIndex}`}
+                className="border-b border-gray-200 dark:border-gray-800"
+              >
+                {rowEntry.cells.map((cell, cellIndex) => (
+                  <td
+                    key={`td-${rowEntry.lineIndex}-${cellIndex}`}
+                    className={`p-4 ${alignments[cellIndex]}`}
+                  >
+                    {parseInline(cell, rowEntry.lineIndex + cellIndex)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     );
   };
 
@@ -318,7 +323,7 @@ export const formatContent = (content: string): JSX.Element[] => {
       elements.push(
         <hr
           key={`hr-${elements.length}`}
-          className="my-6 border-t-2 border-gray-200"
+          className="my-6 border-t-2 border-gray-200 dark:border-gray-700"
         />,
       );
       lineIndex++;
@@ -390,7 +395,7 @@ const parseInline = (
       elements.push(
         <code
           key={`code-${uniqueKey}`}
-          className="font-mono bg-gray-100 px-1 py-0.5 rounded"
+          className="font-mono bg-gray-100 dark:bg-gray-800 text-red-500 dark:text-red-400 px-1 py-0.5 rounded"
         >
           {content}
         </code>,
@@ -400,13 +405,22 @@ const parseInline = (
       if (match) {
         const [, alt, src, title] = match;
         elements.push(
-          <img
-            key={`img-${uniqueKey}`}
-            src={src}
-            alt={alt}
-            title={title}
-            className="my-4 max-w-full h-auto rounded-lg"
-          />,
+          <figure
+            key={`figure-${uniqueKey}`}
+            className="my-6 flex flex-col items-center"
+          >
+            <img
+              src={src}
+              alt={alt}
+              className="max-w-full h-auto rounded-lg shadow-lg dark:shadow-black/50"
+              loading="lazy"
+            />
+            {title && (
+              <figcaption className="mt-3 text-sm text-center text-gray-500 dark:text-gray-400 italic">
+                {title}
+              </figcaption>
+            )}
+          </figure>,
         );
       }
     } else if (part.startsWith("[") && part.includes("](")) {
@@ -417,7 +431,7 @@ const parseInline = (
           <a
             key={`link-${uniqueKey}`}
             href={href}
-            className="text-blue-600 hover:underline"
+            className="text-blue-600 dark:text-blue-400 hover:underline"
             title={title}
             target="_blank"
             rel="noopener noreferrer"
