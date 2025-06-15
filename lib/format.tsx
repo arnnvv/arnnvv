@@ -1,4 +1,6 @@
 import type { JSX, ReactNode } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 type ListType = "ul" | "ol" | null;
 interface ListContext {
@@ -56,16 +58,16 @@ export const formatContent = (content: string): JSX.Element[] => {
   const flushCodeBlock = () => {
     if (codeBlockContent.length > 0) {
       elements.push(
-        <pre
+        <SyntaxHighlighter
           key={`pre-${elements.length}`}
-          className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg my-4 overflow-x-auto"
+          language={codeBlockLanguage || "text"}
+          style={vscDarkPlus}
+          showLineNumbers={true}
+          PreTag="div"
+          className="my-4 rounded-lg"
         >
-          <code
-            className={codeBlockLanguage ? `language-${codeBlockLanguage}` : ""}
-          >
-            {codeBlockContent.join("\n")}
-          </code>
-        </pre>,
+          {codeBlockContent.join("\n").trim()}
+        </SyntaxHighlighter>
       );
       codeBlockContent = [];
       codeBlockLanguage = "";
@@ -89,6 +91,9 @@ export const formatContent = (content: string): JSX.Element[] => {
       blockquoteContent = [];
     }
   };
+
+  // ... (rest of the file remains exactly the same)
+  // ... (isTableRow, parseTableRow, getColumnAlignment, renderTable, etc.)
 
   const isTableRow = (line: string): boolean => {
     const trimmed = line.trim();
@@ -154,7 +159,7 @@ export const formatContent = (content: string): JSX.Element[] => {
           </thead>
           <tbody>
             {rows.map((rowEntry) => (
-              <tr
+              <tr 
                 key={`tr-${rowEntry.lineIndex}`}
                 className="border-b border-gray-200 dark:border-gray-800"
               >
@@ -405,10 +410,7 @@ const parseInline = (
       if (match) {
         const [, alt, src, title] = match;
         elements.push(
-          <figure
-            key={`figure-${uniqueKey}`}
-            className="my-6 flex flex-col items-center"
-          >
+          <figure key={`figure-${uniqueKey}`} className="my-6 flex flex-col items-center">
             <img
               src={src}
               alt={alt}
@@ -420,7 +422,7 @@ const parseInline = (
                 {title}
               </figcaption>
             )}
-          </figure>,
+          </figure>
         );
       }
     } else if (part.startsWith("[") && part.includes("](")) {
