@@ -138,7 +138,7 @@ export function CommentItem({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 p-1 text-gray-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 shrink-0"
-                onClick={handleDelete}
+                onMouseDown={handleDelete}
                 disabled={isDeleting}
                 aria-label="Delete comment"
               >
@@ -164,7 +164,7 @@ export function CommentItem({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowReplyForm(!showReplyForm)}
+                onMouseDown={() => setShowReplyForm(!showReplyForm)}
                 className="flex items-center gap-1 p-1 h-auto text-xs text-gray-500 dark:text-zinc-400 hover:text-blue-500"
                 aria-expanded={showReplyForm}
                 aria-label="Reply to comment"
@@ -177,7 +177,7 @@ export function CommentItem({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={toggleReplies}
+                onMouseDown={toggleReplies}
                 disabled={isLoadingReplies}
                 className="flex items-center gap-1 p-1 h-auto text-xs text-gray-500 dark:text-zinc-400 hover:text-blue-500"
                 aria-expanded={areRepliesVisible}

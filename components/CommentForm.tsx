@@ -69,7 +69,12 @@ export function CommentForm({
           {submitButtonText}
         </Button>
         {onCancel && (
-          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onMouseDown={onCancel}
+          >
             Cancel
           </Button>
         )}

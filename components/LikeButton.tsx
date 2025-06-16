@@ -56,7 +56,7 @@ export function LikeButton({
     <Button
       variant="ghost"
       size="sm"
-      onClick={handleLike}
+      onMouseDown={handleLike}
       disabled={isPending || !currentUser}
       className={cn(
         "flex items-center gap-1 p-1 h-auto text-xs",
