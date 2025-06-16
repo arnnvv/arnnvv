@@ -92,9 +92,6 @@ export const formatContent = (content: string): JSX.Element[] => {
     }
   };
 
-  // ... (rest of the file remains exactly the same)
-  // ... (isTableRow, parseTableRow, getColumnAlignment, renderTable, etc.)
-
   const isTableRow = (line: string): boolean => {
     const trimmed = line.trim();
     return (
@@ -264,6 +261,35 @@ export const formatContent = (content: string): JSX.Element[] => {
         >
           {parseInline(headerMatch[2], elements.length)}
         </Tag>,
+      );
+      lineIndex++;
+      continue;
+    }
+
+    const imageMatch = trimmedLine.match(
+      /^!\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)$/,
+    );
+    if (imageMatch) {
+      flushListStack();
+      flushParagraph();
+      const [, alt, src, title] = imageMatch;
+      elements.push(
+        <figure
+          key={`figure-block-${elements.length}`}
+          className="my-6 flex flex-col items-center"
+        >
+          <img
+            src={src}
+            alt={alt}
+            className="max-w-full h-auto rounded-lg shadow-lg dark:shadow-black/50"
+            loading="lazy"
+          />
+          {title && (
+            <figcaption className="mt-3 text-sm text-center text-gray-500 dark:text-gray-400 italic">
+              {title}
+            </figcaption>
+          )}
+        </figure>,
       );
       lineIndex++;
       continue;
