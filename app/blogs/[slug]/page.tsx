@@ -12,23 +12,6 @@ interface BlogPostPageProps {
   }>;
 }
 
-function BlogPostSkeleton(): JSX.Element {
-  return (
-    <div className="animate-pulse max-w-3xl mx-auto">
-      <div className="h-10 bg-gray-300 dark:bg-zinc-600 rounded w-3/4 mx-auto mb-4" />
-      <div className="h-6 bg-gray-300 dark:bg-zinc-600 rounded w-1/2 mx-auto mb-8" />
-      <div className="space-y-4">
-        <div className="h-4 bg-gray-300 dark:bg-zinc-700 rounded w-full" />
-        <div className="h-4 bg-gray-300 dark:bg-zinc-700 rounded w-full" />
-        <div className="h-4 bg-gray-300 dark:bg-zinc-700 rounded w-5/6" />
-        <div className="h-20 bg-gray-300 dark:bg-zinc-700 rounded w-full mt-6" />
-        <div className="h-4 bg-gray-300 dark:bg-zinc-700 rounded w-full" />
-        <div className="h-4 bg-gray-300 dark:bg-zinc-700 rounded w-2/3" />
-      </div>
-    </div>
-  );
-}
-
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
@@ -96,41 +79,17 @@ export async function generateMetadata({
   };
 }
 
-async function BlogPostItem({ slug }: { slug: string }): Promise<JSX.Element> {
-  const post = await getBlogPostBySlug(slug);
-  if (!post) {
-    notFound();
-  }
-  const formattedDescription = formatContent(post.description);
-  return (
-    <>
-      <article className="prose prose-zinc dark:prose-invert lg:prose-xl mx-auto">
-        <header className="mb-8 text-center not-prose">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-zinc-50 !mb-2">
-            {post.title}
-          </h1>
-          <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
-            Published on {formatDate(post.created_at)}
-          </p>
-        </header>
-        <div>{formattedDescription}</div>
-      </article>
-
-      <div className="max-w-4xl mx-auto mt-16">
-        <Suspense
-          fallback={<div className="h-64 bg-muted/20 rounded animate-pulse" />}
-        >
-          <CommentSection blogId={post.id} />
-        </Suspense>
-      </div>
-    </>
-  );
-}
-
-async function BlogPostPageContent({
+export default async function BlogPostPage({
   params,
 }: BlogPostPageProps): Promise<JSX.Element> {
   const { slug } = await params;
+  const post = await getBlogPostBySlug(slug);
+
+  if (!post) {
+    notFound();
+  }
+
+  const formattedDescription = formatContent(post.description);
 
   return (
     <main className="flex-grow relative overflow-hidden">
@@ -142,18 +101,28 @@ async function BlogPostPageContent({
       />
 
       <div className="container mx-auto px-4 py-12 relative z-10">
-        <Suspense fallback={<BlogPostSkeleton />}>
-          <BlogPostItem slug={slug} />
-        </Suspense>
+        <article className="prose prose-zinc dark:prose-invert lg:prose-xl mx-auto">
+          <header className="mb-8 text-center not-prose">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-zinc-50 !mb-2">
+              {post.title}
+            </h1>
+            <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
+              Published on {formatDate(post.created_at)}
+            </p>
+          </header>
+          <div>{formattedDescription}</div>
+        </article>
+
+        <div className="max-w-4xl mx-auto mt-16">
+          <Suspense
+            fallback={
+              <div className="h-64 bg-muted/20 rounded animate-pulse" />
+            }
+          >
+            <CommentSection blogId={post.id} />
+          </Suspense>
+        </div>
       </div>
     </main>
-  );
-}
-
-export default function BlogPostPage(props: BlogPostPageProps): JSX.Element {
-  return (
-    <Suspense fallback={<BlogPostSkeleton />}>
-      <BlogPostPageContent {...props} />
-    </Suspense>
   );
 }
