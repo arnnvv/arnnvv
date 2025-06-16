@@ -1,4 +1,4 @@
-import { type JSX, Suspense } from "react";
+import type { JSX } from "react";
 import Link from "next/link";
 import { getBlogSummaries } from "@/app/actions";
 import { formatDate } from "@/lib/date";
@@ -8,28 +8,6 @@ export const metadata: Metadata = {
   title: "My Writings",
   description: "A collection of thoughts, stories, and articles.",
 };
-
-function BlogListSkeleton(): JSX.Element {
-  const skeletonItems = Array.from({ length: 3 }, (_, i) => `skeleton-${i}`);
-
-  return (
-    <div className="space-y-8 animate-pulse">
-      {skeletonItems.map((id) => (
-        <article
-          key={id}
-          className="group relative p-6 rounded-2xl border border-border bg-card/50 backdrop-blur-sm"
-        >
-          <div className="h-8 bg-muted rounded-lg w-3/4 mb-3" />
-          <div className="h-4 bg-muted rounded w-1/2 mb-4" />
-          <div className="flex items-center justify-between">
-            <div className="h-4 bg-muted rounded w-1/4" />
-            <div className="h-8 w-8 bg-muted rounded-full" />
-          </div>
-        </article>
-      ))}
-    </div>
-  );
-}
 
 async function BlogList(): Promise<JSX.Element> {
   const blogs = await getBlogSummaries();
@@ -67,7 +45,7 @@ async function BlogList(): Promise<JSX.Element> {
       {blogs.map((blog, index) => (
         <article
           key={blog.id}
-          className="group relative p-6 rounded-2xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1"
+          className="group relative p-6 rounded-2xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 cursor-pointer"
           style={{ animationDelay: `${index * 0.1}s` }}
         >
           <Link href={`/blogs/${blog.slug}`} className="block">
@@ -116,9 +94,7 @@ export default function BlogsPage(): JSX.Element {
             </h1>
           </header>
 
-          <Suspense fallback={<BlogListSkeleton />}>
-            <BlogList />
-          </Suspense>
+          <BlogList />
         </div>
       </div>
     </main>
