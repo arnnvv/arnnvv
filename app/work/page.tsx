@@ -55,7 +55,10 @@ async function ProjectsGrid(): Promise<JSX.Element> {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            role="img"
+            aria-label="A briefcase icon"
           >
+            <title>A briefcase icon</title>
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

@@ -21,7 +21,10 @@ async function BlogList(): Promise<JSX.Element> {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            role="img"
+            aria-label="An open book icon"
           >
+            <title>An open book icon</title>
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -58,6 +61,7 @@ async function BlogList(): Promise<JSX.Element> {
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
