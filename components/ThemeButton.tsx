@@ -2,10 +2,19 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import type { JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 
 export function ThemeButton(): JSX.Element {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="h-6 w-6" />;
+  }
 
   return (
     <button

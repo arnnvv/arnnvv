@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/date";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "My Writings | Arnav Sharma",
+  title: "My Writings",
   description: "A collection of thoughts, stories, and articles.",
 };
 

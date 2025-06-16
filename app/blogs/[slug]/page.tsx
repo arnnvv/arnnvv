@@ -49,7 +49,7 @@ export async function generateMetadata({
   const imageUrl = `https://www.arnnvv.sbs/api/og?slug=${slug}`;
 
   return {
-    title: `${post.title} | Arnav Sharma`,
+    title: post.title,
     description: excerpt,
     robots: {
       index: true,

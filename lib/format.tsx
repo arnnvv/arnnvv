@@ -67,7 +67,7 @@ export const formatContent = (content: string): JSX.Element[] => {
           className="my-4 rounded-lg"
         >
           {codeBlockContent.join("\n").trim()}
-        </SyntaxHighlighter>
+        </SyntaxHighlighter>,
       );
       codeBlockContent = [];
       codeBlockLanguage = "";
@@ -159,7 +159,7 @@ export const formatContent = (content: string): JSX.Element[] => {
           </thead>
           <tbody>
             {rows.map((rowEntry) => (
-              <tr 
+              <tr
                 key={`tr-${rowEntry.lineIndex}`}
                 className="border-b border-gray-200 dark:border-gray-800"
               >
@@ -410,7 +410,10 @@ const parseInline = (
       if (match) {
         const [, alt, src, title] = match;
         elements.push(
-          <figure key={`figure-${uniqueKey}`} className="my-6 flex flex-col items-center">
+          <figure
+            key={`figure-${uniqueKey}`}
+            className="my-6 flex flex-col items-center"
+          >
             <img
               src={src}
               alt={alt}
@@ -422,7 +425,7 @@ const parseInline = (
                 {title}
               </figcaption>
             )}
-          </figure>
+          </figure>,
         );
       }
     } else if (part.startsWith("[") && part.includes("](")) {
