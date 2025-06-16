@@ -215,6 +215,7 @@ export async function writeBlog(formdata: FormData): Promise<ActionResult> {
 }
 
 export async function getBlogSummaries(): Promise<BlogSummary[]> {
+  "use cache";
   try {
     const result = await db.query<BlogSummary>(
       `SELECT id, title, slug, created_at
@@ -231,6 +232,7 @@ export async function getBlogSummaries(): Promise<BlogSummary[]> {
 export async function getBlogPostBySlug(
   slug: string,
 ): Promise<BlogPost | null> {
+  "use cache";
   try {
     const result = await db.query<BlogPost>(
       `SELECT id, title, slug, description, created_at
