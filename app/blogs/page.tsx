@@ -43,12 +43,11 @@ async function BlogList(): Promise<JSX.Element> {
   return (
     <div className="space-y-8">
       {blogs.map((blog, index) => (
-        <article
-          key={blog.id}
-          className="group relative p-6 rounded-2xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 cursor-pointer"
-          style={{ animationDelay: `${index * 0.1}s` }}
-        >
-          <Link href={`/blogs/${blog.slug}`} className="block">
+        <Link key={blog.id} href={`/blogs/${blog.slug}`} className="block">
+          <article
+            className="group relative p-6 rounded-2xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 cursor-pointer"
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
             <div className="flex items-start justify-between mb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1 pr-4">
                 {blog.title}
@@ -76,8 +75,8 @@ async function BlogList(): Promise<JSX.Element> {
               </time>
               <span className="mx-2">•</span>
             </div>
-          </Link>
-        </article>
+          </article>
+        </Link>
       ))}
     </div>
   );
