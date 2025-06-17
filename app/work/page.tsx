@@ -107,9 +107,9 @@ export default function WorkPage(): JSX.Element {
         style={{ animationDelay: "1.5s" }}
       />
 
-      <div className="container mx-auto px-4 py-12 relative z-10">
+      <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
         <header className="text-center mb-16">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
             My Work
           </h1>
         </header>
