@@ -295,7 +295,7 @@ export const formatContent = (content: string): JSX.Element[] => {
       continue;
     }
 
-    const listMatch = originalLine.match(/^(\s*)(\*|\-|\d+\.)\s(.*)/);
+    const listMatch = originalLine.match(/^(\s*)(\*|-|\d+\.)\s(.*)/);
     if (listMatch) {
       flushParagraph();
       const indent = listMatch[1].length;

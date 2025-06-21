@@ -26,7 +26,10 @@ function CommentListSkeleton(): JSX.Element {
 async function CommentsLoader({
   blogId,
   currentUser,
-}: { blogId: number; currentUser: User | null }) {
+}: {
+  blogId: number;
+  currentUser: User | null;
+}) {
   const comments = await getCommentsForBlogAction(blogId);
   return (
     <CommentList

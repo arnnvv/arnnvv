@@ -16,11 +16,11 @@
     "@radix-ui/react-slot": "1.2.3",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
-    "lucide-react": "0.515.0",
-    "next": "15.4.0-canary.83",
+    "lucide-react": "0.522.0",
+    "next": "15.4.0-canary.90",
     "next-themes": "0.4.6",
     "nodemailer": "7.0.3",
-    "pg": "8.16.0",
+    "pg": "8.16.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-syntax-highlighter": "15.6.1",
@@ -29,7 +29,7 @@
     "tailwindcss-animate": "1.0.7"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.0.4",
     "@tailwindcss/postcss": "4.1.10",
     "@types/node": "24.0.3",
     "@types/nodemailer": "6.4.17",
