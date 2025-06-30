@@ -6,15 +6,11 @@ import { Button } from "./ui/button";
 import { ContactFormWrapper } from "./MailWrapper";
 import { ProjectForm } from "./ProjectsForm";
 
-export async function Write(): Promise<JSX.Element> {
+export async function Write(): Promise<JSX.Element | string> {
   const { user } = await getCurrentSession();
 
   if (user?.email !== process.env.EMAILTO) {
-    return (
-      <main className="flex-grow container mx-auto px-4 py-8 text-center">
-        <p className="text-red-500">Not Authorized to write blog posts.</p>
-      </main>
-    );
+    return "Not Authorized";
   }
 
   return (
