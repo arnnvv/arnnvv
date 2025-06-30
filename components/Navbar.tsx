@@ -20,11 +20,11 @@ function AuthControlsSkeleton(): JSX.Element {
   );
 }
 
-async function AuthControlsContent(): Promise<JSX.Element> {
+async function AuthControlsContent(): Promise<JSX.Element | string> {
   const { session, user } = await getCurrentSession();
 
   if (!(await globalGETRateLimit())) {
-    return <>Rate Limited! Don't Spam</>;
+    return "Rate Limited! Don't Spam";
   }
 
   return (

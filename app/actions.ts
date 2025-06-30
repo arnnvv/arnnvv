@@ -605,7 +605,7 @@ export async function addProjectAction(
     ) {
       throw new Error("Invalid links format.");
     }
-  } catch (e) {
+  } catch (_e) {
     return {
       success: false,
       message:

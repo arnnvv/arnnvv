@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { deleteCommentAction, getRepliesForCommentAction } from "@/app/actions";
 import { toast } from "sonner";
+import { linkifyText } from "@/lib/formatComment";
 
 export function CommentItem({
   comment,
@@ -151,7 +152,7 @@ export function CommentItem({
             )}
           </div>
           <p className="mt-1 text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap break-words">
-            {comment.content}
+            {linkifyText(comment.content)}
           </p>
           <div className="mt-2 flex items-center space-x-1 sm:space-x-3 flex-wrap">
             <LikeButton
