@@ -57,7 +57,7 @@ export const formatContent = (content: string): JSX.Element[] => {
       elements.push(
         <pre
           key={`pre-${elements.length}`}
-          className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-4 my-4 rounded-lg overflow-x-auto"
+          className="bg-muted text-gray-800 dark:text-gray-200 p-4 my-4 rounded-lg overflow-x-auto"
         >
           <code className="font-mono text-sm">
             {codeBlockContent.join("\n").trim()}
@@ -418,7 +418,7 @@ const parseInline = (
       elements.push(
         <code
           key={`code-${uniqueKey}`}
-          className="font-mono bg-gray-100 dark:bg-gray-800 text-red-500 dark:text-red-400 px-1 py-0.5 rounded"
+          className="font-mono bg-muted text-red-500 dark:text-red-400 px-1 py-0.5 rounded"
         >
           {content}
         </code>,

@@ -18,7 +18,7 @@ export function Footer(): JSX.Element {
   ];
 
   return (
-    <footer className="relative backdrop-blur-md bg-card/70 border-t border-border/50 py-2 sm:py-3 md:py-4 px-3 sm:px-4">
+    <footer className="relative backdrop-blur-md bg-background border-t border-border/50 py-2 sm:py-3 md:py-4 px-3 sm:px-4">
       <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-transparent to-primary/5 dark:from-accent/10 dark:to-primary/10" />
 
       <div className="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">

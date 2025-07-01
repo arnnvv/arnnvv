@@ -60,7 +60,7 @@ export function CommentForm({
         placeholder={placeholder}
         rows={3}
         required
-        className="mb-2 bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-700"
+        className="mb-2 bg-secondary dark:bg-zinc-800 border-gray-200 dark:border-zinc-700"
         minLength={1}
         maxLength={1000}
       />
