@@ -1,6 +1,4 @@
 import type { JSX, ReactNode } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 type ListType = "ul" | "ol" | null;
 interface ListContext {
@@ -17,7 +15,6 @@ export const formatContent = (content: string): JSX.Element[] => {
   const listStack: ListContext[] = [];
   let inCodeBlock = false;
   let codeBlockContent: string[] = [];
-  let codeBlockLanguage = "";
   let currentParagraph: string[] = [];
   let tableLines: Array<{ line: string; lineIndex: number }> = [];
   let inTable = false;
@@ -58,19 +55,16 @@ export const formatContent = (content: string): JSX.Element[] => {
   const flushCodeBlock = () => {
     if (codeBlockContent.length > 0) {
       elements.push(
-        <SyntaxHighlighter
+        <pre
           key={`pre-${elements.length}`}
-          language={codeBlockLanguage || "text"}
-          style={vscDarkPlus}
-          showLineNumbers={true}
-          PreTag="div"
-          className="my-4 rounded-lg"
+          className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-4 my-4 rounded-lg overflow-x-auto"
         >
-          {codeBlockContent.join("\n").trim()}
-        </SyntaxHighlighter>,
+          <code className="font-mono text-sm">
+            {codeBlockContent.join("\n").trim()}
+          </code>
+        </pre>,
       );
       codeBlockContent = [];
-      codeBlockLanguage = "";
     }
   };
 
@@ -187,8 +181,6 @@ export const formatContent = (content: string): JSX.Element[] => {
         flushCodeBlock();
         inCodeBlock = false;
       } else {
-        const languageMatch = trimmedLine.match(/^```(\S*)/);
-        codeBlockLanguage = languageMatch ? languageMatch[1] : "";
         flushListStack();
         flushParagraph();
         flushBlockquote();
