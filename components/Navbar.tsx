@@ -1,5 +1,5 @@
 import { type JSX, Suspense } from "react";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { Home, LogOut, User as UserIcon } from "lucide-react";
 import { ThemeButton } from "./ThemeButton";
 import { getCurrentSession, signOutAction } from "@/app/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,7 +12,7 @@ import {
 import { Button } from "./ui/button";
 import { SignOutFormComponent } from "./SignOutForm";
 import { globalGETRateLimit } from "@/lib/request";
-import { HomeLink } from "./HomeLink";
+import Link from "next/link";
 
 function AuthControlsSkeleton(): JSX.Element {
   return (
@@ -96,11 +96,20 @@ async function AuthControlsContent(): Promise<JSX.Element | string> {
 
 export function Navbar(): JSX.Element {
   return (
-    <nav className="relative backdrop-blur-md bg-card/70 border-b border-border/50 py-2 sm:py-3 md:py-4 px-3 sm:px-4">
+    <nav className="relative backdrop-blur-md bg-background border-b border-border/50 py-2 sm:py-3 md:py-4 px-3 sm:px-4">
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
 
       <div className="relative z-10 flex flex-row justify-between items-center">
-        <HomeLink />
+        <div className="relative">
+          <Link
+            href="/"
+            prefetch={false}
+            className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+            aria-label="Home"
+          >
+            <Home size={20} className="w-5 h-5 sm:w-6 sm:h-6" />
+          </Link>
+        </div>
 
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           <Suspense fallback={<AuthControlsSkeleton />}>

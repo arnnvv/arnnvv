@@ -32,19 +32,11 @@ export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
 
   const email = formdata.get("email") as string;
   const message = formdata.get("message") as string;
-  const subject = formdata.get("subject") as string;
 
   if (!email) {
     return {
       success: false,
       message: "Email is needed",
-    };
-  }
-
-  if (!subject) {
-    return {
-      success: false,
-      message: "Subject is needed",
     };
   }
 
@@ -69,8 +61,8 @@ export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
     await transporter.sendMail({
       from: process.env.EMAIL,
       to: process.env.EMAILTO,
-      subject: subject,
-      text: `Message from ${email}\n\n${message}`,
+      subject: `Message from ${email}`,
+      text: message,
     });
     return {
       success: true,
