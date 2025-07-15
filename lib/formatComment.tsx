@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+const urlRegex = /\bhttps?:\/\/[^\s<>"'`]+/gi;
+
 const isSafeUrl = (url: string) => {
   try {
     const parsed = new URL(url);
@@ -9,29 +11,60 @@ const isSafeUrl = (url: string) => {
   }
 };
 
-export const linkifyText = (text: string): ReactNode => {
-  const urlRegex = /(https?:\/\/[^\s/$.?#].[^\s]*)/gi;
-  const parts = text.split(urlRegex);
+const isImageUrl = (url: string) => {
+  try {
+    const { pathname } = new URL(url);
+    return /\.(jpe?g|png|gif|webp|bmp|svg)$/i.test(pathname);
+  } catch {
+    return false;
+  }
+};
 
-  return (
-    <>
-      {parts.map((part, index) => {
-        const key = `${part}-${index}`;
-        if (index % 2 === 1 && isSafeUrl(part)) {
-          return (
-            <a
-              key={`link-${key}`}
-              href={part}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:underline break-all"
-            >
-              {part}
-            </a>
-          );
-        }
-        return <span key={`text-${key}`}>{part}</span>;
-      })}
-    </>
-  );
+export const linkifyText = (text: string): ReactNode => {
+  const parts: ReactNode[] = [];
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(urlRegex)) {
+    const { 0: url, index } = match;
+    if (index === undefined) continue;
+
+    if (lastIndex < index) {
+      parts.push(text.slice(lastIndex, index));
+    }
+
+    if (isSafeUrl(url)) {
+      if (isImageUrl(url)) {
+        parts.push(
+          <img
+            key={`img-${index}`}
+            src={url}
+            alt=""
+            className="max-w-full h-auto my-2"
+          />,
+        );
+      } else {
+        parts.push(
+          <a
+            key={`link-${index}`}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+          >
+            {url}
+          </a>,
+        );
+      }
+    } else {
+      parts.push(url);
+    }
+
+    lastIndex = index + url.length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return <>{parts}</>;
 };
