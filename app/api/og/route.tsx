@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { db } from "@/lib/db";
 import type { BlogPost } from "@/lib/db/types";
 
-export async function GET(request: Request) {
+export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const slug = searchParams.get("slug");
 
@@ -41,15 +41,12 @@ export async function GET(request: Request) {
     day: "numeric",
   }).format(new Date(post.created_at));
 
-  const contentLines =
-    post.description
-      .replace(/\n+/g, " ")
-      .substring(0, 600)
-      .split(". ")
-      .slice(0, 3)
-      .join(". ") + (post.description.length > 600 ? "..." : "");
-
+  const excerptRaw = post.description.replace(/\n+/g, " ").substring(0, 280);
   const readTime = `${Math.max(1, Math.ceil(post.description.length / 1000))} min read`;
+  const excerpt = `${excerptRaw.substring(
+    0,
+    Math.min(excerptRaw.length, excerptRaw.lastIndexOf(" ")),
+  )}...`;
 
   return new ImageResponse(
     <div
@@ -57,69 +54,68 @@ export async function GET(request: Request) {
         height: "100%",
         width: "100%",
         display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         flexDirection: "column",
-        backgroundColor: "#09090b",
-        color: "#fafafa",
-        padding: "60px",
-        fontFamily: "system-ui, -apple-system, sans-serif",
+        backgroundColor: "#f9fafb",
+        fontFamily: "sans-serif",
       }}
     >
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          flex: 1,
-          maxWidth: "1000px",
           width: "100%",
-          margin: "0 auto",
+          height: "100%",
+          padding: "60px",
+          backgroundColor: "#fff",
+          border: "1px solid #e5e7eb",
+          borderRadius: "12px",
         }}
       >
-        <div
+        <h1
           style={{
-            fontSize: "48px",
-            fontWeight: "bold",
-            color: "#fafafa",
-            marginBottom: "16px",
-            lineHeight: 1.1,
+            fontSize: "60px",
+            fontWeight: 700,
+            color: "#111827",
             textAlign: "center",
+            lineHeight: 1.2,
+            marginBottom: "16px",
           }}
         >
           {post.title}
-        </div>
-
-        <div
+        </h1>
+        <p
           style={{
-            fontSize: "18px",
-            color: "#a1a1aa",
+            fontSize: "24px",
+            color: "#6b7280",
             textAlign: "center",
             marginBottom: "40px",
           }}
         >
-          {`Published on ${formattedDate}`}
-        </div>
-
-        <div
+          Published on {formattedDate}
+        </p>
+        <p
           style={{
-            fontSize: "18px",
+            fontSize: "28px",
             lineHeight: 1.6,
-            color: "#e4e4e7",
-            flex: 1,
+            color: "#374151",
             textAlign: "left",
-            marginBottom: "30px",
           }}
         >
-          {contentLines}
-        </div>
-
+          {excerpt}
+        </p>
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             paddingTop: "24px",
-            borderTop: "1px solid #27272a",
-            fontSize: "16px",
-            color: "#71717a",
+            borderTop: "1px solid #e5e7eb",
+            fontSize: "22px",
+            color: "#6b7280",
+            fontWeight: 500,
+            marginTop: "auto",
           }}
         >
           <div style={{ display: "flex" }}>Read more on the blog</div>
