@@ -1,27 +1,27 @@
 import { getCurrentSession, writeBlog } from "@/app/actions";
+import { isUserAdmin } from "@/lib/auth";
 import type { JSX } from "react";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
-import { ContactFormWrapper } from "./MailWrapper";
+import { ActionFormWrapper } from "./ActionFormWrapper";
 import { ProjectForm } from "./ProjectsForm";
 
 export async function Write(): Promise<JSX.Element | string> {
   const { user } = await getCurrentSession();
 
-  if (user?.email !== process.env.EMAILTO) {
+  if (!isUserAdmin(user)) {
     return "Not Authorized";
   }
 
   return (
     <main className="flex-grow container mx-auto px-4 py-8">
-      <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-900 dark:text-zinc-50">
-        Write New Blog Post
-      </h1>
-      <div className="max-w-2xl mx-auto">
-        {" "}
-        <ContactFormWrapper action={writeBlog}>
-          <div className="space-y-4 sm:space-y-5 md:space-y-6 relative">
+      <div className="max-w-2xl mx-auto mb-16">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-900 dark:text-zinc-50">
+          Write New Blog Post
+        </h1>
+        <ActionFormWrapper action={writeBlog}>
+          <div className="space-y-4 sm:space-y-5 md:space-y-6">
             <div className="space-y-2">
               <label
                 htmlFor="title"
@@ -57,17 +57,18 @@ export async function Write(): Promise<JSX.Element | string> {
 
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold transition-colors duration-200 rounded-lg shadow-sm disabled:opacity-50"
+              className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold transition-colors duration-200 rounded-lg shadow-sm"
             >
               Create Blog Post
             </Button>
           </div>
-        </ContactFormWrapper>
+        </ActionFormWrapper>
       </div>
-      <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-900 dark:text-zinc-50">
-        Add New Project
-      </h1>
-      <div className="max-w-2xl mx-auto bg-white dark:bg-zinc-900 p-6 sm:p-8 rounded-lg shadow-md">
+
+      <div className="max-w-2xl mx-auto bg-card p-6 sm:p-8 rounded-lg shadow-md border border-border">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-900 dark:text-zinc-50">
+          Add New Project
+        </h1>
         <ProjectForm />
       </div>
     </main>

@@ -2,6 +2,7 @@
 
 import {
   invalidateSession,
+  isUserAdmin,
   type SessionValidationResult,
   validateSessionToken,
 } from "@/lib/auth";
@@ -68,7 +69,8 @@ export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
       success: true,
       message: "Message Sent",
     };
-  } catch {
+  } catch (e) {
+    console.error(`Failed to send email: ${e}`);
     return {
       success: false,
       message: "Error sending message",
@@ -85,8 +87,7 @@ export const getCurrentSession = cache(
         user: null,
       };
     }
-    const result = await validateSessionToken(token);
-    return result;
+    return validateSessionToken(token);
   },
 );
 
@@ -112,9 +113,10 @@ export const signOutAction = async (): Promise<ActionResult> => {
       message: "Logged Out",
     };
   } catch (e) {
+    console.error(`Error signing out: ${e}`);
     return {
       success: false,
-      message: `Error LoggingOut ${e}`,
+      message: "Error Logging Out",
     };
   }
 };
@@ -146,7 +148,7 @@ export async function writeBlog(formdata: FormData): Promise<ActionResult> {
   }
 
   const { user } = await getCurrentSession();
-  if (user?.email !== process.env.EMAILTO) {
+  if (!isUserAdmin(user)) {
     return {
       success: false,
       message: "Not authenticated",
@@ -557,7 +559,7 @@ export async function addProjectAction(
   }
 
   const { user } = await getCurrentSession();
-  if (user?.email !== process.env.EMAILTO) {
+  if (!isUserAdmin(user)) {
     return { success: false, message: "Not authorized to add projects." };
   }
 

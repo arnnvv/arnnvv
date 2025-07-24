@@ -4,9 +4,8 @@ import type { ActionResult } from "@/type";
 import {
   type JSX,
   type ReactNode,
-  useState,
-  useTransition,
   useRef,
+  useTransition,
   type RefObject,
 } from "react";
 import { toast } from "sonner";
@@ -16,10 +15,9 @@ interface ActionFormWrapperProps<TData = unknown> {
   children: ReactNode;
   action: (formData: FormData) => Promise<ActionResult & TData>;
   onSuccess?: (data: ActionResult & TData, form: HTMLFormElement) => void;
-  onError?: (error: ActionResult & TData) => void;
+  onError?: (data: ActionResult & TData) => void;
   className?: string;
   formRef?: RefObject<HTMLFormElement | null>;
-  submitButtonContent?: ReactNode;
 }
 
 export function ActionFormWrapper<TData = unknown>({
@@ -33,10 +31,8 @@ export function ActionFormWrapper<TData = unknown>({
   const [isPending, startTransition] = useTransition();
   const internalFormRef = useRef<HTMLFormElement>(null);
   const formRef = externalFormRef || internalFormRef;
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = async (formData: FormData) => {
-    setErrorMessage(null);
+  const handleSubmit = (formData: FormData) => {
     startTransition(async () => {
       try {
         const result = await action(formData);
@@ -48,15 +44,21 @@ export function ActionFormWrapper<TData = unknown>({
           } else if (formRef.current) {
             formRef.current.reset();
           }
+        } else {
+          toast.error(result.message || "An unknown error occurred.");
+          if (onError) {
+            onError(result);
+          }
         }
       } catch (e) {
+        console.error("ActionFormWrapper unhandled error:", e);
         const errorMsg = "An unexpected error occurred. Please try again.";
-        console.error("ActionFormWrapper error:", e);
-        setErrorMessage(errorMsg);
         toast.error(errorMsg);
         if (onError) {
-          onError({ success: false, message: errorMsg } as ActionResult &
-            TData);
+          onError({
+            success: false,
+            message: errorMsg,
+          } as ActionResult & TData);
         }
       }
     });
@@ -67,19 +69,14 @@ export function ActionFormWrapper<TData = unknown>({
       action={handleSubmit}
       className={className}
       ref={formRef}
-      onSubmit={() => {}}
+      onSubmit={(e) => {
+        if (isPending) e.preventDefault();
+      }}
     >
-      {children}
-      {errorMessage && (
-        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-          {errorMessage}
-        </p>
-      )}
-      {isPending && (
-        <div className="mt-2">
-          <Spinner />
-        </div>
-      )}
+      <div className="relative">
+        {children}
+        {isPending && <Spinner />}
+      </div>
     </form>
   );
 }

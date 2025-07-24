@@ -1,6 +1,6 @@
 import { getCurrentSession, sendEmailAtn } from "@/app/actions";
 import type { JSX } from "react";
-import { ContactFormWrapper } from "./MailWrapper";
+import { ActionFormWrapper } from "./ActionFormWrapper";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
@@ -28,7 +28,7 @@ export async function ContactFormContent(): Promise<JSX.Element | string> {
 
   return (
     <div className="w-full max-w-sm sm:max-w-md mx-auto">
-      <ContactFormWrapper action={sendEmailAtn}>
+      <ActionFormWrapper action={sendEmailAtn}>
         <div className="space-y-4 sm:space-y-5 md:space-y-6">
           <div className="space-y-2">
             <Input
@@ -58,7 +58,7 @@ export async function ContactFormContent(): Promise<JSX.Element | string> {
             Send
           </Button>
         </div>
-      </ContactFormWrapper>
+      </ActionFormWrapper>
     </div>
   );
 }

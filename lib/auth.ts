@@ -7,6 +7,15 @@ export type SessionValidationResult =
   | { session: Session; user: User }
   | { session: null; user: null };
 
+export function isUserAdmin(user: User | null): boolean {
+  if (!user) return false;
+  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
+  return adminEmails.includes(user.email);
+}
+
 export function generateSessionToken(): string {
   const bytes = new Uint8Array(20);
   crypto.getRandomValues(bytes);

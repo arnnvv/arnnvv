@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { decodeIdToken, google } from "@/lib/oauth";
+import { google } from "@/lib/oauth";
 import {
   createUser,
   getUserFromGoogleId,
@@ -19,32 +19,37 @@ export async function GET(request: Request): Promise<Response> {
     });
   }
   const { session } = await getCurrentSession();
-  if (session !== null)
-    return new Response("Logged In", {
+  if (session !== null) {
+    return new Response("Already logged in", {
       status: 302,
       headers: {
         Location: "/",
       },
     });
+  }
+
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
-  const storedState =
-    (await cookies()).get("google_oauth_state")?.value ?? null;
-  const codeVerifier =
-    (await cookies()).get("google_code_verifier")?.value ?? null;
+
+  const c = await cookies();
+  const storedState = c.get("google_oauth_state")?.value ?? null;
+  const codeVerifier = c.get("google_code_verifier")?.value ?? null;
+  const nonce = c.get("google_oauth_nonce")?.value ?? null;
+
+  c.delete("google_oauth_state");
+  c.delete("google_code_verifier");
+  c.delete("google_oauth_nonce");
+
   if (
-    code === null ||
-    state === null ||
-    storedState === null ||
-    codeVerifier === null
+    !code ||
+    !state ||
+    !storedState ||
+    !codeVerifier ||
+    !nonce ||
+    state !== storedState
   ) {
-    return new Response("Please restart the process.", {
-      status: 400,
-    });
-  }
-  if (state !== storedState) {
-    return new Response("Please restart the process.", {
+    return new Response("Invalid request. Please try again.", {
       status: 400,
     });
   }
@@ -52,13 +57,21 @@ export async function GET(request: Request): Promise<Response> {
   let tokens: OAuth2Tokens;
   try {
     tokens = await google.validateAuthorizationCode(code, codeVerifier);
-  } catch {
-    return new Response("Please restart the process.", {
+  } catch (e) {
+    console.error("Failed to validate authorization code:", e);
+    return new Response("Authentication failed. Please try again.", {
       status: 400,
     });
   }
 
-  const claims = decodeIdToken(tokens.idToken());
+  let claims: object;
+  try {
+    claims = await google.validateIdToken(tokens.idToken(), nonce);
+  } catch (e) {
+    console.error("ID Token validation failed:", e);
+    return new Response("Invalid ID Token. Please try again.", { status: 401 });
+  }
+
   const claimsParser = new ObjectParser(claims);
 
   const googleId = claimsParser.getString("sub");
@@ -66,9 +79,8 @@ export async function GET(request: Request): Promise<Response> {
   const picture = claimsParser.getString("picture");
   const email = claimsParser.getString("email");
 
-  const existingUser = await getUserFromGoogleId(googleId);
-
   let userId: number;
+  const existingUser = await getUserFromGoogleId(googleId);
 
   if (existingUser) {
     userId = existingUser.id;

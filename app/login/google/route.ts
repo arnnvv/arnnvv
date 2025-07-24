@@ -1,29 +1,34 @@
 import { cookies } from "next/headers";
-import { generateState, google } from "@/lib/oauth";
+import {
+  generateState,
+  generateCodeVerifier,
+  generateNonce,
+  google,
+} from "@/lib/oauth";
 
 export async function GET(): Promise<Response> {
   const state = generateState();
-  const codeVerifier = generateState();
-  const url = await google.createAuthorizationURL(state, codeVerifier, [
+  const codeVerifier = generateCodeVerifier();
+  const nonce = generateNonce();
+
+  const url = await google.createAuthorizationURL(state, codeVerifier, nonce, [
     "openid",
     "profile",
     "email",
   ]);
 
-  (await cookies()).set("google_oauth_state", state, {
+  const cookieOptions = {
     path: "/",
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     maxAge: 60 * 10,
-    sameSite: "lax",
-  });
-  (await cookies()).set("google_code_verifier", codeVerifier, {
-    path: "/",
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 10,
-    sameSite: "lax",
-  });
+    sameSite: "lax" as const,
+  };
+
+  const c = await cookies();
+  c.set("google_oauth_state", state, cookieOptions);
+  c.set("google_code_verifier", codeVerifier, cookieOptions);
+  c.set("google_oauth_nonce", nonce, cookieOptions);
 
   return new Response(null, {
     status: 302,

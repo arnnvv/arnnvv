@@ -1,8 +1,6 @@
-import {
-  decodeBase64urlIgnorePadding,
-  encodeBase64urlNoPadding,
-} from "./encoding";
+import { encodeBase64urlNoPadding } from "./encoding";
 import { Google } from "./google";
+import { validateIdToken } from "./token";
 
 export function generateState(): string {
   const randomValues = new Uint8Array(32);
@@ -10,35 +8,16 @@ export function generateState(): string {
   return encodeBase64urlNoPadding(randomValues);
 }
 
-export function decodeIdToken(idToken: string): object {
-  try {
-    const parts = idToken.split(".");
-    if (parts.length !== 3) {
-      throw new Error("Invalid Token");
-    }
-    let jsonPayload: string;
-    try {
-      jsonPayload = new TextDecoder().decode(
-        decodeBase64urlIgnorePadding(parts[1]),
-      );
-    } catch {
-      throw new Error("Invalid Token: Invalid base64url encoding");
-    }
-    let payload: unknown;
-    try {
-      payload = JSON.parse(jsonPayload);
-    } catch {
-      throw new Error("Invalid Token: Invalid JSON encoding");
-    }
-    if (typeof payload !== "object" || payload === null) {
-      throw new Error("Invalid Token: Invalid payload");
-    }
-    return payload as object;
-  } catch (e) {
-    throw new Error("Invalid ID token", {
-      cause: e,
-    });
-  }
+export function generateCodeVerifier(): string {
+  const randomValues = new Uint8Array(32);
+  crypto.getRandomValues(randomValues);
+  return encodeBase64urlNoPadding(randomValues);
+}
+
+export function generateNonce(): string {
+  const randomValues = new Uint8Array(32);
+  crypto.getRandomValues(randomValues);
+  return encodeBase64urlNoPadding(randomValues);
 }
 
 const getOAuthCredentials = (): {
@@ -50,14 +29,9 @@ const getOAuthCredentials = (): {
   const clientSecretEnv = process.env.GOOGLE_CLIENT_SECRET;
   const redirectUrlEnv = process.env.GOOGLE_REDIRECT_URL;
 
-  if (!clientIdEnv || clientIdEnv.length === 0)
-    throw new Error("GOOGLE_CLIENT_ID missing");
-
-  if (!clientSecretEnv || clientSecretEnv.length === 0)
-    throw new Error("GOOGLE_CLIENT_SECRET missing");
-
-  if (!redirectUrlEnv || redirectUrlEnv.length === 0)
-    throw new Error("GOOGLE_REDIRECT_URL missing");
+  if (!clientIdEnv) throw new Error("GOOGLE_CLIENT_ID missing");
+  if (!clientSecretEnv) throw new Error("GOOGLE_CLIENT_SECRET missing");
+  if (!redirectUrlEnv) throw new Error("GOOGLE_REDIRECT_URL missing");
 
   return {
     clientId: clientIdEnv,
@@ -66,8 +40,18 @@ const getOAuthCredentials = (): {
   };
 };
 
+async function validateGoogleIdToken(
+  idToken: string,
+  nonce: string,
+): Promise<object> {
+  const { clientId } = getOAuthCredentials();
+  return validateIdToken(idToken, clientId, nonce);
+}
+
 export const google = new Google(
   getOAuthCredentials().clientId,
   getOAuthCredentials().clientSecret,
   getOAuthCredentials().redirectURL,
 );
+
+google.validateIdToken = validateGoogleIdToken;

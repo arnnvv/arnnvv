@@ -5,6 +5,7 @@ const tokenEndpoint = "https://oauth2.googleapis.com/token";
 
 export class Google {
   private client: OAuth2Client;
+  public validateIdToken!: (idToken: string, nonce: string) => Promise<object>;
 
   constructor(clientId: string, clientSecret: string, redirectURI: string) {
     this.client = new OAuth2Client(clientId, clientSecret, redirectURI);
@@ -13,6 +14,7 @@ export class Google {
   public async createAuthorizationURL(
     state: string,
     codeVerifier: string,
+    nonce: string,
     scopes: string[],
   ): Promise<URL> {
     const url = await this.client.createAuthorizationURLWithPKCE(
@@ -22,6 +24,7 @@ export class Google {
       codeVerifier,
       scopes,
     );
+    url.searchParams.set("nonce", nonce);
     return url;
   }
 
