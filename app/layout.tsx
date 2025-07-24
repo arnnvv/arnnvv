@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { ThemeProvider } from "next-themes";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Arnav Sharma: Beyond the screen",
@@ -59,8 +60,22 @@ export default function RootLayout({
 }: Readonly<{
   children: ReactNode;
 }>): JSX.Element {
+  const themeSanitizerScript = `
+(function() {
+    var theme = localStorage.getItem('theme');
+    if (theme && theme !== 'light' && theme !== 'dark') {
+      localStorage.removeItem('theme');
+    }
+})();
+`;
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script id="theme-sanitizer" strategy="beforeInteractive">
+          {themeSanitizerScript}
+        </Script>
+      </head>
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
