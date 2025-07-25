@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { ThemeProvider } from "next-themes";
 import Script from "next/script";
+import { ThemeErrorBoundary } from "@/components/ThemeErrorBoundry";
 
 export const metadata: Metadata = {
   title: "Arnav Sharma: Beyond the screen",
@@ -82,26 +83,28 @@ export default function RootLayout({
           fontSans.variable,
         )}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          themes={["light", "dark"]}
-        >
-          <div className="min-h-screen flex flex-col relative">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-30" />
+        <ThemeErrorBoundary>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            themes={["light", "dark"]}
+          >
+            <div className="min-h-screen flex flex-col relative">
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-30" />
 
-            <Navbar />
-            {children}
-            <Footer />
-          </div>
-          <Toaster
-            richColors={true}
-            position="bottom-center"
-            expand={true}
-            duration={4000}
-          />
-        </ThemeProvider>
+              <Navbar />
+              {children}
+              <Footer />
+            </div>
+            <Toaster
+              richColors={true}
+              position="bottom-center"
+              expand={true}
+              duration={4000}
+            />
+          </ThemeProvider>
+        </ThemeErrorBoundary>
       </body>
     </html>
   );
