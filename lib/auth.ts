@@ -2,6 +2,11 @@ import { db } from "./db";
 import type { User, Session } from "./db/types";
 import { sha256 } from "./sha";
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from "./encoding";
+import {
+  SESSION_MAX_AGE_SECONDS,
+  SESSION_REFRESH_THRESHOLD_SECONDS,
+} from "./constants";
+import { appConfig } from "./config";
 
 export type SessionValidationResult =
   | { session: Session; user: User }
@@ -9,18 +14,13 @@ export type SessionValidationResult =
 
 export function isUserAdmin(user: User | null): boolean {
   if (!user) return false;
-  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim())
-    .filter(Boolean);
-  return adminEmails.includes(user.email);
+  return appConfig.auth.adminEmails.includes(user.email);
 }
 
 export function generateSessionToken(): string {
   const bytes = new Uint8Array(20);
   crypto.getRandomValues(bytes);
-  const token = encodeBase32LowerCaseNoPadding(bytes);
-  return token;
+  return encodeBase32LowerCaseNoPadding(bytes);
 }
 
 export async function createSession(
@@ -33,7 +33,7 @@ export async function createSession(
   const session: Session = {
     id: sessionId,
     user_id: userId,
-    expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+    expires_at: new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000),
   };
   await db.query(
     "INSERT INTO arnnvv_sessions (id, user_id, expires_at) VALUES ($1, $2, $3)",
@@ -69,7 +69,7 @@ export async function validateSessionToken(
   const session: Session = {
     id: row.s_id,
     user_id: row.user_id,
-    expires_at: row.expires_at,
+    expires_at: new Date(row.expires_at),
   };
 
   const user: User = {
@@ -88,10 +88,9 @@ export async function validateSessionToken(
     return { session: null, user: null };
   }
 
-  // Refresh if expiring in less than 15 days
-  const fifteenDays = 1000 * 60 * 60 * 24 * 15;
-  if (now >= expiresAtMs - fifteenDays) {
-    const newExpiresAt = new Date(now + 1000 * 60 * 60 * 24 * 30);
+  const refreshThresholdMs = SESSION_REFRESH_THRESHOLD_SECONDS * 1000;
+  if (now >= expiresAtMs - refreshThresholdMs) {
+    const newExpiresAt = new Date(now + SESSION_MAX_AGE_SECONDS * 1000);
     await db.query("UPDATE arnnvv_sessions SET expires_at = $1 WHERE id = $2", [
       newExpiresAt,
       session.id,

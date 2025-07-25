@@ -48,7 +48,7 @@ async function getGoogleJwks(): Promise<Jwks> {
 
     return jwks;
   } catch (e) {
-    console.error("Error fetching or caching JWKS:", e);
+    console.error(`Error fetching or caching JWKS: ${e}`);
     throw new Error("Could not retrieve Google's public keys for validation.");
   }
 }
@@ -83,12 +83,14 @@ export async function validateIdToken(
 
   const [headerB64, payloadB64, signatureB64] = parts;
 
-  const header = JSON.parse(
-    new TextDecoder().decode(decodeBase64urlIgnorePadding(headerB64)),
+  const headerRaw = new TextDecoder().decode(
+    decodeBase64urlIgnorePadding(headerB64),
   );
-  const payload = JSON.parse(
-    new TextDecoder().decode(decodeBase64urlIgnorePadding(payloadB64)),
+  const payloadRaw = new TextDecoder().decode(
+    decodeBase64urlIgnorePadding(payloadB64),
   );
+  const header = JSON.parse(headerRaw);
+  const payload = JSON.parse(payloadRaw);
   const signature = decodeBase64urlIgnorePadding(signatureB64);
 
   const key = await getVerificationKey(header.kid);

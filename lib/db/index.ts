@@ -1,13 +1,8 @@
 import { Pool } from "pg";
-
-export const getDB = (): string =>
-  process.env.DATABASE_URL ??
-  ((): never => {
-    throw new Error("Missing DATABASE_URL");
-  })();
+import { appConfig } from "../config";
 
 export const db = new Pool({
-  connectionString: getDB(),
+  connectionString: appConfig.database.connectionString,
   ssl:
     process.env.NODE_ENV === "production"
       ? { rejectUnauthorized: true }

@@ -1,16 +1,16 @@
 import { cookies } from "next/headers";
 import { google } from "@/lib/oauth";
-import {
-  createUser,
-  getUserFromGoogleId,
-  updateUserIfNeeded,
-} from "@/lib/user";
 import { createSession, generateSessionToken } from "@/lib/auth";
 import { setSessionTokenCookie } from "@/lib/session";
 import { ObjectParser } from "@/lib/parser";
-import type { OAuth2Tokens } from "@/lib/oauth-token";
-import { globalGETRateLimit } from "@/lib/request";
 import { getCurrentSession } from "@/app/actions";
+import {
+  GOOGLE_OAUTH_STATE_COOKIE_NAME,
+  GOOGLE_OAUTH_CODE_VERIFIER_COOKIE_NAME,
+  GOOGLE_OAUTH_NONCE_COOKIE_NAME,
+} from "@/lib/constants";
+import { upsertUserFromGoogleProfile } from "@/lib/user";
+import { globalGETRateLimit } from "@/lib/request";
 
 export async function GET(request: Request): Promise<Response> {
   if (!(await globalGETRateLimit())) {
@@ -20,12 +20,7 @@ export async function GET(request: Request): Promise<Response> {
   }
   const { session } = await getCurrentSession();
   if (session !== null) {
-    return new Response("Already logged in", {
-      status: 302,
-      headers: {
-        Location: "/",
-      },
-    });
+    return Response.redirect(new URL("/", request.url));
   }
 
   const url = new URL(request.url);
@@ -33,13 +28,14 @@ export async function GET(request: Request): Promise<Response> {
   const state = url.searchParams.get("state");
 
   const c = await cookies();
-  const storedState = c.get("google_oauth_state")?.value ?? null;
-  const codeVerifier = c.get("google_code_verifier")?.value ?? null;
-  const nonce = c.get("google_oauth_nonce")?.value ?? null;
+  const storedState = c.get(GOOGLE_OAUTH_STATE_COOKIE_NAME)?.value ?? null;
+  const codeVerifier =
+    c.get(GOOGLE_OAUTH_CODE_VERIFIER_COOKIE_NAME)?.value ?? null;
+  const nonce = c.get(GOOGLE_OAUTH_NONCE_COOKIE_NAME)?.value ?? null;
 
-  c.delete("google_oauth_state");
-  c.delete("google_code_verifier");
-  c.delete("google_oauth_nonce");
+  c.delete(GOOGLE_OAUTH_STATE_COOKIE_NAME);
+  c.delete(GOOGLE_OAUTH_CODE_VERIFIER_COOKIE_NAME);
+  c.delete(GOOGLE_OAUTH_NONCE_COOKIE_NAME);
 
   if (
     !code ||
@@ -54,55 +50,33 @@ export async function GET(request: Request): Promise<Response> {
     });
   }
 
-  let tokens: OAuth2Tokens;
   try {
-    tokens = await google.validateAuthorizationCode(code, codeVerifier);
+    const tokens = await google.validateAuthorizationCode(code, codeVerifier);
+    const claims = await google.validateIdToken(tokens.idToken(), nonce);
+
+    const claimsParser = new ObjectParser(claims);
+
+    const googleId = claimsParser.getString("sub");
+    const name = claimsParser.getString("name");
+    const picture = claimsParser.getString("picture");
+    const email = claimsParser.getString("email");
+
+    const user = await upsertUserFromGoogleProfile(
+      googleId,
+      email,
+      name,
+      picture,
+    );
+
+    const sessionToken = generateSessionToken();
+    const newSession = await createSession(sessionToken, user.id);
+    await setSessionTokenCookie(sessionToken, newSession.expires_at);
+
+    return Response.redirect(new URL("/", request.url));
   } catch (e) {
-    console.error("Failed to validate authorization code:", e);
+    console.error(`OAuth callback error: ${e}`);
     return new Response("Authentication failed. Please try again.", {
-      status: 400,
+      status: 500,
     });
   }
-
-  let claims: object;
-  try {
-    claims = await google.validateIdToken(tokens.idToken(), nonce);
-  } catch (e) {
-    console.error("ID Token validation failed:", e);
-    return new Response("Invalid ID Token. Please try again.", { status: 401 });
-  }
-
-  const claimsParser = new ObjectParser(claims);
-
-  const googleId = claimsParser.getString("sub");
-  const name = claimsParser.getString("name");
-  const picture = claimsParser.getString("picture");
-  const email = claimsParser.getString("email");
-
-  let userId: number;
-  const existingUser = await getUserFromGoogleId(googleId);
-
-  if (existingUser) {
-    userId = existingUser.id;
-    if (existingUser.name !== name || existingUser.picture !== picture) {
-      await updateUserIfNeeded(userId, {
-        name,
-        picture,
-      });
-    }
-  } else {
-    const newUser = await createUser(googleId, email, name, picture);
-    userId = newUser.id;
-  }
-
-  const sessionToken = generateSessionToken();
-  const newSession = await createSession(sessionToken, userId);
-  setSessionTokenCookie(sessionToken, newSession.expires_at);
-
-  return new Response(null, {
-    status: 302,
-    headers: {
-      Location: "/",
-    },
-  });
 }

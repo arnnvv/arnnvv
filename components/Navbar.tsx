@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { SignOutFormComponent } from "./SignOutForm";
-import { globalGETRateLimit } from "@/lib/request";
 import Link from "next/link";
+import { globalGETRateLimit } from "@/lib/request";
 
 function AuthControlsSkeleton(): JSX.Element {
   return (

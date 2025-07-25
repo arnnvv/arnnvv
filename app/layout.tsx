@@ -61,12 +61,12 @@ export default function RootLayout({
   children: ReactNode;
 }>): JSX.Element {
   const themeSanitizerScript = `
-(function() {
-    var theme = localStorage.getItem('theme');
-    if (theme && theme !== 'light' && theme !== 'dark') {
-      localStorage.removeItem('theme');
-    }
-})();
+    (function() {
+      var theme = localStorage.getItem('theme');
+      if (theme && theme !== 'light' && theme !== 'dark') {
+        localStorage.removeItem('theme');
+      }
+    })();
 `;
 
   return (
@@ -86,6 +86,7 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="light"
           enableSystem={false}
+          themes={["light", "dark"]}
         >
           <div className="min-h-screen flex flex-col relative">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-30" />

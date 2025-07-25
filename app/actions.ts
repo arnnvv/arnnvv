@@ -7,7 +7,6 @@ import {
   validateSessionToken,
 } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { globalPOSTRateLimit } from "@/lib/request";
 import { deleteSessionTokenCookie } from "@/lib/session";
 import type { ActionResult } from "@/type";
 import { cookies } from "next/headers";
@@ -22,6 +21,9 @@ import type {
 } from "@/lib/db/types";
 import { DatabaseError } from "pg";
 import { revalidatePath } from "next/cache";
+import { SESSION_COOKIE_NAME } from "@/lib/constants";
+import { appConfig } from "@/lib/config";
+import { globalPOSTRateLimit } from "@/lib/request";
 
 export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
   if (!(await globalPOSTRateLimit())) {
@@ -49,19 +51,19 @@ export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
   }
 
   const transporter = createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
+    host: appConfig.smtp.host,
+    port: appConfig.smtp.port,
     secure: true,
     auth: {
-      user: process.env.EMAIL,
-      pass: process.env.EMAIL_PASS,
+      user: appConfig.smtp.user,
+      pass: appConfig.smtp.pass,
     },
   });
 
   try {
     await transporter.sendMail({
-      from: process.env.EMAIL,
-      to: process.env.EMAILTO,
+      from: appConfig.smtp.user,
+      to: appConfig.smtp.to,
       subject: `Message from ${email}`,
       text: message,
     });
@@ -80,7 +82,7 @@ export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
 
 export const getCurrentSession = cache(
   async (): Promise<SessionValidationResult> => {
-    const token = (await cookies()).get("session")?.value ?? null;
+    const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value ?? null;
     if (token === null) {
       return {
         session: null,
@@ -193,7 +195,7 @@ export async function writeBlog(formdata: FormData): Promise<ActionResult> {
     }
     throw new Error("Failed to insert blog post.");
   } catch (e) {
-    console.error("Error writing blog:", e);
+    console.error(`Error writing blog: ${e}`);
     if (e instanceof DatabaseError && e.code === "23505") {
       return {
         success: false,
@@ -218,7 +220,7 @@ export async function getBlogSummaries(): Promise<BlogSummary[]> {
     );
     return result.rows;
   } catch (e) {
-    console.error("Error fetching blog summaries:", e);
+    console.error(`Error fetching blog summaries: ${e}`);
     return [];
   }
 }
@@ -240,7 +242,7 @@ export async function getBlogPostBySlug(
     }
     return result.rows[0];
   } catch (e) {
-    console.error(`Error fetching blog post by slug (${slug}):`, e);
+    console.error(`Error fetching blog post by slug (${slug}): ${e}`);
     return null;
   }
 }
@@ -326,7 +328,7 @@ export async function addCommentAction(
     }
     throw new Error("Failed to add comment.");
   } catch (e) {
-    console.error("Error adding comment:", e);
+    console.error(`Error adding comment: ${e}`);
     return {
       success: false,
       message: "Error adding comment. Please try again.",
@@ -373,7 +375,7 @@ export async function getCommentsForBlogAction(
     );
     return result.rows;
   } catch (e) {
-    console.error("Error fetching top-level comments:", e);
+    console.error(`Error fetching top-level comments: ${e}`);
     return [];
   }
 }
@@ -417,7 +419,9 @@ export async function getRepliesForCommentAction(
     );
     return result.rows;
   } catch (e) {
-    console.error(`Error fetching replies for comment ${parentCommentId}:`, e);
+    console.error(
+      `Error fetching replies for comment ${parentCommentId}: ${e}`,
+    );
     return [];
   }
 }
@@ -472,7 +476,7 @@ export async function toggleLikeCommentAction(
       newLikeCount: newLikeCount,
     };
   } catch (e) {
-    console.error("Error toggling like:", e);
+    console.error(`Error toggling like: ${e}`);
     if (e instanceof DatabaseError && e.code === "23503") {
       return { success: false, message: "Comment not found or user invalid." };
     }
@@ -542,7 +546,7 @@ export async function deleteCommentAction(
 
     return { success: true, message: "Comment deleted successfully." };
   } catch (e) {
-    console.error("Error deleting comment:", e);
+    console.error(`Error deleting comment: ${e}`);
     return {
       success: false,
       message:
@@ -656,7 +660,7 @@ export async function addProjectAction(
     return { success: true, message: "Project added successfully!" };
   } catch (e) {
     await client.query("ROLLBACK");
-    console.error("Error adding project with transaction:", e);
+    console.error(`Error adding project with transaction: ${e}`);
     if (e instanceof DatabaseError && e.code === "23505") {
       return {
         success: false,
@@ -701,7 +705,7 @@ export async function getProjectsAction(): Promise<ProjectWithDetails[]> {
     const result = await db.query<ProjectWithDetails>(query);
     return result.rows;
   } catch (e) {
-    console.error("Error fetching projects with details:", e);
+    console.error(`Error fetching projects with details: ${e}`);
     return [];
   }
 }
