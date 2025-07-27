@@ -50,43 +50,49 @@ export async function validateSessionToken(
     await sha256(new TextEncoder().encode(token)),
   );
 
-  const res = await db.query(
-    `SELECT
-       u.id as u_id, u.google_id, u.email, u.name, u.picture,
-       s.id as s_id, s.user_id, s.expires_at
-     FROM arnnvv_sessions s
-     INNER JOIN arnnvv_users u ON s.user_id = u.id
-     WHERE s.id = $1
-     LIMIT 1`,
+  const sessionAndUserResult = await db.query(
+    `
+      SELECT
+        s.user_id,
+        s.expires_at,
+        u.id as user_id_from_users_table,
+        u.google_id,
+        u.email,
+        u.name,
+        u.picture
+      FROM arnnvv_sessions s
+      JOIN arnnvv_users u ON s.user_id = u.id
+      WHERE s.id = $1 LIMIT 1
+    `,
     [sessionId],
   );
 
-  if (res.rowCount === 0) {
+  if (sessionAndUserResult.rowCount === 0) {
     return { session: null, user: null };
   }
-  const row = res.rows[0];
 
-  const session: Session = {
-    id: row.s_id,
-    user_id: row.user_id,
-    expires_at: new Date(row.expires_at),
-  };
-
-  const user: User = {
-    id: row.u_id,
-    google_id: row.google_id,
-    email: row.email,
-    name: row.name,
-    picture: row.picture,
-  };
-
+  const data = sessionAndUserResult.rows[0];
   const now = Date.now();
-  const expiresAtMs = session.expires_at.getTime();
+  const expiresAtMs = data.expires_at.getTime();
 
   if (now >= expiresAtMs) {
-    await db.query("DELETE FROM arnnvv_sessions WHERE id = $1", [session.id]);
+    await db.query("DELETE FROM arnnvv_sessions WHERE id = $1", [sessionId]);
     return { session: null, user: null };
   }
+
+  const user: User = {
+    id: data.user_id_from_users_table,
+    google_id: data.google_id,
+    email: data.email,
+    name: data.name,
+    picture: data.picture,
+  };
+
+  const session: Session = {
+    id: sessionId,
+    user_id: user.id,
+    expires_at: data.expires_at,
+  };
 
   const refreshThresholdMs = SESSION_REFRESH_THRESHOLD_SECONDS * 1000;
   if (now >= expiresAtMs - refreshThresholdMs) {
