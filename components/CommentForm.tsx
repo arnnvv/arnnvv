@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useRef } from "react";
+import { type JSX, type KeyboardEvent, useRef } from "react";
 import { ActionFormWrapper } from "@/components/ActionFormWrapper";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -11,20 +11,27 @@ export function CommentForm({
   blogId,
   parentCommentId,
   currentUser,
-  onCommentAdded,
-  onCancel,
+  onCommentAddedAction,
+  onCancelAction,
   placeholder = "Write a comment...",
   submitButtonText = "Post Comment",
 }: {
   blogId: number;
   parentCommentId?: number | null;
   currentUser: User | null;
-  onCommentAdded?: (newComment: CommentWithDetails) => void;
-  onCancel?: () => void;
+  onCommentAddedAction?: (newComment: CommentWithDetails) => void;
+  onCancelAction?: () => void;
   placeholder?: string;
   submitButtonText?: string;
 }): JSX.Element {
   const formRef = useRef<HTMLFormElement>(null);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      formRef.current?.requestSubmit();
+    }
+  };
 
   if (!currentUser) {
     return (
@@ -44,10 +51,10 @@ export function CommentForm({
       action={addCommentAction}
       onSuccess={(data, form) => {
         form.reset();
-        if (data.comment && onCommentAdded) {
-          onCommentAdded(data.comment);
+        if (data.comment && onCommentAddedAction) {
+          onCommentAddedAction(data.comment);
         }
-        if (onCancel) onCancel();
+        if (onCancelAction) onCancelAction();
       }}
       className="mt-4 mb-2"
     >
@@ -63,17 +70,18 @@ export function CommentForm({
         className="mb-2 bg-secondary dark:bg-zinc-800 border-gray-200 dark:border-zinc-700"
         minLength={1}
         maxLength={1000}
+        onKeyDown={handleKeyDown}
       />
       <div className="flex items-center gap-2">
         <Button type="submit" size="sm">
           {submitButtonText}
         </Button>
-        {onCancel && (
+        {onCancelAction && (
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            onMouseDown={onCancel}
+            onMouseDown={onCancelAction}
           >
             Cancel
           </Button>

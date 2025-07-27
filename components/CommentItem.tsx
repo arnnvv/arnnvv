@@ -23,13 +23,13 @@ export function CommentItem({
   comment,
   blogId,
   currentUser,
-  onCommentDeleted,
+  onCommentDeletedAction,
   depth = 0,
 }: {
   comment: CommentWithDetails;
   blogId: number;
   currentUser: User | null;
-  onCommentDeleted: (
+  onCommentDeletedAction: (
     deletedCommentId: number,
     parentIdOfDeleted: number | null,
   ) => void;
@@ -66,7 +66,7 @@ export function CommentItem({
       );
       setCurrentReplyCount((prevCount) => Math.max(0, prevCount - 1));
     }
-    onCommentDeleted(deletedReplyId, parentIdOfDeleted);
+    onCommentDeletedAction(deletedReplyId, parentIdOfDeleted);
   };
 
   const handleDelete = () => {
@@ -78,7 +78,7 @@ export function CommentItem({
       const result = await deleteCommentAction(comment.id);
       if (result.success) {
         toast.success(result.message);
-        onCommentDeleted(comment.id, comment.parent_comment_id);
+        onCommentDeletedAction(comment.id, comment.parent_comment_id);
       } else {
         toast.error(result.message || "Failed to delete comment.");
       }
@@ -209,8 +209,8 @@ export function CommentItem({
             blogId={blogId}
             parentCommentId={comment.id}
             currentUser={currentUser}
-            onCommentAdded={handleLocalReplyAdded}
-            onCancel={() => setShowReplyForm(false)}
+            onCommentAddedAction={handleLocalReplyAdded}
+            onCancelAction={() => setShowReplyForm(false)}
             placeholder={`Replying to ${comment.user_name}...`}
             submitButtonText="Post Reply"
           />
@@ -225,7 +225,7 @@ export function CommentItem({
               comment={reply}
               blogId={blogId}
               currentUser={currentUser}
-              onCommentDeleted={handleChildReplyDeleted}
+              onCommentDeletedAction={handleChildReplyDeleted}
               depth={depth + 1}
             />
           ))}

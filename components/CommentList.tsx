@@ -60,7 +60,7 @@ export function CommentList({
           comment={comment}
           blogId={blogId}
           currentUser={currentUser}
-          onCommentDeleted={handleAnyCommentDeleted}
+          onCommentDeletedAction={handleAnyCommentDeleted}
           depth={0}
         />
       ))}
