@@ -8,6 +8,7 @@
     "p": "next start",
     "l": "biome lint --write .",
     "f": "biome format --write .",
+    "cl": "rm -rf .next",
     "ua": "pnpm dlx shadcn@latest add"
   },
   "dependencies": {
@@ -19,6 +20,7 @@
     "lucide-react": "0.525.0",
     "next": "15.4.2-canary.10",
     "next-themes": "0.4.6",
+    "next-view-transitions": "0.3.4",
     "nodemailer": "7.0.5",
     "pg": "8.16.3",
     "react": "19.1.0",

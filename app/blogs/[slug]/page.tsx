@@ -12,6 +12,29 @@ interface BlogPostPageProps {
   }>;
 }
 
+function wrapTitleWithTransitionNames(title: string, slug: string) {
+  const wordCounts: { [key: string]: number } = {};
+  return title.split(" ").map((origWord, _) => {
+    const word = origWord.toLowerCase().replace(/[^a-z0-9\s-_]/g, "");
+
+    const count = wordCounts[word] ?? 0;
+    wordCounts[word] = (wordCounts[word] ?? 0) + 1;
+
+    const uniqueName = `blog-title-${slug}-${word}-${count}`;
+
+    return (
+      <span
+        key={uniqueName}
+        style={{
+          viewTransitionName: uniqueName,
+        }}
+      >
+        {`${origWord} `}
+      </span>
+    );
+  });
+}
+
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
@@ -104,7 +127,7 @@ export default async function BlogPostPage({
         <article className="prose prose-zinc dark:prose-invert lg:prose-xl mx-auto">
           <header className="mb-8 text-center not-prose">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-zinc-50 !mb-2">
-              {post.title}
+              {wrapTitleWithTransitionNames(post.title, post.slug)}
             </h1>
             <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
               Published on {formatDate(post.created_at)}

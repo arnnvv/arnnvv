@@ -1,8 +1,31 @@
 import type { JSX } from "react";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { getBlogSummaries } from "@/app/actions";
 import { formatDate } from "@/lib/date";
 import type { Metadata } from "next";
+
+function wrapTitleWithTransitionNames(title: string, slug: string) {
+  const wordCounts: { [key: string]: number } = {};
+  return title.split(" ").map((origWord, _) => {
+    const word = origWord.toLowerCase().replace(/[^a-z0-9\s-_]/g, "");
+
+    const count = wordCounts[word] ?? 0;
+    wordCounts[word] = (wordCounts[word] ?? 0) + 1;
+
+    const uniqueName = `blog-title-${slug}-${word}-${count}`;
+
+    return (
+      <span
+        key={uniqueName}
+        style={{
+          viewTransitionName: uniqueName,
+        }}
+      >
+        {`${origWord} `}
+      </span>
+    );
+  });
+}
 
 export const metadata: Metadata = {
   title: "My Writings",
@@ -53,7 +76,7 @@ async function BlogList(): Promise<JSX.Element> {
           >
             <div className="flex items-start justify-between mb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1 pr-4">
-                {blog.title}
+                {wrapTitleWithTransitionNames(blog.title, blog.slug)}
               </h2>
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                 <svg
