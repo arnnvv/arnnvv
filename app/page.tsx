@@ -1,5 +1,5 @@
 import { AnimatedPageWrapper } from "@/components/layout/AnimatedPageWrapper";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import type { JSX } from "react";
 
 export default function Home(): JSX.Element {
@@ -11,12 +11,10 @@ export default function Home(): JSX.Element {
             <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse" />
             Beyond the screen
           </div>
-
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Hey there, I'm Arnav
           </h1>
         </div>
-
         <div className="space-y-6 text-base sm:text-lg leading-relaxed">
           <p className="text-muted-foreground">
             Currently navigating my undergrad at{" "}
@@ -25,35 +23,69 @@ export default function Home(): JSX.Element {
             work. I spend most of my time building small tools, testing ideas,
             and learning by doing.
           </p>
-
           <p className="text-muted-foreground">
             My focus is on clarity, leverage, and execution finding what
-            compounds over time and cutting out what doesn’t. I care about how
+            compounds over time and cutting out what doesn't. I care about how
             systems scale, how decisions age, and how to make things that are
             simple, robust, and useful.
           </p>
-
           <p className="text-muted-foreground">
-            I don’t have all the answers, but I ask better questions each week.
+            I don't have all the answers, but I ask better questions each week.
             For me, building is a way to think about design, about tradeoffs,
             and about what matters.
           </p>
         </div>
-
-        <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <div className="mt-10 flex flex-col sm:flex-row gap-6 justify-center items-center text-base sm:text-lg">
           <Link
             href="/blogs"
-            className="group relative inline-flex items-center px-8 py-3 rounded-full bg-primary text-primary-foreground font-medium transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5"
+            className="group relative inline-flex items-center text-primary font-medium transition-all duration-300"
+            style={{ viewTransitionName: "page-title-writings" }}
           >
-            <span className="relative z-10">Explore my takes</span>
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <span className="relative">
+              My Writings
+              <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gradient-to-r from-primary to-accent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+            </span>
+            <svg
+              className="ml-2 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 8l4 4m0 0l-4 4m4-4H3"
+              />
+            </svg>
           </Link>
-
+          <span className="text-muted-foreground/50 hidden sm:block">•</span>
           <Link
             href="/work"
-            className="group relative inline-flex items-center px-8 py-3 rounded-full border-2 border-primary text-primary font-medium transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5"
+            className="group relative inline-flex items-center text-primary font-medium transition-all duration-300"
+            style={{ viewTransitionName: "page-title-work" }}
           >
-            Look at my work
+            <span className="relative">
+              My Work
+              <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gradient-to-r from-primary to-accent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+            </span>
+            <svg
+              className="ml-2 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 8l4 4m0 0l-4 4m4-4H3"
+              />
+            </svg>
           </Link>
         </div>
       </div>

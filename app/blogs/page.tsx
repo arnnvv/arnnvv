@@ -45,9 +45,9 @@ async function BlogList(): Promise<JSX.Element> {
             stroke="currentColor"
             viewBox="0 0 24 24"
             role="img"
-            aria-label="An open book icon"
+            aria-hidden="true"
+            focusable="false"
           >
-            <title>An open book icon</title>
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -85,6 +85,7 @@ async function BlogList(): Promise<JSX.Element> {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
+                  focusable="false"
                 >
                   <path
                     strokeLinecap="round"
@@ -122,7 +123,10 @@ export default function BlogsPage(): JSX.Element {
       <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
         <div className="max-w-4xl mx-auto">
           <header className="text-center mb-16">
-            <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
+            <h1
+              className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight"
+              style={{ viewTransitionName: "page-title-writings" }}
+            >
               My Writings
             </h1>
           </header>

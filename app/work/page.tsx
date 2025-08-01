@@ -56,9 +56,9 @@ async function ProjectsGrid(): Promise<JSX.Element> {
             stroke="currentColor"
             viewBox="0 0 24 24"
             role="img"
-            aria-label="A briefcase icon"
+            aria-hidden="true"
+            focusable="false"
           >
-            <title>A briefcase icon</title>
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -109,7 +109,10 @@ export default function WorkPage(): JSX.Element {
 
       <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
         <header className="text-center mb-16">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight">
+          <h1
+            className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight"
+            style={{ viewTransitionName: "page-title-work" }}
+          >
             My Work
           </h1>
         </header>
