@@ -7,7 +7,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { ThemeProvider } from "next-themes";
-import Script from "next/script";
 import { ThemeErrorBoundary } from "@/components/ThemeErrorBoundry";
 import { ViewTransitions } from "next-view-transitions";
 
@@ -62,22 +61,8 @@ export default function RootLayout({
 }: Readonly<{
   children: ReactNode;
 }>): JSX.Element {
-  const themeSanitizerScript = `
-    (function() {
-      var theme = localStorage.getItem('theme');
-      if (theme && theme !== 'light' && theme !== 'dark') {
-        localStorage.removeItem('theme');
-      }
-    })();
-`;
-
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <Script id="theme-sanitizer" strategy="beforeInteractive">
-          {themeSanitizerScript}
-        </Script>
-      </head>
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
@@ -88,6 +73,7 @@ export default function RootLayout({
           <ThemeErrorBoundary>
             <ThemeProvider
               attribute="class"
+              storageKey="theme"
               defaultTheme="light"
               enableSystem={false}
               themes={["light", "dark"]}

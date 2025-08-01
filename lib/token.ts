@@ -91,7 +91,7 @@ export async function validateIdToken(
   );
   const header = JSON.parse(headerRaw);
   const payload = JSON.parse(payloadRaw);
-  const signature = decodeBase64urlIgnorePadding(signatureB64);
+  const signature: BufferSource = decodeBase64urlIgnorePadding(signatureB64);
 
   const key = await getVerificationKey(header.kid);
   if (!key) {

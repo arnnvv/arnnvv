@@ -66,6 +66,6 @@ export function encodeBase64(bytes: Uint8Array): string {
   return Buffer.from(bytes).toString("base64");
 }
 
-export function decodeBase64urlIgnorePadding(encoded: string): Uint8Array {
+export function decodeBase64urlIgnorePadding(encoded: string): BufferSource {
   return Buffer.from(encoded, "base64url");
 }
