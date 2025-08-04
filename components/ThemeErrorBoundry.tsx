@@ -1,5 +1,6 @@
 "use client";
 
+import { THEME_STORAGE_KEY } from "@/lib/constants";
 import { type ReactNode, type ErrorInfo, Component } from "react";
 
 interface Props {
@@ -9,8 +10,6 @@ interface Props {
 interface State {
   hasError: boolean;
 }
-
-const THEME_STORAGE_KEY = "theme";
 
 export class ThemeErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
@@ -25,8 +24,8 @@ export class ThemeErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, _errorInfo: ErrorInfo) {
     if (error.message.includes("DOMTokenList")) {
       console.warn(
-        "ThemeErrorBoundary caught a next-themes crash. " +
-          "This is likely due to an invalid theme in localStorage. Correcting...",
+        `ThemeErrorBoundary caught a next-themes crash.
+          This is likely due to an invalid theme in localStorage. Correcting...`,
       );
 
       localStorage.removeItem(THEME_STORAGE_KEY);
@@ -34,9 +33,9 @@ export class ThemeErrorBoundary extends Component<Props, State> {
       this.setState({ hasError: false });
     } else {
       console.error(
-        "ThemeErrorBoundary caught an unhandled error:",
-        error,
-        _errorInfo,
+        `ThemeErrorBoundary caught an unhandled error:
+        ${error}
+        ${_errorInfo}`,
       );
     }
   }

@@ -9,3 +9,5 @@ export const OAUTH_COOKIE_MAX_AGE_SECONDS = 60 * 10;
 
 export const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
 export const BUCKET_EXPIRATION_MS = 24 * 60 * 60 * 1000;
+
+export const THEME_STORAGE_KEY = "theme";

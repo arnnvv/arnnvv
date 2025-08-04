@@ -64,7 +64,7 @@ export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
     await transporter.sendMail({
       from: appConfig.smtp.user,
       to: appConfig.smtp.to,
-      subject: `Message from ${email}`,
+      subject: `Message from site by ${email}`,
       text: message,
     });
     return {

@@ -1,6 +1,7 @@
 import { type JSX, Suspense } from "react";
 import { getProjectsAction } from "@/app/actions";
 import { ProjectCard } from "@/components/ProjectCard";
+import { TransitionTitle } from "@/components/layout/TransitionTitle";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -96,7 +97,6 @@ export default function WorkPage(): JSX.Element {
   return (
     <main className="flex-grow relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
-
       <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float" />
       <div
         className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
@@ -106,17 +106,14 @@ export default function WorkPage(): JSX.Element {
         className="absolute top-1/2 left-1/4 w-16 h-16 bg-primary/5 rounded-full blur-lg animate-float"
         style={{ animationDelay: "1.5s" }}
       />
-
       <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
         <header className="text-center mb-16">
-          <h1
-            className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight"
-            style={{ viewTransitionName: "page-title-work" }}
-          >
-            My Work
-          </h1>
+          <TransitionTitle
+            title="My Work"
+            transitionName="page-title-work"
+            className="text-4xl sm:text-5xl font-bold leading-tight"
+          />
         </header>
-
         <Suspense fallback={<ProjectsGridSkeleton />}>
           <ProjectsGrid />
         </Suspense>

@@ -2,30 +2,9 @@ import type { JSX } from "react";
 import { Link } from "next-view-transitions";
 import { getBlogSummaries } from "@/app/actions";
 import { formatDate } from "@/lib/date";
+import { wrapWordsWithTransition } from "@/lib/transitions";
+import { TransitionTitle } from "@/components/layout/TransitionTitle";
 import type { Metadata } from "next";
-
-function wrapTitleWithTransitionNames(title: string, slug: string) {
-  const wordCounts: { [key: string]: number } = {};
-  return title.split(" ").map((origWord, _) => {
-    const word = origWord.toLowerCase().replace(/[^a-z0-9\s-_]/g, "");
-
-    const count = wordCounts[word] ?? 0;
-    wordCounts[word] = (wordCounts[word] ?? 0) + 1;
-
-    const uniqueName = `blog-title-${slug}-${word}-${count}`;
-
-    return (
-      <span
-        key={uniqueName}
-        style={{
-          viewTransitionName: uniqueName,
-        }}
-      >
-        {`${origWord} `}
-      </span>
-    );
-  });
-}
 
 export const metadata: Metadata = {
   title: "My Writings",
@@ -76,7 +55,7 @@ async function BlogList(): Promise<JSX.Element> {
           >
             <div className="flex items-start justify-between mb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1 pr-4">
-                {wrapTitleWithTransitionNames(blog.title, blog.slug)}
+                {wrapWordsWithTransition(blog.title, `blog-title-${blog.slug}`)}
               </h2>
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                 <svg
@@ -96,7 +75,6 @@ async function BlogList(): Promise<JSX.Element> {
                 </svg>
               </div>
             </div>
-
             <div className="flex items-center text-sm text-muted-foreground">
               <time dateTime={blog.created_at.toISOString()}>
                 {formatDate(blog.created_at)}
@@ -119,18 +97,15 @@ export default function BlogsPage(): JSX.Element {
         className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
         style={{ animationDelay: "2s" }}
       />
-
       <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
         <div className="max-w-4xl mx-auto">
           <header className="text-center mb-16">
-            <h1
-              className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-tight"
-              style={{ viewTransitionName: "page-title-writings" }}
-            >
-              My Writings
-            </h1>
+            <TransitionTitle
+              title="My Writings"
+              transitionName="page-title-writings"
+              className="text-4xl sm:text-5xl font-bold leading-tight"
+            />
           </header>
-
           <BlogList />
         </div>
       </div>

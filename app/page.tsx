@@ -1,8 +1,12 @@
 import { AnimatedPageWrapper } from "@/components/layout/AnimatedPageWrapper";
 import { Link } from "next-view-transitions";
 import type { JSX } from "react";
+import { wrapWordsWithTransition } from "@/lib/transitions";
 
 export default function Home(): JSX.Element {
+  const linkGradientClasses =
+    "bg-gradient-to-r from-primary/98 to-accent/98 bg-clip-text text-transparent";
+
   return (
     <AnimatedPageWrapper className="items-center justify-center px-4 py-8 md:p-0">
       <div className="max-w-2xl w-full p-6 sm:p-8 text-center">
@@ -38,15 +42,18 @@ export default function Home(): JSX.Element {
         <div className="mt-10 flex flex-col sm:flex-row gap-6 justify-center items-center text-base sm:text-lg">
           <Link
             href="/blogs"
-            className="group relative inline-flex items-center text-primary font-medium transition-all duration-300"
-            style={{ viewTransitionName: "page-title-writings" }}
+            className="group relative inline-flex items-center font-bold transition-all duration-300"
           >
-            <span className="relative">
-              My Writings
-              <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gradient-to-r from-primary to-accent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+            <span className="relative text-base sm:text-lg">
+              {wrapWordsWithTransition(
+                "My Writings",
+                "page-title-writings",
+                linkGradientClasses,
+              )}
+              <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gradient-to-r from-primary/98 to-accent/98 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
             </span>
             <svg
-              className="ml-2 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+              className="ml-2 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 text-primary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -64,15 +71,18 @@ export default function Home(): JSX.Element {
           <span className="text-muted-foreground/50 hidden sm:block">•</span>
           <Link
             href="/work"
-            className="group relative inline-flex items-center text-primary font-medium transition-all duration-300"
-            style={{ viewTransitionName: "page-title-work" }}
+            className="group relative inline-flex items-center font-bold transition-all duration-300"
           >
-            <span className="relative">
-              My Work
-              <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gradient-to-r from-primary to-accent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+            <span className="relative text-base sm:text-lg">
+              {wrapWordsWithTransition(
+                "My Work",
+                "page-title-work",
+                linkGradientClasses,
+              )}
+              <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gradient-to-r from-primary/98 to-accent/98 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
             </span>
             <svg
-              className="ml-2 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+              className="ml-2 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 text-primary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

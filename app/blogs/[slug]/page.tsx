@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getBlogPostBySlug } from "@/app/actions";
 import { formatDate } from "@/lib/date";
 import { formatContent } from "@/lib/format";
+import { wrapWordsWithTransition } from "@/lib/transitions";
 import type { Metadata } from "next";
 import { CommentSection } from "@/components/CommentSection";
 
@@ -10,29 +11,6 @@ interface BlogPostPageProps {
   params: Promise<{
     slug: string;
   }>;
-}
-
-function wrapTitleWithTransitionNames(title: string, slug: string) {
-  const wordCounts: { [key: string]: number } = {};
-  return title.split(" ").map((origWord, _) => {
-    const word = origWord.toLowerCase().replace(/[^a-z0-9\s-_]/g, "");
-
-    const count = wordCounts[word] ?? 0;
-    wordCounts[word] = (wordCounts[word] ?? 0) + 1;
-
-    const uniqueName = `blog-title-${slug}-${word}-${count}`;
-
-    return (
-      <span
-        key={uniqueName}
-        style={{
-          viewTransitionName: uniqueName,
-        }}
-      >
-        {`${origWord} `}
-      </span>
-    );
-  });
 }
 
 export async function generateMetadata({
@@ -122,12 +100,11 @@ export default async function BlogPostPage({
         className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
         style={{ animationDelay: "2s" }}
       />
-
       <div className="container mx-auto px-4 py-12 relative z-10">
         <article className="prose prose-zinc dark:prose-invert lg:prose-xl mx-auto">
           <header className="mb-8 text-center not-prose">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-zinc-50 !mb-2">
-              {wrapTitleWithTransitionNames(post.title, post.slug)}
+              {wrapWordsWithTransition(post.title, `blog-title-${post.slug}`)}
             </h1>
             <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
               Published on {formatDate(post.created_at)}
@@ -135,7 +112,6 @@ export default async function BlogPostPage({
           </header>
           <div>{formattedDescription}</div>
         </article>
-
         <div className="max-w-4xl mx-auto mt-16">
           <Suspense
             fallback={
