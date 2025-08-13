@@ -515,7 +515,7 @@ export async function deleteCommentAction(
     const commentOwnerId = commentResult.rows[0].user_id;
     const blogIdOfComment = commentResult.rows[0].blog_id;
 
-    if (commentOwnerId !== user.id) {
+    if (commentOwnerId !== user.id && !isUserAdmin(user)) {
       return {
         success: false,
         message: "You are not authorized to delete this comment.",

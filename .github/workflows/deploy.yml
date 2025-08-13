@@ -53,9 +53,10 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           IMAGE_NAME: "ghcr.io/${{ github.repository }}:latest"
           CONTAINER_NAME: "${{ github.event.repository.name }}_container"
+          GHCR_USER: ${{ github.actor }}
         run: |
           echo "Connecting to ${VM_USER}@${VM_HOST}..."
-          ssh -i ~/.ssh/ec2_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${VM_USER}@${VM_HOST} /bin/bash <<EOF
+          ssh -i ~/.ssh/ec2_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${VM_USER}@${VM_HOST} /bin/bash <<'EOF'
             set -e
 
             echo "--> Setting up environment on VM..."
@@ -68,11 +69,8 @@ jobs:
 
             echo "${ENV_FILE_CONTENTS}" > "\${ENV_FILE_PATH}"
 
-            echo "--> Verifying env file exists at: \${ENV_FILE_PATH}"
+            echo "--> Verifying env file exists"
             ls -l "\${ENV_FILE_PATH}"
-            echo "--- Env file contents: ---"
-            cat "\${ENV_FILE_PATH}" || echo "Warning: Could not cat env file (might be empty)"
-            echo "--------------------------"
 
             echo "--> Extracting PORT from \${ENV_FILE_PATH}..."
             VM_PORT=\$(grep '^PORT=' "\${ENV_FILE_PATH}" | cut -d '=' -f 2-)
@@ -85,7 +83,7 @@ jobs:
             echo "PORT extracted: \${VM_PORT}"
 
             echo "--> Logging into GHCR on VM..."
-            echo "${GHCR_TOKEN}" | podman login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${GHCR_TOKEN}" | podman login ghcr.io -u ${GHCR_USER} --password-stdin
 
             echo "--> Pulling latest image: ${IMAGE_NAME}"
             podman pull ${IMAGE_NAME}

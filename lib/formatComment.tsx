@@ -14,7 +14,10 @@ const isSafeUrl = (url: string) => {
 const isImageUrl = (url: string) => {
   try {
     const { pathname } = new URL(url);
-    return /\.(jpe?g|png|gif|webp|bmp|svg)$/i.test(pathname);
+    if (/\.svg$/i.test(pathname)) {
+      return false;
+    }
+    return /\.(jpe?g|png|gif|webp|bmp)$/i.test(pathname);
   } catch {
     return false;
   }
@@ -40,6 +43,7 @@ export const linkifyText = (text: string): ReactNode => {
             src={url}
             alt=""
             className="max-w-full h-auto my-2"
+            loading="lazy"
           />,
         );
       } else {
