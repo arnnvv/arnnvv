@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useRef, useState } from "react";
+import { type JSX, useRef, useState, useId } from "react";
 import { ActionFormWrapper } from "@/components/ActionFormWrapper";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,10 @@ export function ProjectForm(): JSX.Element {
   const [dynamicLinks, setDynamicLinks] = useState<DynamicLinkInput[]>([
     { id: crypto.randomUUID(), link_type: "", url: "" },
   ]);
+
+  const titleId = useId();
+  const descriptionId = useId();
+  const technologiesId = useId();
 
   const handleAddLink = () => {
     setDynamicLinks([
@@ -63,13 +67,13 @@ export function ProjectForm(): JSX.Element {
     >
       <div>
         <label
-          htmlFor="title"
+          htmlFor={titleId}
           className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
         >
           Project Title
         </label>
         <Input
-          id="title"
+          id={titleId}
           name="title"
           type="text"
           required
@@ -79,13 +83,13 @@ export function ProjectForm(): JSX.Element {
 
       <div>
         <label
-          htmlFor="description"
+          htmlFor={descriptionId}
           className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
         >
           Description
         </label>
         <Textarea
-          id="description"
+          id={descriptionId}
           name="description"
           rows={5}
           required
@@ -95,13 +99,13 @@ export function ProjectForm(): JSX.Element {
 
       <div>
         <label
-          htmlFor="technologies"
+          htmlFor={technologiesId}
           className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
         >
           Technologies (comma-separated, e.g., Next.js, TypeScript, PostgreSQL)
         </label>
         <Input
-          id="technologies"
+          id={technologiesId}
           name="technologies"
           type="text"
           className="dark:bg-zinc-800 dark:border-zinc-700"

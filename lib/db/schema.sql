@@ -30,7 +30,9 @@ CREATE TABLE "arnnvv_comments" (
     "parent_comment_id" integer,
     "content"           text NOT NULL,
     "created_at"        timestamp with time zone NOT NULL DEFAULT now(),
-    "updated_at"        timestamp with time zone NOT NULL DEFAULT now()
+    "updated_at"        timestamp with time zone NOT NULL DEFAULT now(),
+    "like_count"        integer NOT NULL DEFAULT 0,
+    "reply_count"       integer NOT NULL DEFAULT 0
 );
 
 CREATE TABLE "arnnvv_comment_likes" (
@@ -94,6 +96,47 @@ CREATE TRIGGER trigger_arnnvv_comments_set_updated_at
 BEFORE UPDATE ON arnnvv_comments
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
+
+CREATE OR REPLACE FUNCTION update_comment_like_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+        UPDATE arnnvv_comments SET like_count = like_count + 1 WHERE id = NEW.comment_id;
+    ELSIF (TG_OP = 'DELETE') THEN
+        UPDATE arnnvv_comments SET like_count = like_count - 1 WHERE id = OLD.comment_id;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_like_count
+AFTER INSERT OR DELETE ON arnnvv_comment_likes
+FOR EACH ROW EXECUTE FUNCTION update_comment_like_count();
+
+CREATE OR REPLACE FUNCTION update_comment_reply_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT' AND NEW.parent_comment_id IS NOT NULL) THEN
+        UPDATE arnnvv_comments SET reply_count = reply_count + 1 WHERE id = NEW.parent_comment_id;
+    END IF;
+    IF (TG_OP = 'DELETE' AND OLD.parent_comment_id IS NOT NULL) THEN
+        UPDATE arnnvv_comments SET reply_count = reply_count - 1 WHERE id = OLD.parent_comment_id;
+    END IF;
+    IF (TG_OP = 'UPDATE' AND NEW.parent_comment_id IS DISTINCT FROM OLD.parent_comment_id) THEN
+        IF (OLD.parent_comment_id IS NOT NULL) THEN
+            UPDATE arnnvv_comments SET reply_count = reply_count - 1 WHERE id = OLD.parent_comment_id;
+        END IF;
+        IF (NEW.parent_comment_id IS NOT NULL) THEN
+            UPDATE arnnvv_comments SET reply_count = reply_count + 1 WHERE id = NEW.parent_comment_id;
+        END IF;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_reply_count
+AFTER INSERT OR DELETE OR UPDATE OF parent_comment_id ON arnnvv_comments
+FOR EACH ROW EXECUTE FUNCTION update_comment_reply_count();
 
 ALTER TABLE "arnnvv_sessions"
 ADD CONSTRAINT "arnnvv_sessions_user_id_arnnvv_users_id_fk"

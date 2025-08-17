@@ -123,24 +123,6 @@ export const signOutAction = async (): Promise<ActionResult> => {
   }
 };
 
-async function findUniqueSlug(title: string): Promise<string> {
-  const baseSlug = slugify(title);
-  let uniqueSlug = baseSlug;
-  let counter = 0;
-
-  while (true) {
-    const { rows } = await db.query<{ slug: string }>(
-      "SELECT slug FROM arnnvv_blogs WHERE slug = $1",
-      [uniqueSlug],
-    );
-    if (rows.length === 0) {
-      return uniqueSlug;
-    }
-    counter++;
-    uniqueSlug = `${baseSlug}-${counter}`;
-  }
-}
-
 export async function writeBlog(formdata: FormData): Promise<ActionResult> {
   if (!(await globalPOSTRateLimit())) {
     return {
@@ -174,26 +156,23 @@ export async function writeBlog(formdata: FormData): Promise<ActionResult> {
     };
   }
 
-  try {
-    const slug = await findUniqueSlug(title.trim());
+  const slug = slugify(title.trim());
 
+  try {
     const result = await db.query<{ id: number; slug: string }>(
       `INSERT INTO arnnvv_blogs (title, slug, description)
        VALUES ($1, $2, $3)
        RETURNING id, slug`,
       [title.trim(), slug, content.trim()],
     );
-    if (result.rowCount === 1) {
-      const newBlogId = result.rows[0].id;
-      const newBlogSlug = result.rows[0].slug;
-      revalidatePath("/blogs");
-      revalidatePath(`/blogs/${newBlogSlug}`);
-      return {
-        success: true,
-        message: `Blog Written (ID: ${newBlogId}, Slug: ${newBlogSlug})`,
-      };
-    }
-    throw new Error("Failed to insert blog post.");
+
+    const { id: newBlogId, slug: newBlogSlug } = result.rows[0];
+    revalidatePath("/blogs");
+    revalidatePath(`/blogs/${newBlogSlug}`);
+    return {
+      success: true,
+      message: `Blog Written (ID: ${newBlogId}, Slug: ${newBlogSlug})`,
+    };
   } catch (e) {
     console.error(`Error writing blog: ${e}`);
     if (e instanceof DatabaseError && e.code === "23505") {
@@ -349,25 +328,14 @@ export async function getCommentsForBlogAction(
           c.id, c.blog_id, c.user_id, c.parent_comment_id, c.content, c.created_at, c.updated_at,
           u.name AS user_name,
           u.picture AS user_picture,
-          COALESCE(l.like_count, 0) AS like_count,
+          c.like_count,
+          c.reply_count,
           EXISTS(
               SELECT 1 FROM arnnvv_comment_likes cl_user
               WHERE cl_user.comment_id = c.id AND cl_user.user_id = $2
-          ) AS is_liked_by_current_user,
-          COALESCE(r.reply_count, 0) as reply_count
+          ) AS is_liked_by_current_user
       FROM arnnvv_comments c
       JOIN arnnvv_users u ON c.user_id = u.id
-      LEFT JOIN (
-          SELECT comment_id, COUNT(*) as like_count
-          FROM arnnvv_comment_likes
-          GROUP BY comment_id
-      ) l ON c.id = l.comment_id
-      LEFT JOIN (
-          SELECT parent_comment_id, COUNT(*) as reply_count
-          FROM arnnvv_comments
-          WHERE parent_comment_id IS NOT NULL
-          GROUP BY parent_comment_id
-      ) r ON c.id = r.parent_comment_id
       WHERE c.blog_id = $1 AND c.parent_comment_id IS NULL
       ORDER BY c.created_at ASC;
       `,
@@ -393,25 +361,14 @@ export async function getRepliesForCommentAction(
           c.id, c.blog_id, c.user_id, c.parent_comment_id, c.content, c.created_at, c.updated_at,
           u.name AS user_name,
           u.picture AS user_picture,
-          COALESCE(l.like_count, 0) AS like_count,
+          c.like_count,
+          c.reply_count,
           EXISTS(
               SELECT 1 FROM arnnvv_comment_likes cl_user
               WHERE cl_user.comment_id = c.id AND cl_user.user_id = $2
-          ) AS is_liked_by_current_user,
-          COALESCE(r.reply_count, 0) as reply_count
+          ) AS is_liked_by_current_user
       FROM arnnvv_comments c
       JOIN arnnvv_users u ON c.user_id = u.id
-      LEFT JOIN (
-          SELECT comment_id, COUNT(*) as like_count
-          FROM arnnvv_comment_likes
-          GROUP BY comment_id
-      ) l ON c.id = l.comment_id
-      LEFT JOIN (
-          SELECT parent_comment_id AS sub_parent_id, COUNT(*) as reply_count
-          FROM arnnvv_comments
-          WHERE parent_comment_id IS NOT NULL
-          GROUP BY parent_comment_id
-      ) r ON c.id = r.sub_parent_id
       WHERE c.parent_comment_id = $1
       ORDER BY c.created_at ASC;
       `,
