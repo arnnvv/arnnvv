@@ -7,7 +7,4 @@ export const GOOGLE_OAUTH_CODE_VERIFIER_COOKIE_NAME = "google_code_verifier";
 export const GOOGLE_OAUTH_NONCE_COOKIE_NAME = "google_oauth_nonce";
 export const OAUTH_COOKIE_MAX_AGE_SECONDS = 60 * 10;
 
-export const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
-export const BUCKET_EXPIRATION_MS = 24 * 60 * 60 * 1000;
-
 export const THEME_STORAGE_KEY = "theme";

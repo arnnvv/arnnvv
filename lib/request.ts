@@ -1,18 +1,12 @@
 import { headers } from "next/headers";
-import { RateLimiter } from "./rate-limit";
-
-export const globalBucket = new RateLimiter<string>(100, 1);
+import { limitGetRequests, limitPostRequests } from "./rate-limit";
 
 export async function globalGETRateLimit(): Promise<boolean> {
-  const clientIP = (await headers()).get("X-Forwarded-For");
-  if (clientIP === null) return true;
-
-  return globalBucket.consume(clientIP, 1);
+  const clientIP = (await headers()).get("X-Forwarded-For") ?? "127.0.0.1";
+  return limitGetRequests(clientIP);
 }
 
 export async function globalPOSTRateLimit(): Promise<boolean> {
-  const clientIP = (await headers()).get("X-Forwarded-For");
-  if (clientIP === null) return true;
-
-  return globalBucket.consume(clientIP, 3);
+  const clientIP = (await headers()).get("X-Forwarded-For") ?? "127.0.0.1";
+  return limitPostRequests(clientIP);
 }

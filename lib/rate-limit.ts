@@ -1,68 +1,55 @@
-import { BUCKET_EXPIRATION_MS, CLEANUP_INTERVAL_MS } from "./constants";
+import { appConfig } from "./config";
+import { redis } from "./redis";
 
-interface Bucket {
-  count: number;
-  refilledAt: number;
-  lastAccessed: number;
-}
-
-export class RateLimiter<TKey> {
-  public max: number;
-  public refillIntervalSeconds: number;
-  private storage = new Map<TKey, Bucket>();
-  private cleanupInterval: NodeJS.Timeout | null = null;
-
-  constructor(max: number, refillIntervalSeconds: number) {
-    this.max = max;
-    this.refillIntervalSeconds = refillIntervalSeconds;
-    this._startCleanup();
-  }
-
-  private _cleanup(): void {
+async function checkRateLimit(
+  key: string,
+  limit: number,
+  windowInSeconds: number,
+): Promise<boolean> {
+  try {
     const now = Date.now();
-    for (const [key, bucket] of this.storage.entries()) {
-      if (now - bucket.lastAccessed > BUCKET_EXPIRATION_MS) {
-        this.storage.delete(key);
-      }
-    }
-  }
+    const windowStart = now - windowInSeconds * 1000;
 
-  private _startCleanup(): void {
-    if (typeof process !== "undefined" && this.cleanupInterval === null) {
-      this.cleanupInterval = setInterval(
-        () => this._cleanup(),
-        CLEANUP_INTERVAL_MS,
-      );
-      this.cleanupInterval.unref();
-    }
-  }
+    const pipeline = redis.multi();
 
-  public consume(key: TKey, cost: number): boolean {
-    const now = Date.now();
-    const bucket = this.storage.get(key) ?? {
-      count: this.max,
-      refilledAt: now,
-      lastAccessed: now,
-    };
+    pipeline.zremrangebyscore(key, 0, windowStart);
+    pipeline.zadd(key, { score: now, member: now.toString() });
+    pipeline.zcard(key);
+    pipeline.expire(key, windowInSeconds);
 
-    const refillAmount = Math.floor(
-      (now - bucket.refilledAt) / (this.refillIntervalSeconds * 1000),
-    );
+    const results = await pipeline.exec();
 
-    if (refillAmount > 0) {
-      bucket.count = Math.min(bucket.count + refillAmount, this.max);
-      bucket.refilledAt = now;
+    if (!results || typeof results[2] !== "number") {
+      console.error("Rate limiter failed to get a valid response from Redis.", {
+        key,
+      });
+      return true;
     }
 
-    bucket.lastAccessed = now;
+    const currentCount = results[2] as number;
 
-    if (bucket.count < cost) {
-      this.storage.set(key, bucket);
-      return false;
-    }
-
-    bucket.count -= cost;
-    this.storage.set(key, bucket);
+    return currentCount <= limit;
+  } catch (error) {
+    console.error("Rate limiter has failed catastrophically.", {
+      error,
+      key,
+    });
     return true;
   }
+}
+
+export function limitGetRequests(ip: string) {
+  return checkRateLimit(
+    `ratelimit_get:${ip}`,
+    appConfig.rateLimits.get.limit,
+    appConfig.rateLimits.get.window,
+  );
+}
+
+export function limitPostRequests(ip: string) {
+  return checkRateLimit(
+    `ratelimit_post:${ip}`,
+    appConfig.rateLimits.post.limit,
+    appConfig.rateLimits.post.window,
+  );
 }

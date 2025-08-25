@@ -28,4 +28,18 @@ export const appConfig = {
     pass: getEnvVar("EMAIL_PASS"),
     to: getEnvVar("EMAILTO"),
   },
+  redis: {
+    url: getEnvVar("REDIS_REST_URL"),
+    token: getEnvVar("REDIS_REST_TOKEN"),
+  },
+  rateLimits: {
+    get: {
+      limit: Number(getEnvVar("RATE_LIMIT_GET_LIMIT")),
+      window: Number(getEnvVar("RATE_LIMIT_GET_WINDOW_SECONDS")),
+    },
+    post: {
+      limit: Number(getEnvVar("RATE_LIMIT_POST_LIMIT")),
+      window: Number(getEnvVar("RATE_LIMIT_POST_WINDOW_SECONDS")),
+    },
+  },
 };
