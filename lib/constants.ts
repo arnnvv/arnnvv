@@ -8,3 +8,10 @@ export const GOOGLE_OAUTH_NONCE_COOKIE_NAME = "google_oauth_nonce";
 export const OAUTH_COOKIE_MAX_AGE_SECONDS = 60 * 10;
 
 export const THEME_STORAGE_KEY = "theme";
+
+export const IP_HEADERS = [
+  "CF-Connecting-IP",
+  "x-vercel-forwarded-for",
+  "x-real-ip",
+  "x-forwarded-for",
+] as const;
