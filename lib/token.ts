@@ -1,3 +1,4 @@
+import { GOOGLE_OID_ENDPOINT } from "./constants";
 import { decodeBase64urlIgnorePadding } from "./encoding";
 import { ObjectParser } from "./parser";
 
@@ -23,9 +24,7 @@ async function getGoogleJwks(): Promise<Jwks> {
   }
 
   try {
-    const discoveryResponse = await fetch(
-      "https://accounts.google.com/.well-known/openid-configuration",
-    );
+    const discoveryResponse = await fetch(GOOGLE_OID_ENDPOINT);
     if (!discoveryResponse.ok) {
       throw new Error("Failed to fetch Google OIDC discovery document");
     }

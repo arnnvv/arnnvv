@@ -1,7 +1,10 @@
+import {
+  GOOGLE_ACCOUNTS_AUTH_ENDPOINT,
+  GOOGLE_REVOKE_ENDPOINT,
+  GOOGLE_TOKEN_ENDPOINT,
+} from "./constants";
 import { CodeChallengeMethod, OAuth2Client } from "./oauth-client";
 import type { OAuth2Tokens } from "./oauth-token";
-
-const tokenEndpoint = "https://oauth2.googleapis.com/token";
 
 export class Google {
   private client: OAuth2Client;
@@ -18,7 +21,7 @@ export class Google {
     scopes: string[],
   ): Promise<URL> {
     const url = await this.client.createAuthorizationURLWithPKCE(
-      "https://accounts.google.com/o/oauth2/v2/auth",
+      GOOGLE_ACCOUNTS_AUTH_ENDPOINT,
       state,
       CodeChallengeMethod.S256,
       codeVerifier,
@@ -33,7 +36,7 @@ export class Google {
     codeVerifier: string,
   ): Promise<OAuth2Tokens> {
     const tokens = await this.client.validateAuthorizationCode(
-      tokenEndpoint,
+      GOOGLE_TOKEN_ENDPOINT,
       code,
       codeVerifier,
     );
@@ -42,7 +45,7 @@ export class Google {
 
   public async refreshAccessToken(refreshToken: string): Promise<OAuth2Tokens> {
     const tokens = await this.client.refreshAccessToken(
-      tokenEndpoint,
+      GOOGLE_TOKEN_ENDPOINT,
       refreshToken,
       [],
     );
@@ -50,9 +53,6 @@ export class Google {
   }
 
   public async revokeToken(token: string): Promise<void> {
-    await this.client.revokeToken(
-      "https://oauth2.googleapis.com/revoke",
-      token,
-    );
+    await this.client.revokeToken(GOOGLE_REVOKE_ENDPOINT, token);
   }
 }
