@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 const urlRegex = /\bhttps?:\/\/[^\s<>"'`]+/gi;
@@ -38,13 +39,12 @@ export const linkifyText = (text: string): ReactNode => {
     if (isSafeUrl(url)) {
       if (isImageUrl(url)) {
         parts.push(
-          <img
-            key={`img-${index}`}
-            src={url}
-            alt=""
-            className="max-w-full h-auto my-2"
-            loading="lazy"
-          />,
+          <div
+            key={`img-container-${index}`}
+            className="relative w-full max-w-sm aspect-video my-2 rounded overflow-hidden"
+          >
+            <Image src={url} alt="" fill className="object-contain" />
+          </div>,
         );
       } else {
         parts.push(

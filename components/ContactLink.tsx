@@ -1,7 +1,6 @@
 "use client";
 
-import { useLinkStatus } from "next/link";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { type JSX, useEffect, useState } from "react";
 
 function LoadingIndicator(): JSX.Element | null {

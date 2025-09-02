@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import type { JSX, ReactNode } from "react";
 import { Inter } from "next/font/google";
-import { cn } from "@/lib/utils";
-import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "next-themes";
+import { ViewTransitions } from "next-view-transitions";
+import type { JSX, ReactNode } from "react";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
-import { ThemeProvider } from "next-themes";
 import { ThemeErrorBoundary } from "@/components/ThemeErrorBoundry";
-import { ViewTransitions } from "next-view-transitions";
+import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Arnav Sharma: Beyond the screen",

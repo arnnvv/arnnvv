@@ -1,5 +1,5 @@
-import { limitGetRequests, limitPostRequests } from "./rate-limit";
 import { getClientIp } from "./ip";
+import { limitGetRequests, limitPostRequests } from "./rate-limit";
 
 export async function globalGETRateLimit(): Promise<boolean> {
   const clientIP = await getClientIp();

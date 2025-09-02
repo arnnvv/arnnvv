@@ -1,12 +1,12 @@
 "use client";
 
-import { type JSX, useState, useTransition } from "react";
 import { Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { toggleLikeCommentAction } from "@/app/actions";
+import { type JSX, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { toggleLikeCommentAction } from "@/app/actions";
+import { Button } from "@/components/ui/button";
 import type { User } from "@/lib/db/types";
+import { cn } from "@/lib/utils";
 
 interface LikeButtonProps {
   commentId: number;

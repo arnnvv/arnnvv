@@ -1,14 +1,14 @@
 "use client";
 
-import type { ActionResult } from "@/type";
 import {
   type JSX,
   type ReactNode,
+  type RefObject,
   useRef,
   useTransition,
-  type RefObject,
 } from "react";
 import { toast } from "sonner";
+import type { ActionResult } from "@/type";
 import { Spinner } from "./Spinner";
 
 interface ActionFormWrapperProps<TData = unknown> {

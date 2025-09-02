@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { JSX, ReactNode } from "react";
 
 type ListType = "ul" | "ol" | null;
@@ -266,16 +267,10 @@ export const formatContent = (content: string): JSX.Element[] => {
       flushParagraph();
       const [, alt, src, title] = imageMatch;
       elements.push(
-        <figure
-          key={`figure-block-${elements.length}`}
-          className="my-6 flex flex-col items-center"
-        >
-          <img
-            src={src}
-            alt={alt}
-            className="max-w-full h-auto rounded-lg shadow-lg dark:shadow-black/50"
-            loading="lazy"
-          />
+        <figure key={`figure-block-${elements.length}`} className="my-6">
+          <div className="relative w-full aspect-video overflow-hidden rounded-lg shadow-lg dark:shadow-black/50">
+            <Image src={src} alt={alt} fill className="object-contain" />
+          </div>
           {title && (
             <figcaption className="mt-3 text-sm text-center text-gray-500 dark:text-gray-400 italic">
               {title}
@@ -380,8 +375,7 @@ const parseInline = (
   keySeed: string | number = "",
 ): ReactNode[] => {
   const elements: ReactNode[] = [];
-  const regex =
-    /(\*\*.*?\*\*|_.*?_|\*.*?\*|~~.*?~~|`.*?`|!\[.*?\]\(.*?\)|\[.*?\]\(.*?\))/g;
+  const regex = /(\*\*.*?\*\*|_.*?_|\*.*?\*|~~.*?~~|`.*?`|\[.*?\]\(.*?\))/g;
   const parts = text.split(regex);
 
   parts.forEach((part, index) => {
@@ -423,29 +417,6 @@ const parseInline = (
           {content}
         </code>,
       );
-    } else if (part.startsWith("![")) {
-      const match = part.match(/!\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)/);
-      if (match) {
-        const [, alt, src, title] = match;
-        elements.push(
-          <figure
-            key={`figure-${uniqueKey}`}
-            className="my-6 flex flex-col items-center"
-          >
-            <img
-              src={src}
-              alt={alt}
-              className="max-w-full h-auto rounded-lg shadow-lg dark:shadow-black/50"
-              loading="lazy"
-            />
-            {title && (
-              <figcaption className="mt-3 text-sm text-center text-gray-500 dark:text-gray-400 italic">
-                {title}
-              </figcaption>
-            )}
-          </figure>,
-        );
-      }
     } else if (part.startsWith("[") && part.includes("](")) {
       const match = part.match(/\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)/);
       if (match) {

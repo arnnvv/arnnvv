@@ -1,17 +1,17 @@
 import { cookies } from "next/headers";
+import { getCurrentSession } from "@/app/actions";
 import {
-  generateState,
-  generateCodeVerifier,
-  generateNonce,
-  google,
-} from "@/lib/oauth";
-import {
-  GOOGLE_OAUTH_STATE_COOKIE_NAME,
   GOOGLE_OAUTH_CODE_VERIFIER_COOKIE_NAME,
   GOOGLE_OAUTH_NONCE_COOKIE_NAME,
+  GOOGLE_OAUTH_STATE_COOKIE_NAME,
   OAUTH_COOKIE_MAX_AGE_SECONDS,
 } from "@/lib/constants";
-import { getCurrentSession } from "@/app/actions";
+import {
+  generateCodeVerifier,
+  generateNonce,
+  generateState,
+  google,
+} from "@/lib/oauth";
 import { globalGETRateLimit } from "@/lib/request";
 
 export async function GET(request: Request): Promise<Response> {

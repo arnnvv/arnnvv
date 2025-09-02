@@ -1,10 +1,10 @@
 "use client";
 
 import { type JSX, type KeyboardEvent, useRef } from "react";
-import { ActionFormWrapper } from "@/components/ActionFormWrapper";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { addCommentAction } from "@/app/actions";
+import { ActionFormWrapper } from "@/components/ActionFormWrapper";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import type { CommentWithDetails, User } from "@/lib/db/types";
 
 export function CommentForm({

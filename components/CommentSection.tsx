@@ -1,8 +1,8 @@
 import { type JSX, Suspense } from "react";
 import { getCommentsForBlogAction, getCurrentSession } from "@/app/actions";
-import { CommentList } from "./CommentList";
-import { CommentForm } from "./CommentForm";
 import type { User } from "@/lib/db/types";
+import { CommentForm } from "./CommentForm";
+import { CommentList } from "./CommentList";
 
 function CommentListSkeleton(): JSX.Element {
   const skeletonItems = Array.from({ length: 3 }, (_, i) => `skeleton-${i}`);

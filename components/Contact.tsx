@@ -1,10 +1,10 @@
-import { getCurrentSession, sendEmailAtn } from "@/app/actions";
 import type { JSX } from "react";
+import { getCurrentSession, sendEmailAtn } from "@/app/actions";
+import { globalGETRateLimit } from "@/lib/request";
 import { ActionFormWrapper } from "./ActionFormWrapper";
+import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { Button } from "./ui/button";
-import { globalGETRateLimit } from "@/lib/request";
 
 export function ContactFormSkeleton(): JSX.Element {
   return (

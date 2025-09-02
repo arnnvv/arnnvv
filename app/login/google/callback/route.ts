@@ -1,16 +1,16 @@
 import { cookies } from "next/headers";
-import { google } from "@/lib/oauth";
-import { createSession, generateSessionToken } from "@/lib/auth";
-import { setSessionTokenCookie } from "@/lib/session";
-import { ObjectParser } from "@/lib/parser";
 import { getCurrentSession } from "@/app/actions";
+import { createSession, generateSessionToken } from "@/lib/auth";
 import {
-  GOOGLE_OAUTH_STATE_COOKIE_NAME,
   GOOGLE_OAUTH_CODE_VERIFIER_COOKIE_NAME,
   GOOGLE_OAUTH_NONCE_COOKIE_NAME,
+  GOOGLE_OAUTH_STATE_COOKIE_NAME,
 } from "@/lib/constants";
-import { upsertUserFromGoogleProfile } from "@/lib/user";
+import { google } from "@/lib/oauth";
+import { ObjectParser } from "@/lib/parser";
 import { globalGETRateLimit } from "@/lib/request";
+import { setSessionTokenCookie } from "@/lib/session";
+import { upsertUserFromGoogleProfile } from "@/lib/user";
 
 export async function GET(request: Request): Promise<Response> {
   if (!(await globalGETRateLimit())) {

@@ -1,23 +1,23 @@
 "use client";
 
-import { type JSX, useState, useTransition } from "react";
-import type { CommentWithDetails, User } from "@/lib/db/types";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDate } from "@/lib/date";
-import { LikeButton } from "./LikeButton";
-import { CommentForm } from "./CommentForm";
 import {
-  MessageSquareReply,
-  Trash2,
   ChevronDown,
   ChevronRight,
   Loader2,
+  MessageSquareReply,
+  Trash2,
   User as UserIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { deleteCommentAction, getRepliesForCommentAction } from "@/app/actions";
+import { type JSX, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { deleteCommentAction, getRepliesForCommentAction } from "@/app/actions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { formatDate } from "@/lib/date";
+import type { CommentWithDetails, User } from "@/lib/db/types";
 import { linkifyText } from "@/lib/formatComment";
+import { CommentForm } from "./CommentForm";
+import { LikeButton } from "./LikeButton";
 
 export function CommentItem({
   comment,

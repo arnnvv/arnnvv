@@ -1,6 +1,6 @@
-import { type JSX, Suspense } from "react";
 import { Home, LogOut, User as UserIcon } from "lucide-react";
-import { ThemeButton } from "./ThemeButton";
+import Link from "next/link";
+import { type JSX, Suspense } from "react";
 import { getCurrentSession, signOutAction } from "@/app/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -9,10 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "./ui/button";
-import { SignOutFormComponent } from "./SignOutForm";
-import Link from "next/link";
 import { globalGETRateLimit } from "@/lib/request";
+import { SignOutFormComponent } from "./SignOutForm";
+import { ThemeButton } from "./ThemeButton";
+import { Button } from "./ui/button";
 
 function AuthControlsSkeleton(): JSX.Element {
   return (

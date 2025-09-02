@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useState, useEffect } from "react";
+import { type JSX, useEffect, useState } from "react";
 import type { CommentWithDetails, User } from "@/lib/db/types";
 import { CommentItem } from "./CommentItem";
 

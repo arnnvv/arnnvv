@@ -1,6 +1,6 @@
-import type { ProjectWithDetails } from "@/lib/db/types";
+import { Code2, ExternalLink } from "lucide-react";
 import type { JSX } from "react";
-import { ExternalLink, Code2 } from "lucide-react";
+import type { ProjectWithDetails } from "@/lib/db/types";
 
 export function ProjectCard({
   project,

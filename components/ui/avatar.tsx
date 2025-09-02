@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  Image as AvatarImageT,
   Fallback as AvatarFallbackT,
+  Image as AvatarImageT,
   Root as AvatarRoot,
 } from "@radix-ui/react-avatar";
-import { cn } from "@/lib/utils";
 import type { ComponentProps, JSX } from "react";
+import { cn } from "@/lib/utils";
 
 function Avatar({
   className,

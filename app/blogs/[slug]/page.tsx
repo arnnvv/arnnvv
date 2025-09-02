@@ -1,11 +1,11 @@
-import { type JSX, Suspense } from "react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { type JSX, Suspense } from "react";
 import { getBlogPostBySlug } from "@/app/actions";
+import { CommentSection } from "@/components/CommentSection";
 import { formatDate } from "@/lib/date";
 import { formatContent } from "@/lib/format";
 import { wrapWordsWithTransition } from "@/lib/transitions";
-import type { Metadata } from "next";
-import { CommentSection } from "@/components/CommentSection";
 
 interface BlogPostPageProps {
   params: Promise<{

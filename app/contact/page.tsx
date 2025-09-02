@@ -1,4 +1,4 @@
-import { Suspense, type JSX } from "react";
+import { type JSX, Suspense } from "react";
 import { ContactFormContent, ContactFormSkeleton } from "@/components/Contact";
 
 export default function ContactForm(): JSX.Element {

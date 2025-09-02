@@ -1,8 +1,8 @@
+import type { Metadata } from "next";
 import { type JSX, Suspense } from "react";
 import { getProjectsAction } from "@/app/actions";
-import { ProjectCard } from "@/components/ProjectCard";
 import { TransitionTitle } from "@/components/layout/TransitionTitle";
-import type { Metadata } from "next";
+import { ProjectCard } from "@/components/ProjectCard";
 
 export const metadata: Metadata = {
   title: "My Work",

@@ -1,6 +1,6 @@
+import type { JSX } from "react";
 import { AnimatedPageWrapper } from "@/components/layout/AnimatedPageWrapper";
 import { TransitionLink } from "@/components/layout/TransitionLink";
-import type { JSX } from "react";
 
 export default function Home(): JSX.Element {
   return (

@@ -1,7 +1,7 @@
 "use client";
 
+import { Component, type ErrorInfo, type ReactNode } from "react";
 import { THEME_STORAGE_KEY } from "@/lib/constants";
-import { type ReactNode, type ErrorInfo, Component } from "react";
 
 interface Props {
   children: ReactNode;
