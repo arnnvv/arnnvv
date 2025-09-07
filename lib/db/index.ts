@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+import { Pool } from "@neondatabase/serverless";
 import { appConfig } from "../config";
 
 export const db = new Pool({

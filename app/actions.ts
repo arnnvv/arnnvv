@@ -1,9 +1,9 @@
 "use server";
 
+import { DatabaseError } from "@neondatabase/serverless";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { createTransport } from "nodemailer";
-import { DatabaseError } from "pg";
 import { cache } from "react";
 import {
   invalidateSession,
