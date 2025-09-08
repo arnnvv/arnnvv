@@ -5,7 +5,7 @@ import {
 } from "./constants";
 import { db } from "./db";
 import type { Session, User } from "./db/types";
-import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from "./encoding";
+import { encodeBase64urlNoPadding, encodeHexLowerCase } from "./encoding";
 import { sha256 } from "./sha";
 
 export type SessionValidationResult =
@@ -20,7 +20,7 @@ export function isUserAdmin(user: User | null): boolean {
 export function generateSessionToken(): string {
   const bytes = new Uint8Array(20);
   crypto.getRandomValues(bytes);
-  return encodeBase32LowerCaseNoPadding(bytes);
+  return encodeBase64urlNoPadding(bytes);
 }
 
 export async function createSession(
