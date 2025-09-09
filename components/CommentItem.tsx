@@ -8,7 +8,7 @@ import {
   Trash2,
   User as UserIcon,
 } from "lucide-react";
-import { type JSX, useState, useTransition } from "react";
+import { type JSX, memo, useCallback, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   deleteCommentAction,
@@ -22,7 +22,7 @@ import { linkifyText } from "@/lib/formatComment";
 import { CommentForm } from "./CommentForm";
 import { LikeButton } from "./LikeButton";
 
-export function CommentItem({
+function CommentItemComponent({
   comment,
   blogId,
   currentUser,
@@ -59,18 +59,18 @@ export function CommentItem({
     setShowReplyForm(false);
   };
 
-  const handleChildReplyDeleted = (
-    deletedReplyId: number,
-    parentIdOfDeleted: number | null,
-  ) => {
-    if (parentIdOfDeleted === comment.id) {
-      setLoadedReplies((prevReplies) =>
-        prevReplies.filter((reply) => reply.id !== deletedReplyId),
-      );
-      setCurrentReplyCount((prevCount) => Math.max(0, prevCount - 1));
-    }
-    onCommentDeletedAction(deletedReplyId, parentIdOfDeleted);
-  };
+  const handleChildReplyDeleted = useCallback(
+    (deletedReplyId: number, parentIdOfDeleted: number | null) => {
+      if (parentIdOfDeleted === comment.id) {
+        setLoadedReplies((prevReplies) =>
+          prevReplies.filter((reply) => reply.id !== deletedReplyId),
+        );
+        setCurrentReplyCount((prevCount) => Math.max(0, prevCount - 1));
+      }
+      onCommentDeletedAction(deletedReplyId, parentIdOfDeleted);
+    },
+    [comment.id, onCommentDeletedAction],
+  );
 
   const handleDelete = () => {
     if (!currentUser || currentUser.id !== comment.user_id) {
@@ -245,3 +245,5 @@ export function CommentItem({
     </div>
   );
 }
+
+export const CommentItem = memo(CommentItemComponent);
