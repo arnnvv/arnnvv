@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { getCurrentSession, sendEmailAtn } from "@/app/actions";
+import { getCurrentSession } from "@/app/actions/auth-actions";
+import { sendEmailAtn } from "@/app/actions/contact-actions";
 import { globalGETRateLimit } from "@/lib/request";
 import { ActionFormWrapper } from "./ActionFormWrapper";
 import { Button } from "./ui/button";

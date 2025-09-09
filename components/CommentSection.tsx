@@ -1,5 +1,6 @@
 import { type JSX, Suspense } from "react";
-import { getCommentsForBlogAction, getCurrentSession } from "@/app/actions";
+import { getCurrentSession } from "@/app/actions/auth-actions";
+import { getCommentsForBlogAction } from "@/app/actions/comment-actions";
 import type { User } from "@/lib/db/types";
 import { CommentForm } from "./CommentForm";
 import { CommentList } from "./CommentList";

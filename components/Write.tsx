@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { getCurrentSession } from "@/app/actions";
+import { getCurrentSession } from "@/app/actions/auth-actions";
 import { isUserAdmin } from "@/lib/auth";
 import { BlogForm } from "./BlogForm";
 import { ProjectForm } from "./ProjectsForm";

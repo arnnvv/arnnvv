@@ -2,6 +2,7 @@
   "name": "arnnvv",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "d": "next dev --turbopack",
     "b": "next build",
@@ -40,5 +41,11 @@
     "tailwindcss": "4.1.13",
     "tw-animate-css": "1.3.8",
     "typescript": "5.9.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@tailwindcss/oxide",
+      "sharp"
+    ]
   }
 }

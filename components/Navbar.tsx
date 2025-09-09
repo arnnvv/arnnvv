@@ -1,7 +1,7 @@
 import { Home, LogOut, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { type JSX, Suspense } from "react";
-import { getCurrentSession, signOutAction } from "@/app/actions";
+import { getCurrentSession, signOutAction } from "@/app/actions/auth-actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,

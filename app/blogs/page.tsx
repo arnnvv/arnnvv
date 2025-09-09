@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Link } from "next-view-transitions";
 import type { JSX } from "react";
-import { getBlogSummaries } from "@/app/actions";
+import { getBlogSummaries } from "@/app/actions/blog-actions";
 import { TransitionTitle } from "@/components/layout/TransitionTitle";
 import { formatDate } from "@/lib/date";
 import { wrapWordsWithTransition } from "@/lib/transitions";

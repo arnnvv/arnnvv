@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { getCurrentSession } from "@/app/actions";
+import { getCurrentSession } from "@/app/actions/auth-actions";
 import {
   GOOGLE_OAUTH_CODE_VERIFIER_COOKIE_NAME,
   GOOGLE_OAUTH_NONCE_COOKIE_NAME,

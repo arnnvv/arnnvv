@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { type JSX, Suspense } from "react";
-import { getProjectsAction } from "@/app/actions";
+import { getProjectsAction } from "@/app/actions/project-actions";
 import { TransitionTitle } from "@/components/layout/TransitionTitle";
 import { ProjectCard } from "@/components/ProjectCard";
 

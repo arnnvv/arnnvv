@@ -1,7 +1,7 @@
 "use client";
 
 import { type JSX, type KeyboardEvent, useRef } from "react";
-import { addCommentAction } from "@/app/actions";
+import { addCommentAction } from "@/app/actions/comment-actions";
 import { ActionFormWrapper } from "@/components/ActionFormWrapper";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

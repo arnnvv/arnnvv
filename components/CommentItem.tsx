@@ -10,7 +10,10 @@ import {
 } from "lucide-react";
 import { type JSX, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { deleteCommentAction, getRepliesForCommentAction } from "@/app/actions";
+import {
+  deleteCommentAction,
+  getRepliesForCommentAction,
+} from "@/app/actions/comment-actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date";

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { type JSX, Suspense } from "react";
-import { getBlogPostBySlug } from "@/app/actions";
+import { getBlogPostBySlug } from "@/app/actions/blog-actions";
 import { CommentSection } from "@/components/CommentSection";
 import { formatDate } from "@/lib/date";
 import { formatContent } from "@/lib/format";

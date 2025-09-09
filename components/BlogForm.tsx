@@ -1,7 +1,7 @@
 "use client";
 
 import { type JSX, useId } from "react";
-import { writeBlog } from "@/app/actions";
+import { writeBlog } from "@/app/actions/blog-actions";
 import { ActionFormWrapper } from "./ActionFormWrapper";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";

@@ -2,7 +2,7 @@
 
 import { PlusCircle, Trash2 } from "lucide-react";
 import { type JSX, useId, useRef, useState } from "react";
-import { addProjectAction } from "@/app/actions";
+import { addProjectAction } from "@/app/actions/project-actions";
 import { ActionFormWrapper } from "@/components/ActionFormWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
