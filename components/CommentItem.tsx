@@ -18,7 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date";
 import type { CommentWithDetails, User } from "@/lib/db/types";
-import { linkifyText } from "@/lib/formatComment";
+import { linkifyText } from "@/lib/linkify";
 import { CommentForm } from "./CommentForm";
 import { LikeButton } from "./LikeButton";
 

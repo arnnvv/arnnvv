@@ -24,3 +24,5 @@ export const IP_HEADERS = [
   "x-real-ip",
   "x-forwarded-for",
 ] as const;
+
+export const URL_REGEX = /\bhttps?:\/\/[^\s<>"'`]+/gi;
