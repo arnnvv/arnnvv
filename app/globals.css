@@ -1,6 +1,29 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@layer base {
+  @keyframes slide-in {
+    from {
+      transform: translateX(15px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-out {
+    to {
+      transform: translateX(-15px);
+      opacity: 0;
+    }
+  }
+
+  ::view-transition-old(root) {
+    animation: 250ms ease-out both slide-out;
+  }
+  ::view-transition-new(root) {
+    animation: 250ms ease-out both slide-in;
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

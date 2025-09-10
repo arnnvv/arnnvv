@@ -1,8 +1,10 @@
-import { Link } from "next-view-transitions";
+import type NextLink from "next/link";
 import type { ComponentProps, JSX } from "react";
 import { wrapWordsWithTransition } from "@/lib/transitions";
+import { TransitionLink as BaseTransitionLink } from "@/lib/view-transition";
 
-interface TransitionLinkProps extends ComponentProps<typeof Link> {
+interface TransitionLinkProps
+  extends Omit<ComponentProps<typeof NextLink>, "children"> {
   title: string;
   transitionName: string;
 }
@@ -13,7 +15,7 @@ export function TransitionLink({
   ...props
 }: TransitionLinkProps): JSX.Element {
   return (
-    <Link
+    <BaseTransitionLink
       className="group relative inline-flex items-center font-bold transition-all duration-300"
       {...props}
     >
@@ -44,6 +46,6 @@ export function TransitionLink({
           d="M17 8l4 4m0 0l-4 4m4-4H3"
         />
       </svg>
-    </Link>
+    </BaseTransitionLink>
   );
 }

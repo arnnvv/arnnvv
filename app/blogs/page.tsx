@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Link } from "next-view-transitions";
 import type { JSX } from "react";
 import { getBlogSummaries } from "@/app/actions/blog-actions";
 import { TransitionTitle } from "@/components/layout/TransitionTitle";
 import { formatDate } from "@/lib/date";
 import { wrapWordsWithTransition } from "@/lib/transitions";
+import { TransitionLink } from "@/lib/view-transition";
 
 export const metadata: Metadata = {
   title: "My Writings",
@@ -48,7 +48,11 @@ async function BlogList(): Promise<JSX.Element> {
   return (
     <div className="space-y-8">
       {blogs.map((blog, index) => (
-        <Link key={blog.id} href={`/blogs/${blog.slug}`} className="block">
+        <TransitionLink
+          key={blog.id}
+          href={`/blogs/${blog.slug}`}
+          className="block"
+        >
           <article
             className="group relative p-6 rounded-2xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 cursor-pointer"
             style={{ animationDelay: `${index * 0.1}s` }}
@@ -82,7 +86,7 @@ async function BlogList(): Promise<JSX.Element> {
               <span className="mx-2">•</span>
             </div>
           </article>
-        </Link>
+        </TransitionLink>
       ))}
     </div>
   );
