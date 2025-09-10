@@ -2,103 +2,133 @@
 
 import NextLink, { type LinkProps } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, {
+import {
   createContext,
+  forwardRef,
+  type MouseEvent as ReactMouseEvent,
   type ReactNode,
   startTransition,
   use,
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
-const TransitionContext = createContext<(callback: () => void) => void>(() => {
-  throw new Error("Missing ViewTransitionsProvider");
-});
+const ViewTransitionsContext = createContext<(callback: () => void) => void>(
+  () => {
+    throw new Error("Missing ViewTransitionsProvider.");
+  },
+);
+
+function useIsMount(): boolean {
+  const isMountRef = useRef(true);
+  useEffect(() => {
+    isMountRef.current = false;
+  }, []);
+  return isMountRef.current;
+}
 
 export function ViewTransitionsProvider({ children }: { children: ReactNode }) {
-  const [transition, setTransition] = useState<Promise<void> | null>(null);
+  const isMount = useIsMount();
 
-  if (transition) {
-    use(transition);
+  const [finishTransition, setFinishTransition] = useState<(() => void) | null>(
+    null,
+  );
+  const [renderBlockingPromise, setRenderBlockingPromise] =
+    useState<Promise<void> | null>(null);
+
+  if (renderBlockingPromise) {
+    use(renderBlockingPromise);
   }
 
   useEffect(() => {
+    if (finishTransition && !isMount) {
+      finishTransition();
+      setFinishTransition(null);
+    }
+  }, [finishTransition, isMount]);
+
+  useEffect(() => {
     const handler = () => {
-      if (document.startViewTransition) {
-        let resolve: () => void;
-        const promise = new Promise<void>((r) => {
-          resolve = r;
-        });
-        setTransition(promise);
+      if (!document.startViewTransition) return;
+
+      let resolveViewTransition: () => void;
+      const viewTransitionPromise = new Promise<void>((resolve) => {
+        resolveViewTransition = resolve;
+      });
+
+      const snapshotPromise = new Promise<void>((resolve) => {
         document.startViewTransition(() => {
           resolve();
-          setTransition(null);
+          return viewTransitionPromise;
         });
-      }
+      });
+
+      setRenderBlockingPromise(snapshotPromise);
+      setFinishTransition(() => () => {
+        resolveViewTransition();
+        setRenderBlockingPromise(null);
+      });
     };
+
     window.addEventListener("popstate", handler);
     return () => window.removeEventListener("popstate", handler);
   }, []);
 
   const startViewTransition = useCallback((callback: () => void) => {
-    if (document.startViewTransition) {
-      let resolve: () => void;
-      const promise = new Promise<void>((r) => {
-        resolve = r;
-      });
-      setTransition(promise);
-
-      document.startViewTransition(() => {
-        startTransition(callback);
-        resolve();
-        setTransition(null);
-      });
-    } else {
+    if (!document.startViewTransition) {
       startTransition(callback);
+      return;
     }
+
+    const transitionPromise = new Promise<void>((resolve) => {
+      setFinishTransition(() => resolve);
+      startTransition(callback);
+    });
+
+    document.startViewTransition(() => transitionPromise);
   }, []);
 
   return (
-    <TransitionContext.Provider value={startViewTransition}>
+    <ViewTransitionsContext.Provider value={startViewTransition}>
       {children}
-    </TransitionContext.Provider>
+    </ViewTransitionsContext.Provider>
   );
 }
 
-export const TransitionLink = React.forwardRef<
+export function useViewTransitions() {
+  return useContext(ViewTransitionsContext);
+}
+
+export const TransitionLink = forwardRef<
   HTMLAnchorElement,
   LinkProps & { children: ReactNode; className?: string }
->(function TransitionLink({ href, onClick, className, ...props }, ref) {
-  const startViewTransition = useContext(TransitionContext);
+>(function TransitionLink({ href, onClick, ...props }, ref) {
+  const startViewTransition = useViewTransitions();
   const router = useRouter();
   const pathname = usePathname();
 
   const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>) => {
+    (e: ReactMouseEvent<HTMLAnchorElement>) => {
       if (onClick) onClick(e);
 
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+        return;
+      }
 
       const targetPath = href.toString();
       if (targetPath === pathname) return;
 
       e.preventDefault();
+
       startViewTransition(() => {
         router.push(targetPath);
       });
     },
-    [href, router, pathname, startViewTransition, onClick],
+    [onClick, href, pathname, router, startViewTransition],
   );
 
-  return (
-    <NextLink
-      href={href}
-      onClick={handleClick}
-      ref={ref}
-      className={className}
-      {...props}
-    />
-  );
+  return <NextLink href={href} onClick={handleClick} ref={ref} {...props} />;
 });
