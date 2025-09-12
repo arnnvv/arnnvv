@@ -4,10 +4,9 @@ import { DatabaseError } from "@neondatabase/serverless";
 import { revalidatePath } from "next/cache";
 import { isUserAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
-import type { BlogPost, BlogSummary } from "@/lib/db/types";
+import type { ActionResult, BlogPost, BlogSummary } from "@/lib/db/types";
 import { globalPOSTRateLimit } from "@/lib/request";
 import { slugify } from "@/lib/utils";
-import type { ActionResult } from "@/type";
 import { getCurrentSession } from "./auth-actions";
 
 export async function writeBlog(formdata: FormData): Promise<ActionResult> {

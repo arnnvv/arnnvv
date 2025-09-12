@@ -2,8 +2,8 @@
 
 import { createTransport } from "nodemailer";
 import { appConfig } from "@/lib/config";
+import type { ActionResult } from "@/lib/db/types";
 import { globalPOSTRateLimit } from "@/lib/request";
-import type { ActionResult } from "@/type";
 
 export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
   if (!(await globalPOSTRateLimit())) {

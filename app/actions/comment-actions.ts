@@ -4,9 +4,8 @@ import { DatabaseError } from "@neondatabase/serverless";
 import { revalidatePath } from "next/cache";
 import { isUserAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
-import type { CommentWithDetails } from "@/lib/db/types";
+import type { ActionResult, CommentWithDetails } from "@/lib/db/types";
 import { globalPOSTRateLimit } from "@/lib/request";
-import type { ActionResult } from "@/type";
 import { getCurrentSession } from "./auth-actions";
 
 export async function addCommentAction(

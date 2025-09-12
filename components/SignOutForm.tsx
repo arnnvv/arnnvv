@@ -2,7 +2,7 @@
 
 import { type JSX, type ReactNode, useTransition } from "react";
 import { toast } from "sonner";
-import type { ActionResult } from "@/type";
+import type { ActionResult } from "@/lib/db/types";
 import { Spinner } from "./Spinner";
 
 export const SignOutFormComponent = ({

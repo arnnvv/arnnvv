@@ -8,7 +8,7 @@
     "b": "next build",
     "p": "next start",
     "l": "biome check",
-    "f": "biome check --write",
+    "f": "biome format --write",
     "cl": "rm -rf .next",
     "ua": "pnpm dlx shadcn@latest add"
   },

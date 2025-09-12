@@ -2,15 +2,11 @@
 
 import { cookies } from "next/headers";
 import { cache } from "react";
-import {
-  invalidateSession,
-  type SessionValidationResult,
-  validateSessionToken,
-} from "@/lib/auth";
+import { invalidateSession, validateSessionToken } from "@/lib/auth";
 import { SESSION_COOKIE_NAME } from "@/lib/constants";
+import type { ActionResult, SessionValidationResult } from "@/lib/db/types";
 import { globalPOSTRateLimit } from "@/lib/request";
 import { deleteSessionTokenCookie } from "@/lib/session";
-import type { ActionResult } from "@/type";
 
 export const getCurrentSession = cache(
   async (): Promise<SessionValidationResult> => {

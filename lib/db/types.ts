@@ -74,3 +74,12 @@ export type ProjectWithDetails = Project & {
   technologies: string[];
   links: Array<{ link_type: string; url: string }>;
 };
+
+export type SessionValidationResult =
+  | { user: User; session: Session }
+  | { user: null; session: null };
+
+export type ActionResult = {
+  success: boolean;
+  message: string;
+};

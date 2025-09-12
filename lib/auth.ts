@@ -4,13 +4,9 @@ import {
   SESSION_REFRESH_THRESHOLD_SECONDS,
 } from "./constants";
 import { db } from "./db";
-import type { Session, User } from "./db/types";
+import type { Session, SessionValidationResult, User } from "./db/types";
 import { encodeBase64urlNoPadding, encodeHexLowerCase } from "./encoding";
 import { sha256 } from "./sha";
-
-export type SessionValidationResult =
-  | { session: Session; user: User }
-  | { session: null; user: null };
 
 export function isUserAdmin(user: User | null): boolean {
   if (!user) return false;
