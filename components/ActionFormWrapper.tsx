@@ -65,7 +65,7 @@ export function ActionFormWrapper<TData = unknown>({
 
   const handleUnexpectedError = useCallback(
     (error: unknown) => {
-      console.error(`ActionFormWrapper unhandled error:`, error);
+      console.error(`ActionFormWrapper unhandled error: ${error}`);
       const errorMsg = "An unexpected error occurred. Please try again.";
       toast.error(errorMsg);
       if (onError) {
