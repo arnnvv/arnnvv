@@ -1,450 +1,473 @@
 import Image from "next/image";
 import type { JSX, ReactNode } from "react";
 
-type ListType = "ul" | "ol" | null;
-interface ListContext {
-  type: ListType;
-  items: JSX.Element[];
-  indent: number;
-  counter: number;
-  start: number;
+const CONFIG = {
+  styling: {
+    header: [
+      "text-3xl font-bold mt-6 mb-4",
+      "text-2xl font-bold mt-6 mb-4",
+      "text-xl font-bold mt-6 mb-4",
+      "text-lg font-bold mt-6 mb-4",
+      "text-base font-bold mt-6 mb-4",
+      "text-sm font-bold mt-6 mb-4",
+    ],
+    paragraph: "mb-4 leading-relaxed",
+    codeBlock: {
+      pre: "bg-muted text-gray-800 dark:text-gray-200 p-4 my-4 rounded-lg overflow-x-auto",
+      code: "font-mono text-sm",
+    },
+    blockquote:
+      "border-l-4 border-gray-300 dark:border-gray-600 pl-4 my-4 text-gray-600 dark:text-gray-400",
+    image: {
+      figure: "my-6",
+      container:
+        "relative w-full aspect-video overflow-hidden rounded-lg shadow-lg dark:shadow-black/50",
+      image: "object-contain",
+      caption:
+        "mt-3 text-sm text-center text-gray-500 dark:text-gray-400 italic",
+    },
+    hr: "my-6 border-t-2 border-gray-200 dark:border-gray-700",
+    list: {
+      ul: "list-disc list-inside mb-4 pl-4",
+      ol: "list-decimal list-inside mb-4 pl-4",
+      listItem: "mb-2",
+      checkbox: "mr-2 align-middle",
+    },
+    table: {
+      container: "my-6 overflow-x-auto",
+      table: "w-full text-left border-collapse",
+      th: "p-4 border-b-2 border-gray-200 dark:border-gray-700 pb-3 text-sm font-semibold text-gray-800 dark:text-gray-200 uppercase tracking-wider",
+      tr: "border-b border-gray-200 dark:border-gray-800",
+      td: "p-4",
+    },
+    inline: {
+      code: "font-mono bg-muted text-red-500 dark:text-red-400 px-1 py-0.5 rounded",
+      link: "text-blue-600 dark:text-blue-400 hover:underline",
+    },
+  },
+  regex: {
+    inline:
+      /(\!?\[.*?\]\(.*?\)|`.*?`|\*\*.*?\*\*|__.*?__|\*.*?\*|_.*?_|~~.*?~~| {2,}\n)/g,
+    header: /^(#+)\s(.*)/,
+    blockquote: /^>\s?(.*)/,
+    listItem: /^(\s*)(\*|-|\d+\.)\s(.*)/,
+    taskListItem: /^\[( |x)\]\s(.*)/,
+    codeFence: /^```/,
+    hr: /^(---|\*\*\*|___)\s*$/,
+    tableRow: /^\s*\|.*\|\s*$/,
+    tableSeparator: /^\s*\|?.*[-:]+.*\|?\s*$/,
+  },
+};
+
+interface ListItem {
+  key: string;
+  content: string;
+  children: ListBlock;
 }
 
-export const formatContent = (content: string): JSX.Element[] => {
-  const lines = content.split("\n");
-  const elements: JSX.Element[] = [];
-  const listStack: ListContext[] = [];
-  let inCodeBlock = false;
-  let codeBlockContent: string[] = [];
-  let currentParagraph: string[] = [];
-  let tableLines: Array<{ line: string; lineIndex: number }> = [];
-  let inTable = false;
-  let inBlockquote = false;
-  let blockquoteContent: Array<{ content: string; lineIndex: number }> = [];
+type ListBlock = {
+  key: string;
+  listType: "ul" | "ol";
+  start?: number;
+  items: ListItem[];
+};
 
-  const flushListStack = () => {
-    while (listStack.length > 0) {
-      const list = listStack.pop();
-      if (list && list.items.length > 0) {
-        const ListTag = list.type === "ol" ? "ol" : "ul";
-        elements.push(
-          <ListTag
-            key={`${ListTag}-${elements.length}`}
-            className={`${
-              ListTag === "ul" ? "list-disc" : "list-decimal"
-            } list-inside mb-4 pl-4`}
-            {...(list.type === "ol" ? { start: list.start } : {})}
-          >
-            {list.items}
-          </ListTag>,
-        );
-      }
+type ContentBlock =
+  | { type: "header"; key: string; level: number; content: string }
+  | { type: "paragraph"; key: string; content: string }
+  | { type: "code"; key: string; content: string }
+  | { type: "blockquote"; key: string; content: string[] }
+  | { type: "image"; key: string; src: string; alt: string; title?: string }
+  | {
+      type: "table";
+      key: string;
+      headers: string[];
+      alignments: string[];
+      rows: string[][];
     }
-  };
+  | { type: "hr"; key: string }
+  | ({ type: "list" } & ListBlock);
 
-  const flushParagraph = () => {
-    if (currentParagraph.length > 0) {
-      elements.push(
-        <p key={`p-${elements.length}`} className="mb-4 leading-relaxed">
-          {parseInline(currentParagraph.join(" "), elements.length)}
-        </p>,
-      );
-      currentParagraph = [];
+const sanitizeUrl = (url: string): string => {
+  try {
+    const parsedUrl = new URL(url);
+    if (["http:", "https:", "mailto:"].includes(parsedUrl.protocol)) {
+      return url;
     }
-  };
+  } catch (e) {
+    console.error(e);
+  }
+  return "#";
+};
 
-  const flushCodeBlock = () => {
-    if (codeBlockContent.length > 0) {
-      elements.push(
-        <pre
-          key={`pre-${elements.length}`}
-          className="bg-muted text-gray-800 dark:text-gray-200 p-4 my-4 rounded-lg overflow-x-auto"
-        >
-          <code className="font-mono text-sm">
-            {codeBlockContent.join("\n").trim()}
-          </code>
-        </pre>,
-      );
-      codeBlockContent = [];
-    }
-  };
+const renderInlineContent = (text: string, keySeed: string): ReactNode[] => {
+  const parts = text.split(CONFIG.regex.inline).filter(Boolean);
 
-  const flushBlockquote = () => {
-    if (blockquoteContent.length > 0) {
-      elements.push(
-        <blockquote
-          key={`blockquote-${elements.length}`}
-          className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 my-4 text-gray-600 dark:text-gray-400"
-        >
-          {blockquoteContent.map((entry) => (
-            <p key={`blockquote-line-${entry.lineIndex}`}>
-              {parseInline(entry.content, entry.lineIndex)}
-            </p>
-          ))}
-        </blockquote>,
-      );
-      blockquoteContent = [];
-    }
-  };
+  return parts.map((part, index) => {
+    const key = `${keySeed}-inline-${index}`;
 
-  const isTableRow = (line: string): boolean => {
-    const trimmed = line.trim();
-    return (
-      trimmed.startsWith("|") &&
-      trimmed.endsWith("|") &&
-      trimmed.split("|").length > 2
-    );
-  };
-
-  const parseTableRow = (line: string): string[] => {
-    return line
-      .trim()
-      .split("|")
-      .slice(1, -1)
-      .map((cell) => cell.trim());
-  };
-
-  const getColumnAlignment = (cell: string): string => {
-    if (cell.startsWith(":") && cell.endsWith(":")) return "text-center";
-    if (cell.endsWith(":")) return "text-right";
-    if (cell.startsWith(":")) return "text-left";
-    return "text-left";
-  };
-
-  const renderTable = (
-    tableData: Array<{ line: string; lineIndex: number }>,
-    key: number,
-  ): JSX.Element | null => {
-    if (tableData.length < 2) return null;
-
-    const headers = parseTableRow(tableData[0].line);
-    const separator = parseTableRow(tableData[1].line);
-    const alignments = separator.map(getColumnAlignment);
-
-    const rows: Array<{ cells: string[]; lineIndex: number }> = [];
-    for (let i = 2; i < tableData.length; i++) {
-      const row = parseTableRow(tableData[i].line);
-      if (row.length === headers.length) {
-        rows.push({ cells: row, lineIndex: tableData[i].lineIndex });
-      }
-    }
-
-    if (headers.length === 0 || rows.length === 0) return null;
-
-    return (
-      <div className="my-6 overflow-x-auto">
-        <table
-          key={`table-${key}`}
-          className="w-full text-left border-collapse"
-        >
-          <thead>
-            <tr>
-              {headers.map((header, index) => (
-                <th
-                  key={`th-${tableData[0].lineIndex}-${index}`}
-                  className={`p-4 border-b-2 border-gray-200 dark:border-gray-700 pb-3 text-sm font-semibold text-gray-800 dark:text-gray-200 uppercase tracking-wider ${alignments[index]}`}
-                >
-                  {parseInline(header, tableData[0].lineIndex)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((rowEntry) => (
-              <tr
-                key={`tr-${rowEntry.lineIndex}`}
-                className="border-b border-gray-200 dark:border-gray-800"
-              >
-                {rowEntry.cells.map((cell, cellIndex) => (
-                  <td
-                    key={`td-${rowEntry.lineIndex}-${cellIndex}`}
-                    className={`p-4 ${alignments[cellIndex]}`}
-                  >
-                    {parseInline(cell, rowEntry.lineIndex + cellIndex)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
-
-  let lineIndex = 0;
-  while (lineIndex < lines.length) {
-    const line = lines[lineIndex];
-    const trimmedLine = line.trim();
-    const originalLine = line;
-
-    if (trimmedLine.startsWith("```")) {
-      if (inCodeBlock) {
-        flushCodeBlock();
-        inCodeBlock = false;
-      } else {
-        flushListStack();
-        flushParagraph();
-        flushBlockquote();
-        inCodeBlock = true;
-      }
-      lineIndex++;
-      continue;
-    }
-
-    if (inCodeBlock) {
-      codeBlockContent.push(originalLine);
-      lineIndex++;
-      continue;
-    }
-
-    if (trimmedLine.startsWith("> ")) {
-      if (!inBlockquote) {
-        flushListStack();
-        flushParagraph();
-        inBlockquote = true;
-      }
-      blockquoteContent.push({
-        content: line.replace(/^> /, "").trim(),
-        lineIndex: lineIndex,
-      });
-      lineIndex++;
-      continue;
-    }
-    if (inBlockquote) {
-      flushBlockquote();
-      inBlockquote = false;
-    }
-
-    if (isTableRow(originalLine)) {
-      if (!inTable) {
-        flushListStack();
-        flushParagraph();
-        inTable = true;
-        tableLines = [];
-      }
-      tableLines.push({ line: originalLine, lineIndex: lineIndex });
-      lineIndex++;
-      continue;
-    }
-    if (inTable) {
-      const tableElement = renderTable(tableLines, elements.length);
-      if (tableElement) elements.push(tableElement);
-      inTable = false;
-      tableLines = [];
-    }
-
-    const headerMatch = trimmedLine.match(/^(#+)\s(.*)/);
-    if (headerMatch) {
-      flushListStack();
-      flushParagraph();
-      const level = Math.min(headerMatch[1].length, 6);
-      const Tag = `h${level}` as keyof JSX.IntrinsicElements;
-      const sizes = [
-        "text-3xl",
-        "text-2xl",
-        "text-xl",
-        "text-lg",
-        "text-base",
-        "text-sm",
-      ];
-      elements.push(
-        <Tag
-          key={`h-${elements.length}`}
-          className={`${sizes[level - 1]} font-bold mt-6 mb-4`}
-        >
-          {parseInline(headerMatch[2], elements.length)}
-        </Tag>,
-      );
-      lineIndex++;
-      continue;
-    }
-
-    const imageMatch = trimmedLine.match(
-      /^!\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)$/,
-    );
-    if (imageMatch) {
-      flushListStack();
-      flushParagraph();
-      const [, alt, src, title] = imageMatch;
-      elements.push(
-        <figure key={`figure-block-${elements.length}`} className="my-6">
-          <div className="relative w-full aspect-video overflow-hidden rounded-lg shadow-lg dark:shadow-black/50">
-            <Image src={src} alt={alt} fill className="object-contain" />
+    if (part.startsWith("![")) {
+      const match = part.match(/^!\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)$/);
+      if (!match) return <span key={key}>{part}</span>;
+      const [, alt, src, title] = match;
+      return (
+        <figure key={key} className={CONFIG.styling.image.figure}>
+          <div className={CONFIG.styling.image.container}>
+            <Image
+              src={sanitizeUrl(src)}
+              alt={alt}
+              title={title}
+              fill
+              className={CONFIG.styling.image.image}
+            />
           </div>
           {title && (
-            <figcaption className="mt-3 text-sm text-center text-gray-500 dark:text-gray-400 italic">
+            <figcaption className={CONFIG.styling.image.caption}>
               {title}
             </figcaption>
           )}
-        </figure>,
+        </figure>
       );
-      lineIndex++;
-      continue;
     }
 
-    const listMatch = originalLine.match(/^(\s*)(\*|-|\d+\.)\s(.*)/);
-    if (listMatch) {
-      flushParagraph();
-      const indent = listMatch[1].length;
-      const type = listMatch[2].match(/\d+/) ? "ol" : "ul";
-      const listNumber =
-        type === "ol" ? Number.parseInt(listMatch[2], 10) || 1 : 0;
-      let currentList = listStack[listStack.length - 1];
-
-      while (
-        listStack.length > 0 &&
-        listStack[listStack.length - 1].indent > indent
-      ) {
-        listStack.pop();
-      }
-
-      if (!currentList || currentList.indent < indent) {
-        currentList = {
-          type,
-          items: [],
-          indent,
-          counter: listNumber,
-          start: listNumber,
-        };
-        listStack.push(currentList);
-      }
-
-      const taskMatch = listMatch[3].match(/^\[( |x)\]\s(.*)/);
-      const content = taskMatch ? taskMatch[2] : listMatch[3];
-      const checked = taskMatch ? taskMatch[1] === "x" : false;
-
-      currentList.items.push(
-        <li key={`li-${lineIndex}`} className="mb-2">
-          {taskMatch && (
-            <input
-              type="checkbox"
-              checked={checked}
-              readOnly
-              className="mr-2 align-middle"
-            />
-          )}
-          {parseInline(content, lineIndex)}
-        </li>,
+    if (part.startsWith("[")) {
+      const match = part.match(/\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)/);
+      if (!match) return <span key={key}>{part}</span>;
+      const [, text, href, title] = match;
+      return (
+        <a
+          key={key}
+          href={sanitizeUrl(href)}
+          title={title}
+          className={CONFIG.styling.inline.link}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {text}
+        </a>
       );
-
-      if (type === "ol") {
-        currentList.counter++;
-      }
-
-      lineIndex++;
-      continue;
     }
 
-    if (/^(---|\*\*\*)$/.test(trimmedLine)) {
-      flushListStack();
-      flushParagraph();
-      elements.push(
-        <hr
-          key={`hr-${elements.length}`}
-          className="my-6 border-t-2 border-gray-200 dark:border-gray-700"
-        />,
+    if (part.startsWith("**") || part.startsWith("__"))
+      return <strong key={key}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith("*") || part.startsWith("_"))
+      return <em key={key}>{part.slice(1, -1)}</em>;
+    if (part.startsWith("~~")) return <del key={key}>{part.slice(2, -2)}</del>;
+    if (part.startsWith("`"))
+      return (
+        <code key={key} className={CONFIG.styling.inline.code}>
+          {part.slice(1, -1)}
+        </code>
       );
-      lineIndex++;
-      continue;
-    }
+    if (part.match(/ {2,}\n/)) return <br key={key} />;
 
-    if (trimmedLine === "") {
-      flushListStack();
-      flushParagraph();
-    } else {
-      currentParagraph.push(originalLine);
-    }
-
-    lineIndex++;
-  }
-
-  flushBlockquote();
-  flushCodeBlock();
-  flushListStack();
-  flushParagraph();
-  if (inTable) {
-    const tableElement = renderTable(tableLines, elements.length);
-    if (tableElement) elements.push(tableElement);
-  }
-
-  return elements;
+    return <span key={key}>{part}</span>;
+  });
 };
 
-const parseInline = (
-  text: string,
-  keySeed: string | number = "",
-): ReactNode[] => {
-  const elements: ReactNode[] = [];
-  const regex = /(\*\*.*?\*\*|_.*?_|\*.*?\*|~~.*?~~|`.*?`|\[.*?\]\(.*?\))/g;
-  const parts = text.split(regex);
+const renderList = (list: ListBlock): JSX.Element => {
+  const ListTag = list.listType;
+  return (
+    <ListTag
+      key={list.key}
+      start={list.start}
+      className={CONFIG.styling.list[ListTag]}
+    >
+      {list.items.map((item) => {
+        const taskMatch = item.content.match(CONFIG.regex.taskListItem);
+        const content = taskMatch ? taskMatch[2] : item.content;
+        const isChecked = taskMatch ? taskMatch[1] === "x" : false;
 
-  parts.forEach((part, index) => {
-    if (!part) return;
-
-    const uniqueKey = `${keySeed}-${part}-${index}`;
-
-    if (part.startsWith("**") && part.endsWith("**")) {
-      const content = part.slice(2, -2);
-      elements.push(
-        <strong key={`bold-${uniqueKey}`} className="font-semibold">
-          {content}
-        </strong>,
-      );
-    } else if (
-      (part.startsWith("*") && part.endsWith("*")) ||
-      (part.startsWith("_") && part.endsWith("_"))
-    ) {
-      const content = part.slice(1, -1);
-      elements.push(
-        <em key={`italic-${uniqueKey}`} className="italic">
-          {content}
-        </em>,
-      );
-    } else if (part.startsWith("~~") && part.endsWith("~~")) {
-      const content = part.slice(2, -2);
-      elements.push(
-        <del key={`del-${uniqueKey}`} className="line-through">
-          {content}
-        </del>,
-      );
-    } else if (part.startsWith("`") && part.endsWith("`")) {
-      const content = part.slice(1, -1);
-      elements.push(
-        <code
-          key={`code-${uniqueKey}`}
-          className="font-mono bg-muted text-red-500 dark:text-red-400 px-1 py-0.5 rounded"
-        >
-          {content}
-        </code>,
-      );
-    } else if (part.startsWith("[") && part.includes("](")) {
-      const match = part.match(/\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)/);
-      if (match) {
-        const [, text, href, title] = match;
-        elements.push(
-          <a
-            key={`link-${uniqueKey}`}
-            href={href}
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-            title={title}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {text}
-          </a>,
+        return (
+          <li key={item.key} className={CONFIG.styling.list.listItem}>
+            {taskMatch && (
+              <input
+                type="checkbox"
+                checked={isChecked}
+                readOnly
+                className={CONFIG.styling.list.checkbox}
+              />
+            )}
+            {renderInlineContent(content, item.key)}
+            {item.children.items.length > 0 && renderList(item.children)}
+          </li>
         );
-      }
-    } else {
-      part.split(/( {2}\n|\n)/).forEach((segment, segIndex) => {
-        const segmentKey = `${uniqueKey}-seg-${segIndex}`;
-        if (segment === "\n" || segment === "  \n") {
-          elements.push(<br key={`br-${segmentKey}`} />);
-        } else if (segment) {
-          elements.push(<span key={`span-${segmentKey}`}>{segment}</span>);
-        }
-      });
-    }
-  });
+      })}
+    </ListTag>
+  );
+};
 
-  return elements;
+const renderTable = (
+  table: Extract<ContentBlock, { type: "table" }>,
+): JSX.Element => {
+  return (
+    <div key={table.key} className={CONFIG.styling.table.container}>
+      <table className={CONFIG.styling.table.table}>
+        <thead>
+          <tr>
+            {table.headers.map((header, index) => (
+              <th
+                key={`${table.key}-th-${index}`}
+                className={`${CONFIG.styling.table.th} ${table.alignments[index]}`}
+              >
+                {renderInlineContent(header, `${table.key}-th-${index}`)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {table.rows.map((row, rowIndex) => (
+            <tr
+              key={`${table.key}-tr-${rowIndex}`}
+              className={CONFIG.styling.table.tr}
+            >
+              {row.map((cell, cellIndex) => (
+                <td
+                  key={`${table.key}-td-${rowIndex}-${cellIndex}`}
+                  className={`${CONFIG.styling.table.td} ${table.alignments[cellIndex]}`}
+                >
+                  {renderInlineContent(
+                    cell,
+                    `${table.key}-td-${rowIndex}-${cellIndex}`,
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const renderBlock = (block: ContentBlock): JSX.Element => {
+  switch (block.type) {
+    case "header": {
+      const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
+      return (
+        <Tag key={block.key} className={CONFIG.styling.header[block.level - 1]}>
+          {renderInlineContent(block.content, block.key)}
+        </Tag>
+      );
+    }
+
+    case "paragraph": {
+      return (
+        <p key={block.key} className={CONFIG.styling.paragraph}>
+          {renderInlineContent(block.content, block.key)}
+        </p>
+      );
+    }
+
+    case "code": {
+      return (
+        <pre key={block.key} className={CONFIG.styling.codeBlock.pre}>
+          <code className={CONFIG.styling.codeBlock.code}>{block.content}</code>
+        </pre>
+      );
+    }
+
+    case "blockquote": {
+      return (
+        <blockquote key={block.key} className={CONFIG.styling.blockquote}>
+          {block.content.map((line, index) => (
+            <p key={`${block.key}-line-${index}`}>
+              {renderInlineContent(line, `${block.key}-line-${index}`)}
+            </p>
+          ))}
+        </blockquote>
+      );
+    }
+
+    case "hr": {
+      return <hr key={block.key} className={CONFIG.styling.hr} />;
+    }
+
+    case "list": {
+      return renderList(block);
+    }
+
+    case "table": {
+      return renderTable(block);
+    }
+
+    default: {
+      return <></>;
+    }
+  }
+};
+
+const parseToBlocks = (content: string): ContentBlock[] => {
+  const lines = content.split("\n");
+  const blocks: ContentBlock[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const key = `block-${i}`;
+
+    if (line.trim() === "") {
+      i++;
+      continue;
+    }
+    const headerMatch = line.match(CONFIG.regex.header);
+    if (headerMatch) {
+      blocks.push({
+        type: "header",
+        key,
+        level: headerMatch[1].length,
+        content: headerMatch[2],
+      });
+      i++;
+      continue;
+    }
+    if (CONFIG.regex.codeFence.test(line)) {
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !CONFIG.regex.codeFence.test(lines[i])) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      blocks.push({ type: "code", key, content: codeLines.join("\n") });
+      i++;
+      continue;
+    }
+    if (CONFIG.regex.blockquote.test(line)) {
+      const bqLines: string[] = [];
+      while (i < lines.length && CONFIG.regex.blockquote.test(lines[i])) {
+        bqLines.push(lines[i].replace(/^>\s?/, ""));
+        i++;
+      }
+      blocks.push({ type: "blockquote", key, content: bqLines });
+      continue;
+    }
+    if (CONFIG.regex.hr.test(line)) {
+      blocks.push({ type: "hr", key });
+      i++;
+      continue;
+    }
+    if (
+      CONFIG.regex.tableRow.test(line) &&
+      i + 1 < lines.length &&
+      CONFIG.regex.tableSeparator.test(lines[i + 1])
+    ) {
+      const tableLines = [line];
+      i++;
+      while (i < lines.length && CONFIG.regex.tableRow.test(lines[i])) {
+        tableLines.push(lines[i]);
+        i++;
+      }
+      const headers = tableLines[0]
+        .split("|")
+        .slice(1, -1)
+        .map((s) => s.trim());
+      const alignments = tableLines[1]
+        .split("|")
+        .slice(1, -1)
+        .map((s) => {
+          const cell = s.trim();
+          if (cell.startsWith(":") && cell.endsWith(":")) return "text-center";
+          if (cell.endsWith(":")) return "text-right";
+          return "text-left";
+        });
+      const rows = tableLines.slice(2).map((rowLine) =>
+        rowLine
+          .split("|")
+          .slice(1, -1)
+          .map((s) => s.trim()),
+      );
+      blocks.push({ type: "table", key, headers, alignments, rows });
+      continue;
+    }
+    if (CONFIG.regex.listItem.test(line)) {
+      const listLines = [];
+      while (
+        i < lines.length &&
+        (CONFIG.regex.listItem.test(lines[i]) ||
+          lines[i].trim() === "" ||
+          lines[i].startsWith("    "))
+      ) {
+        listLines.push(lines[i]);
+        i++;
+      }
+
+      const parseListItemsRecursive = (
+        listLines: string[],
+        indentLevel: number,
+      ): ListItem[] => {
+        const items: ListItem[] = [];
+        let j = 0;
+        while (j < listLines.length) {
+          const itemLine = listLines[j];
+          const match = itemLine.match(CONFIG.regex.listItem);
+          if (!match || match[1].length !== indentLevel) {
+            j++;
+            continue;
+          }
+          const contentLines = [match[3]];
+          const childLines = [];
+          j++;
+          while (j < listLines.length) {
+            const nextLine = listLines[j];
+            const nextMatch = nextLine.match(CONFIG.regex.listItem);
+            if (nextMatch) {
+              if (nextMatch[1].length > indentLevel) {
+                childLines.push(nextLine);
+              } else {
+                break;
+              }
+            } else if (nextLine.trim() !== "") {
+              contentLines.push(nextLine.trim());
+            } else {
+              break;
+            }
+            j++;
+          }
+
+          const firstMatch = itemLine.match(CONFIG.regex.listItem)!;
+          items.push({
+            key: `item-${i}-${j}`,
+            content: contentLines.join("\n"),
+            children: {
+              key: `child-${i}-${j}`,
+              listType: firstMatch[2].match(/\d/) ? "ol" : "ul",
+              start: firstMatch[2].match(/\d/)
+                ? parseInt(firstMatch[2])
+                : undefined,
+              items: parseListItemsRecursive(childLines, indentLevel + 2),
+            },
+          });
+        }
+        return items;
+      };
+
+      const firstMatch = listLines[0].match(CONFIG.regex.listItem)!;
+      const listType = firstMatch[2].match(/\d/) ? "ol" : "ul";
+      const start = listType === "ol" ? parseInt(firstMatch[2]) : undefined;
+      const items = parseListItemsRecursive(listLines, firstMatch[1].length);
+      blocks.push({ type: "list", key, listType, start, items });
+      continue;
+    }
+    const paraLines: string[] = [line];
+    i++;
+    while (
+      i < lines.length &&
+      lines[i].trim() &&
+      !Object.values(CONFIG.regex).some((r) => r.test(lines[i]))
+    ) {
+      paraLines.push(lines[i]);
+      i++;
+    }
+    blocks.push({ type: "paragraph", key, content: paraLines.join("\n") });
+  }
+
+  return blocks;
+};
+
+export const formatContent = (content?: string | null): JSX.Element[] => {
+  if (!content) {
+    return [];
+  }
+  const blocks = parseToBlocks(content);
+  return blocks.map(renderBlock);
 };
