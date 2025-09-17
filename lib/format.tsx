@@ -47,7 +47,7 @@ const CONFIG = {
   },
   regex: {
     inline:
-      /(\!?\[.*?\]\(.*?\)|`.*?`|\*\*.*?\*\*|__.*?__|\*.*?\*|_.*?_|~~.*?~~| {2,}\n)/g,
+      /(!?\[.*?\]\(.*?\)|`.*?`|\*\*.*?\*\*|__.*?__|\*.*?\*|_.*?_|~~.*?~~| {2,}\n)/g,
     header: /^(#+)\s(.*)/,
     blockquote: /^>\s?(.*)/,
     listItem: /^(\s*)(\*|-|\d+\.)\s(.*)/,
@@ -240,7 +240,7 @@ const renderTable = (
   );
 };
 
-const renderBlock = (block: ContentBlock): JSX.Element => {
+const renderBlock = (block: ContentBlock): JSX.Element | null => {
   switch (block.type) {
     case "header": {
       const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
@@ -292,7 +292,7 @@ const renderBlock = (block: ContentBlock): JSX.Element => {
     }
 
     default: {
-      return <></>;
+      return null;
     }
   }
 };
@@ -424,16 +424,13 @@ const parseToBlocks = (content: string): ContentBlock[] => {
             j++;
           }
 
-          const firstMatch = itemLine.match(CONFIG.regex.listItem)!;
           items.push({
             key: `item-${i}-${j}`,
             content: contentLines.join("\n"),
             children: {
               key: `child-${i}-${j}`,
-              listType: firstMatch[2].match(/\d/) ? "ol" : "ul",
-              start: firstMatch[2].match(/\d/)
-                ? parseInt(firstMatch[2])
-                : undefined,
+              listType: match[2].match(/\d/) ? "ol" : "ul",
+              start: match[2].match(/\d/) ? parseInt(match[2], 10) : undefined,
               items: parseListItemsRecursive(childLines, indentLevel + 2),
             },
           });
@@ -441,11 +438,14 @@ const parseToBlocks = (content: string): ContentBlock[] => {
         return items;
       };
 
-      const firstMatch = listLines[0].match(CONFIG.regex.listItem)!;
-      const listType = firstMatch[2].match(/\d/) ? "ol" : "ul";
-      const start = listType === "ol" ? parseInt(firstMatch[2]) : undefined;
-      const items = parseListItemsRecursive(listLines, firstMatch[1].length);
-      blocks.push({ type: "list", key, listType, start, items });
+      const firstMatch = listLines[0]?.match(CONFIG.regex.listItem);
+      if (firstMatch) {
+        const listType = firstMatch[2].match(/\d/) ? "ol" : "ul";
+        const start =
+          listType === "ol" ? parseInt(firstMatch[2], 10) : undefined;
+        const items = parseListItemsRecursive(listLines, firstMatch[1].length);
+        blocks.push({ type: "list", key, listType, start, items });
+      }
       continue;
     }
     const paraLines: string[] = [line];
@@ -464,7 +464,9 @@ const parseToBlocks = (content: string): ContentBlock[] => {
   return blocks;
 };
 
-export const formatContent = (content?: string | null): JSX.Element[] => {
+export const formatContent = (
+  content?: string | null,
+): (JSX.Element | null)[] => {
   if (!content) {
     return [];
   }
