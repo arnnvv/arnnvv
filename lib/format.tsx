@@ -1,139 +1,61 @@
 import Image from "next/image";
 import type { JSX, ReactNode } from "react";
+import { FORMATTER_CONFIG as CONFIG } from "./constants";
+import type { ContentBlock, ListBlock, ListItem } from "./db/types";
 
-const CONFIG = {
-  styling: {
-    header: [
-      "text-3xl font-bold mt-6 mb-4",
-      "text-2xl font-bold mt-6 mb-4",
-      "text-xl font-bold mt-6 mb-4",
-      "text-lg font-bold mt-6 mb-4",
-      "text-base font-bold mt-6 mb-4",
-      "text-sm font-bold mt-6 mb-4",
-    ],
-    paragraph: "mb-4 leading-relaxed",
-    codeBlock: {
-      pre: "bg-muted text-gray-800 dark:text-gray-200 p-4 my-4 rounded-lg overflow-x-auto",
-      code: "font-mono text-sm",
-    },
-    blockquote:
-      "border-l-4 border-gray-300 dark:border-gray-600 pl-4 my-4 text-gray-600 dark:text-gray-400",
-    image: {
-      figure: "my-6",
-      container:
-        "relative w-full aspect-video overflow-hidden rounded-lg shadow-lg dark:shadow-black/50",
-      image: "object-contain",
-      caption:
-        "mt-3 text-sm text-center text-gray-500 dark:text-gray-400 italic",
-    },
-    hr: "my-6 border-t-2 border-gray-200 dark:border-gray-700",
-    list: {
-      ul: "list-disc list-inside mb-4 pl-4",
-      ol: "list-decimal list-inside mb-4 pl-4",
-      listItem: "mb-2",
-      checkbox: "mr-2 align-middle",
-    },
-    table: {
-      container: "my-6 overflow-x-auto",
-      table: "w-full text-left border-collapse",
-      th: "p-4 border-b-2 border-gray-200 dark:border-gray-700 pb-3 text-sm font-semibold text-gray-800 dark:text-gray-200 uppercase tracking-wider",
-      tr: "border-b border-gray-200 dark:border-gray-800",
-      td: "p-4",
-    },
-    inline: {
-      code: "font-mono bg-muted text-red-500 dark:text-red-400 px-1 py-0.5 rounded",
-      link: "text-blue-600 dark:text-blue-400 hover:underline",
-    },
-  },
-  regex: {
-    inline:
-      /(!?\[.*?\]\(.*?\)|`.*?`|\*\*.*?\*\*|__.*?__|\*.*?\*|_.*?_|~~.*?~~| {2,}\n)/g,
-    header: /^(#+)\s(.*)/,
-    blockquote: /^>\s?(.*)/,
-    listItem: /^(\s*)(\*|-|\d+\.)\s(.*)/,
-    taskListItem: /^\[( |x)\]\s(.*)/,
-    codeFence: /^```/,
-    hr: /^(---|\*\*\*|___)\s*$/,
-    tableRow: /^\s*\|.*\|\s*$/,
-    tableSeparator: /^\s*\|?.*[-:]+.*\|?\s*$/,
-  },
-};
-
-interface ListItem {
-  key: string;
-  content: string;
-  children: ListBlock;
-}
-
-type ListBlock = {
-  key: string;
-  listType: "ul" | "ol";
-  start?: number;
-  items: ListItem[];
-};
-
-type ContentBlock =
-  | { type: "header"; key: string; level: number; content: string }
-  | { type: "paragraph"; key: string; content: string }
-  | { type: "code"; key: string; content: string }
-  | { type: "blockquote"; key: string; content: string[] }
-  | { type: "image"; key: string; src: string; alt: string; title?: string }
-  | {
-      type: "table";
-      key: string;
-      headers: string[];
-      alignments: string[];
-      rows: string[][];
+function sanitizeUrl(raw: string | undefined | null): string {
+  if (!raw) return "#";
+  const s = String(raw).trim();
+  if (s === "") return "#";
+  if (s.startsWith("//")) return "#";
+  if (s.startsWith("/") || s.startsWith("#") || s.startsWith(".")) {
+    try {
+      const encoded = encodeURI(s);
+      if (encoded.includes("\n") || encoded.includes("\r")) return "#";
+      return encoded;
+    } catch (e) {
+      console.error(e);
+      return "#";
     }
-  | { type: "hr"; key: string }
-  | ({ type: "list" } & ListBlock);
-
-const sanitizeUrl = (url: string): string => {
+  }
   try {
-    const parsedUrl = new URL(url);
-    if (["http:", "https:", "mailto:"].includes(parsedUrl.protocol)) {
-      return url;
+    const u = new URL(s);
+    const proto = u.protocol.toLowerCase();
+    if (proto === "http:" || proto === "https:" || proto === "mailto:") {
+      return u.href;
     }
   } catch (e) {
     console.error(e);
   }
   return "#";
-};
+}
 
-const renderInlineContent = (text: string, keySeed: string): ReactNode[] => {
+function renderInlineContent(text: string, keySeed: string): ReactNode[] {
   const parts = text.split(CONFIG.regex.inline).filter(Boolean);
 
   return parts.map((part, index) => {
     const key = `${keySeed}-inline-${index}`;
 
     if (part.startsWith("![")) {
-      const match = part.match(/^!\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)$/);
-      if (!match) return <span key={key}>{part}</span>;
-      const [, alt, src, title] = match;
+      const match = part.match(/^!\[(.*?)]\((.*?)(?:\s+"(.*?)")?\)$/);
+      if (!match) return part;
+      const [, alt = "", src = "", title = ""] = match;
       return (
-        <figure key={key} className={CONFIG.styling.image.figure}>
-          <div className={CONFIG.styling.image.container}>
-            <Image
-              src={sanitizeUrl(src)}
-              alt={alt}
-              title={title}
-              fill
-              className={CONFIG.styling.image.image}
-            />
-          </div>
-          {title && (
-            <figcaption className={CONFIG.styling.image.caption}>
-              {title}
-            </figcaption>
-          )}
-        </figure>
+        <span key={key} className={CONFIG.styling.inline.image} title={title}>
+          <Image
+            src={sanitizeUrl(src)}
+            alt={alt}
+            fill
+            className={CONFIG.styling.image.image}
+          />
+        </span>
       );
     }
 
     if (part.startsWith("[")) {
-      const match = part.match(/\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)/);
-      if (!match) return <span key={key}>{part}</span>;
-      const [, text, href, title] = match;
+      const match = part.match(/\[(.*?)]\((.*?)(?:\s+"(.*?)")?\)/);
+      if (!match) return part;
+      const [, linkText = "", href = "", title = ""] = match;
       return (
         <a
           key={key}
@@ -143,7 +65,7 @@ const renderInlineContent = (text: string, keySeed: string): ReactNode[] => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          {text}
+          {linkText}
         </a>
       );
     }
@@ -161,11 +83,11 @@ const renderInlineContent = (text: string, keySeed: string): ReactNode[] => {
       );
     if (part.match(/ {2,}\n/)) return <br key={key} />;
 
-    return <span key={key}>{part}</span>;
+    return part;
   });
-};
+}
 
-const renderList = (list: ListBlock): JSX.Element => {
+function renderList(list: ListBlock): JSX.Element {
   const ListTag = list.listType;
   return (
     <ListTag
@@ -186,6 +108,7 @@ const renderList = (list: ListBlock): JSX.Element => {
                 checked={isChecked}
                 readOnly
                 className={CONFIG.styling.list.checkbox}
+                aria-label={`Task item: ${content}`}
               />
             )}
             {renderInlineContent(content, item.key)}
@@ -195,11 +118,16 @@ const renderList = (list: ListBlock): JSX.Element => {
       })}
     </ListTag>
   );
-};
+}
 
-const renderTable = (
+function renderTable(
   table: Extract<ContentBlock, { type: "table" }>,
-): JSX.Element => {
+): JSX.Element {
+  const getAlignmentClass = (align: string) => {
+    if (align === "text-center") return "text-center";
+    if (align === "text-right") return "text-right";
+    return "text-left";
+  };
   return (
     <div key={table.key} className={CONFIG.styling.table.container}>
       <table className={CONFIG.styling.table.table}>
@@ -208,7 +136,9 @@ const renderTable = (
             {table.headers.map((header, index) => (
               <th
                 key={`${table.key}-th-${index}`}
-                className={`${CONFIG.styling.table.th} ${table.alignments[index]}`}
+                className={`${CONFIG.styling.table.th} ${getAlignmentClass(
+                  table.alignments[index],
+                )}`}
               >
                 {renderInlineContent(header, `${table.key}-th-${index}`)}
               </th>
@@ -224,7 +154,9 @@ const renderTable = (
               {row.map((cell, cellIndex) => (
                 <td
                   key={`${table.key}-td-${rowIndex}-${cellIndex}`}
-                  className={`${CONFIG.styling.table.td} ${table.alignments[cellIndex]}`}
+                  className={`${CONFIG.styling.table.td} ${getAlignmentClass(
+                    table.alignments[cellIndex],
+                  )}`}
                 >
                   {renderInlineContent(
                     cell,
@@ -238,9 +170,9 @@ const renderTable = (
       </table>
     </div>
   );
-};
+}
 
-const renderBlock = (block: ContentBlock): JSX.Element | null => {
+function renderBlock(block: ContentBlock): JSX.Element | null {
   switch (block.type) {
     case "header": {
       const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
@@ -271,7 +203,7 @@ const renderBlock = (block: ContentBlock): JSX.Element | null => {
       return (
         <blockquote key={block.key} className={CONFIG.styling.blockquote}>
           {block.content.map((line, index) => (
-            <p key={`${block.key}-line-${index}`}>
+            <p key={`${block.key}-line-${index}`} className="mb-0">
               {renderInlineContent(line, `${block.key}-line-${index}`)}
             </p>
           ))}
@@ -291,14 +223,34 @@ const renderBlock = (block: ContentBlock): JSX.Element | null => {
       return renderTable(block);
     }
 
+    case "image": {
+      return (
+        <figure key={block.key} className={CONFIG.styling.image.figure}>
+          <div className={CONFIG.styling.image.container}>
+            <Image
+              src={sanitizeUrl(block.src)}
+              alt={block.alt}
+              title={block.title}
+              fill
+              className={CONFIG.styling.image.image}
+            />
+          </div>
+          {block.title && (
+            <figcaption className={CONFIG.styling.image.caption}>
+              {block.title}
+            </figcaption>
+          )}
+        </figure>
+      );
+    }
     default: {
       return null;
     }
   }
-};
+}
 
-const parseToBlocks = (content: string): ContentBlock[] => {
-  const lines = content.split("\n");
+function parseToBlocks(content: string): ContentBlock[] {
+  const lines = content.replace(/\r\n?/g, "\n").split("\n");
   const blocks: ContentBlock[] = [];
   let i = 0;
 
@@ -310,12 +262,20 @@ const parseToBlocks = (content: string): ContentBlock[] => {
       i++;
       continue;
     }
+
+    const imageMatch = line.match(CONFIG.regex.image);
+    if (imageMatch) {
+      const [, alt = "", src = "", title = ""] = imageMatch;
+      blocks.push({ type: "image", key, src, alt, title });
+      i++;
+      continue;
+    }
     const headerMatch = line.match(CONFIG.regex.header);
     if (headerMatch) {
       blocks.push({
         type: "header",
         key,
-        level: headerMatch[1].length,
+        level: Math.min(headerMatch[1].length, 6),
         content: headerMatch[2],
       });
       i++;
@@ -352,10 +312,13 @@ const parseToBlocks = (content: string): ContentBlock[] => {
       CONFIG.regex.tableSeparator.test(lines[i + 1])
     ) {
       const tableLines = [line];
-      i++;
-      while (i < lines.length && CONFIG.regex.tableRow.test(lines[i])) {
-        tableLines.push(lines[i]);
-        i++;
+      let temp_i = i + 1;
+      while (
+        temp_i < lines.length &&
+        CONFIG.regex.tableRow.test(lines[temp_i])
+      ) {
+        tableLines.push(lines[temp_i]);
+        temp_i++;
       }
       const headers = tableLines[0]
         .split("|")
@@ -377,92 +340,76 @@ const parseToBlocks = (content: string): ContentBlock[] => {
           .map((s) => s.trim()),
       );
       blocks.push({ type: "table", key, headers, alignments, rows });
+      i = temp_i;
       continue;
     }
+
     if (CONFIG.regex.listItem.test(line)) {
-      const listLines = [];
+      const listLines: string[] = [];
+      let temp_i = i;
       while (
-        i < lines.length &&
-        (CONFIG.regex.listItem.test(lines[i]) ||
-          lines[i].trim() === "" ||
-          lines[i].startsWith("    "))
+        temp_i < lines.length &&
+        (CONFIG.regex.listItem.test(lines[temp_i]) ||
+          (lines[temp_i].trim() === "" &&
+            temp_i + 1 < lines.length &&
+            lines[temp_i + 1].startsWith(" ")))
       ) {
-        listLines.push(lines[i]);
-        i++;
+        listLines.push(lines[temp_i]);
+        temp_i++;
       }
-
-      const parseListItemsRecursive = (
-        listLines: string[],
-        indentLevel: number,
-      ): ListItem[] => {
-        const items: ListItem[] = [];
-        let j = 0;
-        while (j < listLines.length) {
-          const itemLine = listLines[j];
-          const match = itemLine.match(CONFIG.regex.listItem);
-          if (!match || match[1].length !== indentLevel) {
-            j++;
-            continue;
-          }
-          const contentLines = [match[3]];
-          const childLines = [];
-          j++;
-          while (j < listLines.length) {
-            const nextLine = listLines[j];
-            const nextMatch = nextLine.match(CONFIG.regex.listItem);
-            if (nextMatch) {
-              if (nextMatch[1].length > indentLevel) {
-                childLines.push(nextLine);
-              } else {
-                break;
-              }
-            } else if (nextLine.trim() !== "") {
-              contentLines.push(nextLine.trim());
-            } else {
-              break;
-            }
-            j++;
-          }
-
-          items.push({
-            key: `item-${i}-${j}`,
-            content: contentLines.join("\n"),
-            children: {
-              key: `child-${i}-${j}`,
-              listType: match[2].match(/\d/) ? "ol" : "ul",
-              start: match[2].match(/\d/) ? parseInt(match[2], 10) : undefined,
-              items: parseListItemsRecursive(childLines, indentLevel + 2),
-            },
-          });
-        }
-        return items;
-      };
-
       const firstMatch = listLines[0]?.match(CONFIG.regex.listItem);
       if (firstMatch) {
         const listType = firstMatch[2].match(/\d/) ? "ol" : "ul";
         const start =
           listType === "ol" ? parseInt(firstMatch[2], 10) : undefined;
-        const items = parseListItemsRecursive(listLines, firstMatch[1].length);
+
+        const items = listLines
+          .map((itemLine, itemIndex): ListItem | null => {
+            const match = itemLine.match(CONFIG.regex.listItem);
+            if (!match) return null;
+            return {
+              key: `item-${i}-${itemIndex}`,
+              content: match[3],
+              children: {
+                key: `child-list-${i}-${itemIndex}`,
+                listType: "ul",
+                items: [],
+              },
+            };
+          })
+          .filter((item): item is ListItem => item !== null);
+
         blocks.push({ type: "list", key, listType, start, items });
+        i = temp_i;
+        continue;
       }
-      continue;
     }
-    const paraLines: string[] = [line];
-    i++;
+
+    const paraLines: string[] = [];
+    let temp_i = i;
     while (
-      i < lines.length &&
-      lines[i].trim() &&
-      !Object.values(CONFIG.regex).some((r) => r.test(lines[i]))
+      temp_i < lines.length &&
+      lines[temp_i].trim() !== "" &&
+      !CONFIG.regex.header.test(lines[temp_i]) &&
+      !CONFIG.regex.codeFence.test(lines[temp_i]) &&
+      !CONFIG.regex.blockquote.test(lines[temp_i]) &&
+      !CONFIG.regex.hr.test(lines[temp_i]) &&
+      !CONFIG.regex.listItem.test(lines[temp_i]) &&
+      !CONFIG.regex.image.test(lines[temp_i]) &&
+      !(
+        CONFIG.regex.tableRow.test(lines[temp_i]) &&
+        temp_i + 1 < lines.length &&
+        CONFIG.regex.tableSeparator.test(lines[temp_i + 1])
+      )
     ) {
-      paraLines.push(lines[i]);
-      i++;
+      paraLines.push(lines[temp_i]);
+      temp_i++;
     }
     blocks.push({ type: "paragraph", key, content: paraLines.join("\n") });
+    i = temp_i;
   }
-
   return blocks;
-};
+}
 
 export const formatContent = (
   content?: string | null,
