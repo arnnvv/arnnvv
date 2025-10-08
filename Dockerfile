@@ -1,4 +1,4 @@
-FROM node:23-alpine AS base
+FROM node:22-bookworm AS base
 WORKDIR /app
 RUN npm install -g pnpm
 FROM base AS deps
@@ -11,7 +11,7 @@ COPY --from=deps /app/package.json ./package.json
 COPY . .
 ENV NODE_ENV=production
 RUN pnpm build
-FROM node:23-alpine AS runner
+FROM node:22-bookworm AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED 1

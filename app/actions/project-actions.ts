@@ -4,9 +4,8 @@ import { DatabaseError } from "@neondatabase/serverless";
 import { revalidatePath } from "next/cache";
 import { isUserAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
-import type { ProjectWithDetails } from "@/lib/db/types";
+import type { ActionResult, ProjectWithDetails } from "@/lib/db/types";
 import { globalPOSTRateLimit } from "@/lib/request";
-import type { ActionResult } from "@/type";
 import { getCurrentSession } from "./auth-actions";
 
 export async function addProjectAction(
@@ -154,7 +153,7 @@ export async function getProjectsAction(): Promise<ProjectWithDetails[]> {
       ), project_links_agg AS (
         SELECT
           project_id,
-          JSONB_AGG(JSONB_BUILD_OBJECT('link_type', link_type, 'url', url) ORDER BY id) as links_json -- Order by link id for consistency
+          JSONB_AGG(JSONB_BUILD_OBJECT('link_type', link_type, 'url', url) ORDER BY id) as links_json
         FROM arnnvv_project_links
         GROUP BY project_id
       )

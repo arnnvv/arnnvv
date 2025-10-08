@@ -12,7 +12,7 @@ export default function Home(): JSX.Element {
             Beyond the screen
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Hey there, I'm Arnav
+            Hey there, I&apos;m Arnav
           </h1>
         </div>
         <div className="space-y-6 text-base sm:text-lg leading-relaxed">
@@ -25,14 +25,14 @@ export default function Home(): JSX.Element {
           </p>
           <p className="text-muted-foreground">
             My focus is on clarity, leverage, and execution finding what
-            compounds over time and cutting out what doesn't. I care about how
-            systems scale, how decisions age, and how to make things that are
-            simple, robust, and useful.
+            compounds over time and cutting out what doesn&apos;t. I care about
+            how systems scale, how decisions age, and how to make things that
+            are simple, robust, and useful.
           </p>
           <p className="text-muted-foreground">
-            I don't have all the answers, but I ask better questions each week.
-            For me, building is a way to think about design, about tradeoffs,
-            and about what matters.
+            I don&apos;t have all the answers, but I ask better questions each
+            week. For me, building is a way to think about design, about
+            tradeoffs, and about what matters.
           </p>
         </div>
         <div className="mt-10 flex flex-col sm:flex-row gap-6 justify-center items-center text-base sm:text-lg">

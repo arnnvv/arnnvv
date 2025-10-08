@@ -43,6 +43,29 @@ export const metadata: Metadata = {
     apple: "./favicon.ico",
     shortcut: "./favicon.ico",
   },
+  openGraph: {
+    title: "Arnav Sharma: Beyond the screen",
+    description: "Welcome to my digital world",
+    url: "https://www.arnnvv.sbs",
+    siteName: "arnnvv",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Arnav Sharma: Beyond the screen",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Arnav Sharma: Beyond the screen",
+    description: "Welcome to my digital world",
+    images: ["/og.png"],
+    creator: "@arnnnvvv",
+  },
 };
 
 export const viewport: Viewport = {

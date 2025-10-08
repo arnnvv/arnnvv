@@ -22,17 +22,8 @@ const ViewTransitionsContext = createContext<(callback: () => void) => void>(
   },
 );
 
-function useIsMount(): boolean {
-  const isMountRef = useRef(true);
-  useEffect(() => {
-    isMountRef.current = false;
-  }, []);
-  return isMountRef.current;
-}
-
 export function ViewTransitionsProvider({ children }: { children: ReactNode }) {
-  const isMount = useIsMount();
-
+  const isMountRef = useRef(true);
   const [finishTransition, setFinishTransition] = useState<(() => void) | null>(
     null,
   );
@@ -44,11 +35,15 @@ export function ViewTransitionsProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    if (finishTransition && !isMount) {
+    isMountRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    if (finishTransition && !isMountRef.current) {
       finishTransition();
       setFinishTransition(null);
     }
-  }, [finishTransition, isMount]);
+  }, [finishTransition]);
 
   useEffect(() => {
     const handler = () => {
@@ -98,7 +93,7 @@ export function ViewTransitionsProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useViewTransitions() {
+function useViewTransitions() {
   return useContext(ViewTransitionsContext);
 }
 

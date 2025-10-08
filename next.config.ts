@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  reactCompiler: {
+    panicThreshold: "all_errors",
+  },
   experimental: {
     ppr: true,
-    reactCompiler: true,
     useCache: true,
   },
   images: {

@@ -1,9 +1,9 @@
 "use server";
 
-import { createTransport } from "nodemailer";
 import { appConfig } from "@/lib/config";
+import type { ActionResult } from "@/lib/db/types";
 import { globalPOSTRateLimit } from "@/lib/request";
-import type { ActionResult } from "@/type";
+import { sendEmail } from "@/lib/smtp";
 
 export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
   if (!(await globalPOSTRateLimit())) {
@@ -30,23 +30,25 @@ export async function sendEmailAtn(formdata: FormData): Promise<ActionResult> {
     };
   }
 
-  const transporter = createTransport({
-    host: appConfig.smtp.host,
-    port: appConfig.smtp.port,
-    secure: true,
-    auth: {
-      user: appConfig.smtp.user,
-      pass: appConfig.smtp.pass,
-    },
-  });
+  const fullMessageBody = `New contact form submission from: ${email}\n\n---\n\n${message}`;
 
   try {
-    await transporter.sendMail({
-      from: appConfig.smtp.user,
-      to: appConfig.smtp.to,
-      subject: `Message from site by ${email}`,
-      text: message,
-    });
+    await sendEmail(
+      {
+        host: appConfig.smtp.host,
+        port: appConfig.smtp.port,
+        auth: {
+          user: appConfig.smtp.user,
+          pass: appConfig.smtp.pass,
+        },
+      },
+      {
+        from: email,
+        to: appConfig.smtp.to,
+        subject: `Message from site ${email}`,
+        text: fullMessageBody,
+      },
+    );
     return {
       success: true,
       message: "Message Sent",

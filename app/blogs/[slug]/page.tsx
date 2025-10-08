@@ -16,6 +16,7 @@ interface BlogPostPageProps {
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
+  "use cache";
   const { slug } = await params;
   const post = await getBlogPostBySlug(slug);
 
