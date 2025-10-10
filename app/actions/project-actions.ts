@@ -142,6 +142,7 @@ export async function addProjectAction(
 }
 
 export async function getProjectsAction(): Promise<ProjectWithDetails[]> {
+  "use cache";
   try {
     const query = `
       WITH project_techs AS (

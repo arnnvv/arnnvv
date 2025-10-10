@@ -5,8 +5,7 @@ const nextConfig: NextConfig = {
     panicThreshold: "all_errors",
   },
   experimental: {
-    ppr: true,
-    useCache: true,
+    cacheComponents: true,
   },
   images: {
     remotePatterns: [
