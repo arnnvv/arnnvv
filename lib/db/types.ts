@@ -87,7 +87,7 @@ export type ActionResult = {
 export interface ListItem {
   key: string;
   content: string;
-  children: ListBlock;
+  children?: ListBlock;
 }
 
 export type ListBlock = {
@@ -117,7 +117,7 @@ export type ContentBlock =
   | {
       type: "blockquote";
       key: string;
-      content: string[];
+      content: ContentBlock[];
     }
   | {
       type: "image";

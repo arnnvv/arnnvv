@@ -30,61 +30,93 @@ function sanitizeUrl(raw: string | undefined | null): string {
   return "#";
 }
 
+const INLINE_RECURSIVE_REGEX =
+  /(?<bolditalic>\*{3}(?:.|\n)+?\*{3}|_{3}(?:.|\n)+?_{3})|(?<bold>\*{2}(?:.|\n)+?\*{2}|_{2}(?:.|\n)+?_{2})|(?<italic>\*(?:.|\n)+?\*|_(?:.|\n)+?_)|(?<code>`[^`]*`)|(?<strike>~~(?:.|\n)+?~~)|(?<link>!?\[.*?\]\(.*?\))|(?<br> {2,}\n)/;
+
 function renderInlineContent(text: string, keySeed: string): ReactNode[] {
-  const parts = text.split(CONFIG.regex.inline).filter(Boolean);
+  if (!text) return [];
+  const match = text.match(INLINE_RECURSIVE_REGEX);
+  if (!match || typeof match.index === "undefined") {
+    return [text];
+  }
+  const before = text.slice(0, match.index);
+  const after = text.slice(match.index + match[0].length);
+  const groups = match.groups || {};
+  let element: JSX.Element;
+  const key = `${keySeed}-${match.index}`;
 
-  return parts.map((part, index) => {
-    const key = `${keySeed}-inline-${index}`;
-
-    if (part.startsWith("![")) {
-      const match = part.match(/^!\[(.*?)]\((.*?)(?:\s+"(.*?)")?\)$/);
-      if (!match) return part;
-      const [, alt = "", src = "", title = ""] = match;
-      return (
-        <span key={key} className={CONFIG.styling.inline.image} title={title}>
-          <Image
-            src={sanitizeUrl(src)}
-            alt={alt}
-            fill
-            className={CONFIG.styling.image.image}
-          />
-        </span>
-      );
+  if (groups.bolditalic) {
+    const content = groups.bolditalic.slice(3, -3);
+    element = (
+      <strong key={key}>
+        <em>{renderInlineContent(content, `${key}-bi`)}</em>
+      </strong>
+    );
+  } else if (groups.bold) {
+    const content = groups.bold.slice(2, -2);
+    element = (
+      <strong key={key}>{renderInlineContent(content, `${key}-b`)}</strong>
+    );
+  } else if (groups.italic) {
+    const content = groups.italic.slice(1, -1);
+    element = <em key={key}>{renderInlineContent(content, `${key}-i`)}</em>;
+  } else if (groups.code) {
+    const content = groups.code.slice(1, -1);
+    element = (
+      <code key={key} className={CONFIG.styling.inline.code}>
+        {content}
+      </code>
+    );
+  } else if (groups.strike) {
+    const content = groups.strike.slice(2, -2);
+    element = <del key={key}>{renderInlineContent(content, `${key}-s`)}</del>;
+  } else if (groups.link) {
+    const isImage = groups.link.startsWith("!");
+    const linkMatch = groups.link.match(
+      isImage
+        ? /^!\[(.*?)]\((.*?)(?:\s+"(.*?)")?\)$/
+        : /^\[(.*?)]\((.*?)(?:\s+"(.*?)")?\)$/,
+    );
+    if (linkMatch) {
+      const [, textOrAlt = "", src = "", title = ""] = linkMatch;
+      if (isImage) {
+        element = (
+          <span key={key} className={CONFIG.styling.inline.image} title={title}>
+            <Image
+              src={sanitizeUrl(src)}
+              alt={textOrAlt}
+              fill
+              className={CONFIG.styling.image.image}
+            />
+          </span>
+        );
+      } else {
+        element = (
+          <a
+            key={key}
+            href={sanitizeUrl(src)}
+            title={title}
+            className={CONFIG.styling.inline.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {renderInlineContent(textOrAlt, `${key}-l`)}
+          </a>
+        );
+      }
+    } else {
+      element = <span key={key}>{groups.link}</span>;
     }
-
-    if (part.startsWith("[")) {
-      const match = part.match(/\[(.*?)]\((.*?)(?:\s+"(.*?)")?\)/);
-      if (!match) return part;
-      const [, linkText = "", href = "", title = ""] = match;
-      return (
-        <a
-          key={key}
-          href={sanitizeUrl(href)}
-          title={title}
-          className={CONFIG.styling.inline.link}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {linkText}
-        </a>
-      );
-    }
-
-    if (part.startsWith("**") || part.startsWith("__"))
-      return <strong key={key}>{part.slice(2, -2)}</strong>;
-    if (part.startsWith("*") || part.startsWith("_"))
-      return <em key={key}>{part.slice(1, -1)}</em>;
-    if (part.startsWith("~~")) return <del key={key}>{part.slice(2, -2)}</del>;
-    if (part.startsWith("`"))
-      return (
-        <code key={key} className={CONFIG.styling.inline.code}>
-          {part.slice(1, -1)}
-        </code>
-      );
-    if (part.match(/ {2,}\n/)) return <br key={key} />;
-
-    return part;
-  });
+  } else if (groups.br) {
+    element = <br key={key} />;
+  } else {
+    element = <span key={key}>{match[0]}</span>;
+  }
+  return [
+    ...renderInlineContent(before, `${keySeed}-before`),
+    element,
+    ...renderInlineContent(after, `${keySeed}-after`),
+  ];
 }
 
 function renderList(list: ListBlock): JSX.Element {
@@ -99,7 +131,6 @@ function renderList(list: ListBlock): JSX.Element {
         const taskMatch = item.content.match(CONFIG.regex.taskListItem);
         const content = taskMatch ? taskMatch[2] : item.content;
         const isChecked = taskMatch ? taskMatch[1] === "x" : false;
-
         return (
           <li key={item.key} className={CONFIG.styling.list.listItem}>
             {taskMatch && (
@@ -112,7 +143,9 @@ function renderList(list: ListBlock): JSX.Element {
               />
             )}
             {renderInlineContent(content, item.key)}
-            {item.children.items.length > 0 && renderList(item.children)}
+            {item.children &&
+              item.children.items.length > 0 &&
+              renderList(item.children)}
           </li>
         );
       })}
@@ -182,7 +215,6 @@ function renderBlock(block: ContentBlock): JSX.Element | null {
         </Tag>
       );
     }
-
     case "paragraph": {
       return (
         <p key={block.key} className={CONFIG.styling.paragraph}>
@@ -190,7 +222,6 @@ function renderBlock(block: ContentBlock): JSX.Element | null {
         </p>
       );
     }
-
     case "code": {
       return (
         <pre key={block.key} className={CONFIG.styling.codeBlock.pre}>
@@ -198,31 +229,22 @@ function renderBlock(block: ContentBlock): JSX.Element | null {
         </pre>
       );
     }
-
     case "blockquote": {
       return (
         <blockquote key={block.key} className={CONFIG.styling.blockquote}>
-          {block.content.map((line, index) => (
-            <p key={`${block.key}-line-${index}`} className="mb-0">
-              {renderInlineContent(line, `${block.key}-line-${index}`)}
-            </p>
-          ))}
+          {block.content.map((b) => renderBlock(b))}
         </blockquote>
       );
     }
-
     case "hr": {
       return <hr key={block.key} className={CONFIG.styling.hr} />;
     }
-
     case "list": {
       return renderList(block);
     }
-
     case "table": {
       return renderTable(block);
     }
-
     case "image": {
       return (
         <figure key={block.key} className={CONFIG.styling.image.figure}>
@@ -249,6 +271,11 @@ function renderBlock(block: ContentBlock): JSX.Element | null {
   }
 }
 
+function getIndent(line: string): number {
+  const match = line.match(/^\s*/);
+  return match ? match[0].length : 0;
+}
+
 function parseToBlocks(content: string): ContentBlock[] {
   const lines = content.replace(/\r\n?/g, "\n").split("\n");
   const blocks: ContentBlock[] = [];
@@ -259,25 +286,6 @@ function parseToBlocks(content: string): ContentBlock[] {
     const key = `block-${i}`;
 
     if (line.trim() === "") {
-      i++;
-      continue;
-    }
-
-    const imageMatch = line.match(CONFIG.regex.image);
-    if (imageMatch) {
-      const [, alt = "", src = "", title = ""] = imageMatch;
-      blocks.push({ type: "image", key, src, alt, title });
-      i++;
-      continue;
-    }
-    const headerMatch = line.match(CONFIG.regex.header);
-    if (headerMatch) {
-      blocks.push({
-        type: "header",
-        key,
-        level: Math.min(headerMatch[1].length, 6),
-        content: headerMatch[2],
-      });
       i++;
       continue;
     }
@@ -292,17 +300,113 @@ function parseToBlocks(content: string): ContentBlock[] {
       i++;
       continue;
     }
+    const headerMatch = line.match(CONFIG.regex.header);
+    if (headerMatch) {
+      blocks.push({
+        type: "header",
+        key,
+        level: Math.min(headerMatch[1].length, 6),
+        content: headerMatch[2],
+      });
+      i++;
+      continue;
+    }
     if (CONFIG.regex.blockquote.test(line)) {
       const bqLines: string[] = [];
-      while (i < lines.length && CONFIG.regex.blockquote.test(lines[i])) {
-        bqLines.push(lines[i].replace(/^>\s?/, ""));
-        i++;
+      while (i < lines.length) {
+        const currentLine = lines[i];
+        if (CONFIG.regex.blockquote.test(currentLine)) {
+          bqLines.push(currentLine.replace(/^>\s?/, ""));
+          i++;
+        } else if (
+          currentLine.trim() === "" &&
+          i + 1 < lines.length &&
+          CONFIG.regex.blockquote.test(lines[i + 1])
+        ) {
+          bqLines.push("");
+          i++;
+        } else {
+          break;
+        }
       }
-      blocks.push({ type: "blockquote", key, content: bqLines });
+      blocks.push({
+        type: "blockquote",
+        key,
+        content: parseToBlocks(bqLines.join("\n")),
+      });
       continue;
     }
     if (CONFIG.regex.hr.test(line)) {
       blocks.push({ type: "hr", key });
+      i++;
+      continue;
+    }
+    if (CONFIG.regex.listItem.test(line)) {
+      const listStack: { list: ListBlock; indent: number }[] = [];
+      let listEndIndex = i;
+      while (
+        listEndIndex < lines.length &&
+        (lines[listEndIndex].trim() === "" ||
+          CONFIG.regex.listItem.test(lines[listEndIndex]))
+      ) {
+        listEndIndex++;
+      }
+      const listLines = lines.slice(i, listEndIndex);
+      i = listEndIndex;
+
+      listLines.forEach((itemLine, index) => {
+        if (itemLine.trim() === "") return;
+        const match = itemLine.match(CONFIG.regex.listItem);
+        if (!match) return;
+        const indent = getIndent(itemLine);
+        const marker = match[2];
+        const content = match[3];
+        const newItem: ListItem = {
+          key: `${key}-item-${index}`,
+          content: content,
+        };
+
+        while (
+          listStack.length > 0 &&
+          indent < listStack[listStack.length - 1].indent
+        ) {
+          listStack.pop();
+        }
+
+        if (
+          listStack.length === 0 ||
+          indent > listStack[listStack.length - 1].indent
+        ) {
+          const listType = marker.match(/\d/) ? "ol" : "ul";
+          const start = listType === "ol" ? parseInt(marker, 10) : undefined;
+          const newList: ListBlock = {
+            key: `${key}-list-${index}`,
+            listType,
+            start,
+            items: [newItem],
+          };
+
+          if (listStack.length > 0) {
+            const parentList = listStack[listStack.length - 1].list;
+            const lastParentItem =
+              parentList.items[parentList.items.length - 1];
+            lastParentItem.children = newList;
+          }
+          listStack.push({ list: newList, indent });
+        } else {
+          listStack[listStack.length - 1].list.items.push(newItem);
+        }
+      });
+
+      if (listStack.length > 0) {
+        blocks.push({ type: "list", ...listStack[0].list });
+      }
+      continue;
+    }
+    const imageMatch = line.match(CONFIG.regex.image);
+    if (imageMatch) {
+      const [, alt = "", src = "", title = ""] = imageMatch;
+      blocks.push({ type: "image", key, src, alt, title });
       i++;
       continue;
     }
@@ -343,70 +447,17 @@ function parseToBlocks(content: string): ContentBlock[] {
       i = temp_i;
       continue;
     }
-
-    if (CONFIG.regex.listItem.test(line)) {
-      const listLines: string[] = [];
-      let temp_i = i;
-      while (
-        temp_i < lines.length &&
-        (CONFIG.regex.listItem.test(lines[temp_i]) ||
-          (lines[temp_i].trim() === "" &&
-            temp_i + 1 < lines.length &&
-            lines[temp_i + 1].startsWith(" ")))
-      ) {
-        listLines.push(lines[temp_i]);
-        temp_i++;
-      }
-      const firstMatch = listLines[0]?.match(CONFIG.regex.listItem);
-      if (firstMatch) {
-        const listType = firstMatch[2].match(/\d/) ? "ol" : "ul";
-        const start =
-          listType === "ol" ? parseInt(firstMatch[2], 10) : undefined;
-
-        const items = listLines
-          .map((itemLine, itemIndex): ListItem | null => {
-            const match = itemLine.match(CONFIG.regex.listItem);
-            if (!match) return null;
-            return {
-              key: `item-${i}-${itemIndex}`,
-              content: match[3],
-              children: {
-                key: `child-list-${i}-${itemIndex}`,
-                listType: "ul",
-                items: [],
-              },
-            };
-          })
-          .filter((item): item is ListItem => item !== null);
-
-        blocks.push({ type: "list", key, listType, start, items });
-        i = temp_i;
-        continue;
-      }
-    }
-
-    const paraLines: string[] = [];
-    let temp_i = i;
+    const paraLines: string[] = [line];
+    i++;
     while (
-      temp_i < lines.length &&
-      lines[temp_i].trim() !== "" &&
-      !CONFIG.regex.header.test(lines[temp_i]) &&
-      !CONFIG.regex.codeFence.test(lines[temp_i]) &&
-      !CONFIG.regex.blockquote.test(lines[temp_i]) &&
-      !CONFIG.regex.hr.test(lines[temp_i]) &&
-      !CONFIG.regex.listItem.test(lines[temp_i]) &&
-      !CONFIG.regex.image.test(lines[temp_i]) &&
-      !(
-        CONFIG.regex.tableRow.test(lines[temp_i]) &&
-        temp_i + 1 < lines.length &&
-        CONFIG.regex.tableSeparator.test(lines[temp_i + 1])
-      )
+      i < lines.length &&
+      lines[i].trim() !== "" &&
+      !Object.values(CONFIG.regex).some((r) => r.test(lines[i]))
     ) {
-      paraLines.push(lines[temp_i]);
-      temp_i++;
+      paraLines.push(lines[i]);
+      i++;
     }
     blocks.push({ type: "paragraph", key, content: paraLines.join("\n") });
-    i = temp_i;
   }
   return blocks;
 }
@@ -418,5 +469,5 @@ export const formatContent = (
     return [];
   }
   const blocks = parseToBlocks(content);
-  return blocks.map(renderBlock);
+  return blocks.map((block) => renderBlock(block));
 };

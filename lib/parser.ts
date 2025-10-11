@@ -1,4 +1,4 @@
-export class ParseError extends Error {
+class ParseError extends Error {
   constructor(
     public path: string[],
     public expectedType: string,
