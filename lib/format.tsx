@@ -1,32 +1,29 @@
 import Image from "next/image";
-import type { JSX, ReactNode } from "react";
+import { cache, type JSX, type ReactNode } from "react";
 import { FORMATTER_CONFIG as CONFIG, MAX_CONTENT_LENGTH } from "./constants";
 import type { ContentBlock, ListBlock, ListItem } from "./db/types";
 
 function sanitizeUrl(raw: string | undefined | null): string {
+  const DANGEROUS_PROTOCOLS = /^(javascript|data|vbscript|file):/i;
+  const SAFE_PROTOCOLS = /^(https:|http:|mailto:)$/i;
+  const SAFE_RELATIVE_PREFIXES = /^\/|^\.\/|^\.\.\/|^#/;
+
   if (!raw) return "#";
-  const s = String(raw).trim();
-  if (s === "") return "#";
-  if (s.startsWith("//")) return "#";
-  if (s.startsWith("/") || s.startsWith("#") || s.startsWith(".")) {
-    try {
-      const encoded = encodeURI(s);
-      if (encoded.includes("\n") || encoded.includes("\r")) return "#";
-      return encoded;
-    } catch (e) {
-      console.error(e);
-      return "#";
-    }
+  const urlStr = String(raw).trim();
+
+  if (DANGEROUS_PROTOCOLS.test(urlStr)) {
+    return "#";
   }
-  try {
-    const u = new URL(s);
-    const proto = u.protocol.toLowerCase();
-    if (proto === "http:" || proto === "https:" || proto === "mailto:") {
-      return u.href;
-    }
-  } catch (e) {
-    console.error(e);
+
+  if (SAFE_RELATIVE_PREFIXES.test(urlStr)) {
+    return urlStr;
   }
+
+  const url = new URL(urlStr);
+  if (SAFE_PROTOCOLS.test(url.protocol)) {
+    return url.href;
+  }
+
   return "#";
 }
 
@@ -529,7 +526,7 @@ function parseToBlocks(content: string): ContentBlock[] {
   return blocks;
 }
 
-export const formatContent = (
+const _formatContentUncached = (
   content?: string | null,
 ): (JSX.Element | null)[] => {
   if (!content) {
@@ -546,3 +543,5 @@ export const formatContent = (
   const blocks = parseToBlocks(content);
   return blocks.map((block) => renderBlock(block));
 };
+
+export const formatContent = cache(_formatContentUncached);
