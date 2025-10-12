@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { JSX, ReactNode } from "react";
-import { FORMATTER_CONFIG as CONFIG } from "./constants";
+import { FORMATTER_CONFIG as CONFIG, MAX_CONTENT_LENGTH } from "./constants";
 import type { ContentBlock, ListBlock, ListItem } from "./db/types";
 
 function sanitizeUrl(raw: string | undefined | null): string {
@@ -30,93 +30,163 @@ function sanitizeUrl(raw: string | undefined | null): string {
   return "#";
 }
 
-const INLINE_RECURSIVE_REGEX =
-  /(?<bolditalic>\*{3}(?:.|\n)+?\*{3}|_{3}(?:.|\n)+?_{3})|(?<bold>\*{2}(?:.|\n)+?\*{2}|_{2}(?:.|\n)+?_{2})|(?<italic>\*(?:.|\n)+?\*|_(?:.|\n)+?_)|(?<code>`[^`]*`)|(?<strike>~~(?:.|\n)+?~~)|(?<link>!?\[.*?\]\(.*?\))|(?<br> {2,}\n)/;
-
 function renderInlineContent(text: string, keySeed: string): ReactNode[] {
   if (!text) return [];
-  const match = text.match(INLINE_RECURSIVE_REGEX);
-  if (!match || typeof match.index === "undefined") {
-    return [text];
-  }
-  const before = text.slice(0, match.index);
-  const after = text.slice(match.index + match[0].length);
-  const groups = match.groups || {};
-  let element: JSX.Element;
-  const key = `${keySeed}-${match.index}`;
 
-  if (groups.bolditalic) {
-    const content = groups.bolditalic.slice(3, -3);
-    element = (
-      <strong key={key}>
-        <em>{renderInlineContent(content, `${key}-bi`)}</em>
-      </strong>
-    );
-  } else if (groups.bold) {
-    const content = groups.bold.slice(2, -2);
-    element = (
-      <strong key={key}>{renderInlineContent(content, `${key}-b`)}</strong>
-    );
-  } else if (groups.italic) {
-    const content = groups.italic.slice(1, -1);
-    element = <em key={key}>{renderInlineContent(content, `${key}-i`)}</em>;
-  } else if (groups.code) {
-    const content = groups.code.slice(1, -1);
-    element = (
-      <code key={key} className={CONFIG.styling.inline.code}>
-        {content}
-      </code>
-    );
-  } else if (groups.strike) {
-    const content = groups.strike.slice(2, -2);
-    element = <del key={key}>{renderInlineContent(content, `${key}-s`)}</del>;
-  } else if (groups.link) {
-    const isImage = groups.link.startsWith("!");
-    const linkMatch = groups.link.match(
-      isImage
-        ? /^!\[(.*?)]\((.*?)(?:\s+"(.*?)")?\)$/
-        : /^\[(.*?)]\((.*?)(?:\s+"(.*?)")?\)$/,
-    );
-    if (linkMatch) {
-      const [, textOrAlt = "", src = "", title = ""] = linkMatch;
-      if (isImage) {
-        element = (
-          <span key={key} className={CONFIG.styling.inline.image} title={title}>
-            <Image
-              src={sanitizeUrl(src)}
-              alt={textOrAlt}
-              fill
-              className={CONFIG.styling.image.image}
-            />
-          </span>
+  const tokens = [];
+  let cursor = 0;
+
+  while (cursor < text.length) {
+    const remainingText = text.slice(cursor);
+
+    if (remainingText.startsWith("***") || remainingText.startsWith("___")) {
+      const marker = remainingText.slice(0, 3);
+      const endMarkerIndex = remainingText.indexOf(marker, 3);
+      if (endMarkerIndex !== -1) {
+        const content = remainingText.slice(3, endMarkerIndex);
+        tokens.push(
+          <strong key={`${keySeed}-${cursor}`}>
+            <em>{renderInlineContent(content, `${keySeed}-${cursor}-bi`)}</em>
+          </strong>,
         );
-      } else {
-        element = (
-          <a
-            key={key}
-            href={sanitizeUrl(src)}
-            title={title}
-            className={CONFIG.styling.inline.link}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {renderInlineContent(textOrAlt, `${key}-l`)}
-          </a>
-        );
+        cursor += endMarkerIndex + 3;
+        continue;
       }
-    } else {
-      element = <span key={key}>{groups.link}</span>;
     }
-  } else if (groups.br) {
-    element = <br key={key} />;
-  } else {
-    element = <span key={key}>{match[0]}</span>;
+
+    if (remainingText.startsWith("**") || remainingText.startsWith("__")) {
+      const marker = remainingText.slice(0, 2);
+      const endMarkerIndex = remainingText.indexOf(marker, 2);
+      if (endMarkerIndex !== -1) {
+        const content = remainingText.slice(2, endMarkerIndex);
+        tokens.push(
+          <strong key={`${keySeed}-${cursor}`}>
+            {renderInlineContent(content, `${keySeed}-${cursor}-b`)}
+          </strong>,
+        );
+        cursor += endMarkerIndex + 2;
+        continue;
+      }
+    }
+
+    if (remainingText.startsWith("*") || remainingText.startsWith("_")) {
+      const marker = remainingText[0];
+      const endMarkerIndex = remainingText.indexOf(marker, 1);
+      if (endMarkerIndex !== -1) {
+        const content = remainingText.slice(1, endMarkerIndex);
+        tokens.push(
+          <em key={`${keySeed}-${cursor}`}>
+            {renderInlineContent(content, `${keySeed}-${cursor}-i`)}
+          </em>,
+        );
+        cursor += endMarkerIndex + 1;
+        continue;
+      }
+    }
+
+    if (remainingText.startsWith("~~")) {
+      const endMarkerIndex = remainingText.indexOf("~~", 2);
+      if (endMarkerIndex !== -1) {
+        const content = remainingText.slice(2, endMarkerIndex);
+        tokens.push(
+          <del key={`${keySeed}-${cursor}`}>
+            {renderInlineContent(content, `${keySeed}-${cursor}-s`)}
+          </del>,
+        );
+        cursor += endMarkerIndex + 2;
+        continue;
+      }
+    }
+
+    if (remainingText.startsWith("`")) {
+      const endMarkerIndex = remainingText.indexOf("`", 1);
+      if (endMarkerIndex !== -1) {
+        const content = remainingText.slice(1, endMarkerIndex);
+        tokens.push(
+          <code
+            key={`${keySeed}-${cursor}`}
+            className={CONFIG.styling.inline.code}
+          >
+            {content}
+          </code>,
+        );
+        cursor += endMarkerIndex + 1;
+        continue;
+      }
+    }
+
+    if (remainingText.startsWith("[") || remainingText.startsWith("![")) {
+      const isImage = remainingText.startsWith("!");
+      const closeBracketIndex = remainingText.indexOf("]");
+      const openParenIndex = remainingText.indexOf("(", closeBracketIndex);
+
+      if (
+        closeBracketIndex !== -1 &&
+        openParenIndex === closeBracketIndex + 1
+      ) {
+        const closeParenIndex = remainingText.indexOf(")", openParenIndex);
+        if (closeParenIndex !== -1) {
+          const textOrAlt = remainingText.slice(
+            isImage ? 2 : 1,
+            closeBracketIndex,
+          );
+          const urlPart = remainingText.slice(
+            openParenIndex + 1,
+            closeParenIndex,
+          );
+          const [src, ...titleParts] = urlPart.split(/\s+/);
+          const title = titleParts.join(" ").replace(/"/g, "");
+
+          if (isImage) {
+            tokens.push(
+              <span
+                key={`${keySeed}-${cursor}`}
+                className={CONFIG.styling.inline.image}
+                title={title}
+              >
+                <Image
+                  src={sanitizeUrl(src)}
+                  alt={textOrAlt}
+                  fill
+                  className={CONFIG.styling.image.image}
+                />
+              </span>,
+            );
+          } else {
+            tokens.push(
+              <a
+                key={`${keySeed}-${cursor}`}
+                href={sanitizeUrl(src)}
+                title={title}
+                className={CONFIG.styling.inline.link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {renderInlineContent(textOrAlt, `${keySeed}-${cursor}-l`)}
+              </a>,
+            );
+          }
+          cursor += closeParenIndex + 1;
+          continue;
+        }
+      }
+    }
+
+    if (remainingText.startsWith("  \n")) {
+      tokens.push(<br key={`${keySeed}-${cursor}`} />);
+      cursor += 3;
+      continue;
+    }
+
+    const nextMarker = remainingText
+      .slice(1)
+      .search(/(\*{1,3}|_{1,3}|~~|`|!?\[| {2,}\n)/);
+    const textEnd = nextMarker === -1 ? remainingText.length : nextMarker + 1;
+    tokens.push(remainingText.slice(0, textEnd));
+    cursor += textEnd;
   }
-  return [
-    ...renderInlineContent(before, `${keySeed}-before`),
-    element,
-    ...renderInlineContent(after, `${keySeed}-after`),
-  ];
+
+  return tokens;
 }
 
 function renderList(list: ListBlock): JSX.Element {
@@ -280,11 +350,9 @@ function parseToBlocks(content: string): ContentBlock[] {
   const lines = content.replace(/\r\n?/g, "\n").split("\n");
   const blocks: ContentBlock[] = [];
   let i = 0;
-
   while (i < lines.length) {
     const line = lines[i];
     const key = `block-${i}`;
-
     if (line.trim() === "") {
       i++;
       continue;
@@ -353,7 +421,6 @@ function parseToBlocks(content: string): ContentBlock[] {
       }
       const listLines = lines.slice(i, listEndIndex);
       i = listEndIndex;
-
       listLines.forEach((itemLine, index) => {
         if (itemLine.trim() === "") return;
         const match = itemLine.match(CONFIG.regex.listItem);
@@ -467,6 +534,14 @@ export const formatContent = (
 ): (JSX.Element | null)[] => {
   if (!content) {
     return [];
+  }
+  if (content.length > MAX_CONTENT_LENGTH) {
+    console.error("Content exceeds maximum length and will not be rendered.");
+    return [
+      <p key="error-length" style={{ color: "red" }}>
+        Error: Content is too large to display.
+      </p>,
+    ];
   }
   const blocks = parseToBlocks(content);
   return blocks.map((block) => renderBlock(block));

@@ -112,3 +112,4 @@ export const SMTP_CODES = {
 } as const;
 
 export const CONNECTION_TIMEOUT = 10000 as const;
+export const MAX_CONTENT_LENGTH = 1_048_576 as const; // 1 MB
