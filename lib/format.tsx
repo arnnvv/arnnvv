@@ -1,14 +1,68 @@
 import Image from "next/image";
 import { cache, type JSX, type ReactNode } from "react";
-import { FORMATTER_CONFIG as CONFIG, MAX_CONTENT_LENGTH } from "./constants";
+import {
+  FORMATTER_CONFIG as CONFIG,
+  DANGEROUS_HTML_PATTERN,
+  MAX_CONTENT_LENGTH,
+  MAX_INLINE_TOKENS,
+  MAX_NESTING_DEPTH,
+} from "./constants";
 import type { ContentBlock, ListBlock, ListItem } from "./db/types";
 
+type TextToken = {
+  type: "text";
+  content: string;
+};
+
+type StyledToken = {
+  type: "bold" | "italic" | "boldItalic" | "strikethrough";
+  content: string;
+  children?: InlineToken[];
+};
+
+type CodeToken = {
+  type: "code";
+  content: string;
+};
+
+type LinkToken = {
+  type: "link";
+  content: string;
+  url: string;
+  title?: string;
+  children?: InlineToken[];
+};
+
+type ImageToken = {
+  type: "image";
+  alt: string;
+  url: string;
+  title?: string;
+};
+
+type LinebreakToken = {
+  type: "linebreak";
+};
+
+type InlineToken =
+  | TextToken
+  | StyledToken
+  | CodeToken
+  | LinkToken
+  | ImageToken
+  | LinebreakToken;
+
+function sanitizeTextContent(text: string): string {
+  return text.replace(DANGEROUS_HTML_PATTERN, "");
+}
+
 function sanitizeUrl(raw: string | undefined | null): string {
-  const DANGEROUS_PROTOCOLS = /^(javascript|data|vbscript|file):/i;
+  const DANGEROUS_PROTOCOLS = /^(javascript|data|vbscript|file|ftp):/i;
   const SAFE_PROTOCOLS = /^(https:|http:|mailto:)$/i;
   const SAFE_RELATIVE_PREFIXES = /^\/|^\.\/|^\.\.\/|^#/;
 
   if (!raw) return "#";
+
   const urlStr = String(raw).trim();
 
   if (DANGEROUS_PROTOCOLS.test(urlStr)) {
@@ -19,171 +73,277 @@ function sanitizeUrl(raw: string | undefined | null): string {
     return urlStr;
   }
 
-  const url = new URL(urlStr);
-  if (SAFE_PROTOCOLS.test(url.protocol)) {
-    return url.href;
+  try {
+    const url = new URL(urlStr);
+    if (SAFE_PROTOCOLS.test(url.protocol)) {
+      return url.href;
+    }
+    return "#";
+  } catch {
+    return urlStr.startsWith("#") ? urlStr : "#";
   }
-
-  return "#";
 }
 
-function renderInlineContent(text: string, keySeed: string): ReactNode[] {
-  if (!text) return [];
+function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
+  if (depth > MAX_NESTING_DEPTH) {
+    return [{ type: "text", content: sanitizeTextContent(text) }];
+  }
 
-  const tokens = [];
-  let cursor = 0;
+  const tokens: InlineToken[] = [];
+  let position = 0;
+  let tokenCount = 0;
 
-  while (cursor < text.length) {
-    const remainingText = text.slice(cursor);
+  while (position < text.length && tokenCount < MAX_INLINE_TOKENS) {
+    const remaining = text.slice(position);
 
-    if (remainingText.startsWith("***") || remainingText.startsWith("___")) {
-      const marker = remainingText.slice(0, 3);
-      const endMarkerIndex = remainingText.indexOf(marker, 3);
-      if (endMarkerIndex !== -1) {
-        const content = remainingText.slice(3, endMarkerIndex);
-        tokens.push(
-          <strong key={`${keySeed}-${cursor}`}>
-            <em>{renderInlineContent(content, `${keySeed}-${cursor}-bi`)}</em>
-          </strong>,
-        );
-        cursor += endMarkerIndex + 3;
+    let _matched = false;
+
+    if (remaining.startsWith("***") || remaining.startsWith("___")) {
+      const marker = remaining.slice(0, 3);
+      const endIndex = remaining.indexOf(marker, 3);
+      if (endIndex !== -1) {
+        const content = remaining.slice(3, endIndex);
+        tokens.push({
+          type: "boldItalic",
+          content,
+          children: tokenizeInlineContent(content, depth + 1),
+        });
+        position += endIndex + 3;
+        tokenCount++;
+        _matched = true;
         continue;
       }
     }
 
-    if (remainingText.startsWith("**") || remainingText.startsWith("__")) {
-      const marker = remainingText.slice(0, 2);
-      const endMarkerIndex = remainingText.indexOf(marker, 2);
-      if (endMarkerIndex !== -1) {
-        const content = remainingText.slice(2, endMarkerIndex);
-        tokens.push(
-          <strong key={`${keySeed}-${cursor}`}>
-            {renderInlineContent(content, `${keySeed}-${cursor}-b`)}
-          </strong>,
-        );
-        cursor += endMarkerIndex + 2;
+    if (remaining.startsWith("**") || remaining.startsWith("__")) {
+      const marker = remaining.slice(0, 2);
+      const endIndex = remaining.indexOf(marker, 2);
+      if (endIndex !== -1) {
+        const content = remaining.slice(2, endIndex);
+        tokens.push({
+          type: "bold",
+          content,
+          children: tokenizeInlineContent(content, depth + 1),
+        });
+        position += endIndex + 2;
+        tokenCount++;
+        _matched = true;
         continue;
       }
     }
 
-    if (remainingText.startsWith("*") || remainingText.startsWith("_")) {
-      const marker = remainingText[0];
-      const endMarkerIndex = remainingText.indexOf(marker, 1);
-      if (endMarkerIndex !== -1) {
-        const content = remainingText.slice(1, endMarkerIndex);
-        tokens.push(
-          <em key={`${keySeed}-${cursor}`}>
-            {renderInlineContent(content, `${keySeed}-${cursor}-i`)}
-          </em>,
-        );
-        cursor += endMarkerIndex + 1;
+    if (remaining.startsWith("*") || remaining.startsWith("_")) {
+      const marker = remaining[0];
+      const endIndex = remaining.indexOf(marker, 1);
+      if (endIndex !== -1) {
+        const content = remaining.slice(1, endIndex);
+        tokens.push({
+          type: "italic",
+          content,
+          children: tokenizeInlineContent(content, depth + 1),
+        });
+        position += endIndex + 1;
+        tokenCount++;
+        _matched = true;
         continue;
       }
     }
 
-    if (remainingText.startsWith("~~")) {
-      const endMarkerIndex = remainingText.indexOf("~~", 2);
-      if (endMarkerIndex !== -1) {
-        const content = remainingText.slice(2, endMarkerIndex);
-        tokens.push(
-          <del key={`${keySeed}-${cursor}`}>
-            {renderInlineContent(content, `${keySeed}-${cursor}-s`)}
-          </del>,
-        );
-        cursor += endMarkerIndex + 2;
+    if (remaining.startsWith("~~")) {
+      const endIndex = remaining.indexOf("~~", 2);
+      if (endIndex !== -1) {
+        const content = remaining.slice(2, endIndex);
+        tokens.push({
+          type: "strikethrough",
+          content,
+          children: tokenizeInlineContent(content, depth + 1),
+        });
+        position += endIndex + 2;
+        tokenCount++;
+        _matched = true;
         continue;
       }
     }
 
-    if (remainingText.startsWith("`")) {
-      const endMarkerIndex = remainingText.indexOf("`", 1);
-      if (endMarkerIndex !== -1) {
-        const content = remainingText.slice(1, endMarkerIndex);
-        tokens.push(
-          <code
-            key={`${keySeed}-${cursor}`}
-            className={CONFIG.styling.inline.code}
-          >
-            {content}
-          </code>,
-        );
-        cursor += endMarkerIndex + 1;
+    if (remaining.startsWith("`")) {
+      const endIndex = remaining.indexOf("`", 1);
+      if (endIndex !== -1) {
+        const content = remaining.slice(1, endIndex);
+        tokens.push({
+          type: "code",
+          content: sanitizeTextContent(content),
+        });
+        position += endIndex + 1;
+        tokenCount++;
+        _matched = true;
         continue;
       }
     }
 
-    if (remainingText.startsWith("[") || remainingText.startsWith("![")) {
-      const isImage = remainingText.startsWith("!");
-      const closeBracketIndex = remainingText.indexOf("]");
-      const openParenIndex = remainingText.indexOf("(", closeBracketIndex);
+    if (remaining.startsWith("![") || remaining.startsWith("[")) {
+      const isImage = remaining.startsWith("![");
+      const closeBracket = remaining.indexOf("]");
+      const openParen = remaining.indexOf("(", closeBracket);
 
-      if (
-        closeBracketIndex !== -1 &&
-        openParenIndex === closeBracketIndex + 1
-      ) {
-        const closeParenIndex = remainingText.indexOf(")", openParenIndex);
-        if (closeParenIndex !== -1) {
-          const textOrAlt = remainingText.slice(
-            isImage ? 2 : 1,
-            closeBracketIndex,
-          );
-          const urlPart = remainingText.slice(
-            openParenIndex + 1,
-            closeParenIndex,
-          );
+      if (closeBracket !== -1 && openParen === closeBracket + 1) {
+        const closeParen = remaining.indexOf(")", openParen);
+        if (closeParen !== -1) {
+          const textOrAlt = remaining.slice(isImage ? 2 : 1, closeBracket);
+          const urlPart = remaining.slice(openParen + 1, closeParen);
           const [src, ...titleParts] = urlPart.split(/\s+/);
           const title = titleParts.join(" ").replace(/"/g, "");
 
           if (isImage) {
-            tokens.push(
-              <span
-                key={`${keySeed}-${cursor}`}
-                className={CONFIG.styling.inline.image}
-                title={title}
-              >
-                <Image
-                  src={sanitizeUrl(src)}
-                  alt={textOrAlt}
-                  fill
-                  className={CONFIG.styling.image.image}
-                />
-              </span>,
-            );
+            tokens.push({
+              type: "image",
+              alt: sanitizeTextContent(textOrAlt),
+              url: sanitizeUrl(src),
+              title: sanitizeTextContent(title),
+            });
           } else {
-            tokens.push(
-              <a
-                key={`${keySeed}-${cursor}`}
-                href={sanitizeUrl(src)}
-                title={title}
-                className={CONFIG.styling.inline.link}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {renderInlineContent(textOrAlt, `${keySeed}-${cursor}-l`)}
-              </a>,
-            );
+            tokens.push({
+              type: "link",
+              content: sanitizeTextContent(textOrAlt),
+              url: sanitizeUrl(src),
+              title: sanitizeTextContent(title),
+              children: tokenizeInlineContent(textOrAlt, depth + 1),
+            });
           }
-          cursor += closeParenIndex + 1;
+          position += closeParen + 1;
+          tokenCount++;
+          _matched = true;
           continue;
         }
       }
     }
 
-    if (remainingText.startsWith("  \n")) {
-      tokens.push(<br key={`${keySeed}-${cursor}`} />);
-      cursor += 3;
+    if (remaining.startsWith("  \n")) {
+      tokens.push({ type: "linebreak" });
+      position += 3;
+      tokenCount++;
+      _matched = true;
       continue;
     }
 
-    const nextMarker = remainingText
-      .slice(1)
-      .search(/(\*{1,3}|_{1,3}|~~|`|!?\[| {2,}\n)/);
-    const textEnd = nextMarker === -1 ? remainingText.length : nextMarker + 1;
-    tokens.push(remainingText.slice(0, textEnd));
-    cursor += textEnd;
+    const specialChars = /[*_~`![\]]/;
+    const nextSpecial = remaining.search(specialChars);
+
+    if (nextSpecial === -1) {
+      tokens.push({
+        type: "text",
+        content: sanitizeTextContent(remaining),
+      });
+      break;
+    } else if (nextSpecial > 0) {
+      tokens.push({
+        type: "text",
+        content: sanitizeTextContent(remaining.slice(0, nextSpecial)),
+      });
+      position += nextSpecial;
+      tokenCount++;
+    } else {
+      tokens.push({
+        type: "text",
+        content: sanitizeTextContent(remaining[0]),
+      });
+      position += 1;
+      tokenCount++;
+    }
   }
 
   return tokens;
+}
+
+function renderInlineTokens(
+  tokens: InlineToken[],
+  keySeed: string,
+): ReactNode[] {
+  return tokens.map((token, index) => {
+    const key = `${keySeed}-${index}`;
+
+    switch (token.type) {
+      case "text":
+        return token.content;
+
+      case "bold":
+        return (
+          <strong key={key}>
+            {renderInlineTokens(token.children || [], `${key}-b`)}
+          </strong>
+        );
+
+      case "italic":
+        return (
+          <em key={key}>
+            {renderInlineTokens(token.children || [], `${key}-i`)}
+          </em>
+        );
+
+      case "boldItalic":
+        return (
+          <strong key={key}>
+            <em>{renderInlineTokens(token.children || [], `${key}-bi`)}</em>
+          </strong>
+        );
+
+      case "strikethrough":
+        return (
+          <del key={key}>
+            {renderInlineTokens(token.children || [], `${key}-s`)}
+          </del>
+        );
+
+      case "code":
+        return (
+          <code key={key} className={CONFIG.styling.inline.code}>
+            {token.content}
+          </code>
+        );
+
+      case "link":
+        return (
+          <a
+            key={key}
+            href={token.url}
+            title={token.title}
+            className={CONFIG.styling.inline.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {renderInlineTokens(token.children || [], `${key}-l`)}
+          </a>
+        );
+
+      case "image":
+        return (
+          <span
+            key={key}
+            className={CONFIG.styling.inline.image}
+            title={token.title}
+          >
+            <Image
+              src={token.url || "#"}
+              alt={token.alt || ""}
+              fill
+              className={CONFIG.styling.image.image}
+            />
+          </span>
+        );
+
+      case "linebreak":
+        return <br key={key} />;
+
+      default:
+        return null;
+    }
+  });
+}
+
+function renderInlineContent(text: string, keySeed: string): ReactNode[] {
+  if (!text) return [];
+
+  const tokens = tokenizeInlineContent(text);
+  return renderInlineTokens(tokens, keySeed);
 }
 
 function renderList(list: ListBlock): JSX.Element {
@@ -540,8 +700,18 @@ const _formatContentUncached = (
       </p>,
     ];
   }
-  const blocks = parseToBlocks(content);
-  return blocks.map((block) => renderBlock(block));
+
+  try {
+    const blocks = parseToBlocks(content);
+    return blocks.map((block) => renderBlock(block));
+  } catch (error) {
+    console.error("Error formatting content:", error);
+    return [
+      <p key="error-formatting" style={{ color: "red" }}>
+        Error: Failed to format content.
+      </p>,
+    ];
+  }
 };
 
 export const formatContent = cache(_formatContentUncached);
