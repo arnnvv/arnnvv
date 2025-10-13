@@ -41,7 +41,9 @@ export function ViewTransitionsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (finishTransition && !isMountRef.current) {
       finishTransition();
-      setFinishTransition(null);
+      startTransition(() => {
+        setFinishTransition(null);
+      });
     }
   }, [finishTransition]);
 
