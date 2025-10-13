@@ -96,8 +96,6 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
   while (position < text.length && tokenCount < MAX_INLINE_TOKENS) {
     const remaining = text.slice(position);
 
-    let _matched = false;
-
     if (remaining.startsWith("***") || remaining.startsWith("___")) {
       const marker = remaining.slice(0, 3);
       const endIndex = remaining.indexOf(marker, 3);
@@ -110,7 +108,6 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
         });
         position += endIndex + 3;
         tokenCount++;
-        _matched = true;
         continue;
       }
     }
@@ -127,7 +124,6 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
         });
         position += endIndex + 2;
         tokenCount++;
-        _matched = true;
         continue;
       }
     }
@@ -144,7 +140,6 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
         });
         position += endIndex + 1;
         tokenCount++;
-        _matched = true;
         continue;
       }
     }
@@ -160,7 +155,6 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
         });
         position += endIndex + 2;
         tokenCount++;
-        _matched = true;
         continue;
       }
     }
@@ -175,7 +169,6 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
         });
         position += endIndex + 1;
         tokenCount++;
-        _matched = true;
         continue;
       }
     }
@@ -211,7 +204,6 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
           }
           position += closeParen + 1;
           tokenCount++;
-          _matched = true;
           continue;
         }
       }
@@ -221,7 +213,6 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
       tokens.push({ type: "linebreak" });
       position += 3;
       tokenCount++;
-      _matched = true;
       continue;
     }
 

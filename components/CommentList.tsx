@@ -1,6 +1,6 @@
 "use client";
 
-import { type JSX, useEffect, useState } from "react";
+import { type JSX, useMemo, useState } from "react";
 import type { CommentWithDetails, User } from "@/lib/db/types";
 import { CommentItem } from "./CommentItem";
 
@@ -13,17 +13,33 @@ export function CommentList({
   blogId: number;
   currentUser: User | null;
 }): JSX.Element {
-  const [topLevelComments, setTopLevelComments] =
-    useState<CommentWithDetails[]>(initialComments);
-
-  useEffect(() => {
-    setTopLevelComments(
-      initialComments.sort(
+  const sortedInitialComments = useMemo(
+    () =>
+      [...initialComments].sort(
         (a, b) =>
           new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
       ),
-    );
-  }, [initialComments]);
+    [initialComments],
+  );
+
+  const [topLevelComments, setTopLevelComments] = useState<
+    CommentWithDetails[]
+  >(sortedInitialComments);
+
+  if (
+    topLevelComments !== sortedInitialComments &&
+    sortedInitialComments.length > 0
+  ) {
+    const isDifferent =
+      topLevelComments.length !== sortedInitialComments.length ||
+      topLevelComments.some(
+        (comment, i) => comment.id !== sortedInitialComments[i]?.id,
+      );
+
+    if (isDifferent) {
+      setTopLevelComments(sortedInitialComments);
+    }
+  }
 
   const handleAnyCommentDeleted = (
     deletedCommentId: number,

@@ -5,7 +5,8 @@ export function getSafeUrl(urlString: string): URL | null {
       return url;
     }
     return null;
-  } catch (_e) {
+  } catch (e) {
+    console.error(e);
     return null;
   }
 }

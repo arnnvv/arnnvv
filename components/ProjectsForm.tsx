@@ -50,7 +50,7 @@ export function ProjectForm(): JSX.Element {
   const prepareFormData = (originalFormData: FormData) => {
     const linksForSubmission = dynamicLinks
       .filter((link) => link.link_type.trim() && link.url.trim())
-      .map(({ id, ...rest }) => rest);
+      .map(({ ...rest }) => rest);
     originalFormData.set("links", JSON.stringify(linksForSubmission));
     return originalFormData;
   };

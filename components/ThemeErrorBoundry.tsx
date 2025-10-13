@@ -17,7 +17,8 @@ export class ThemeErrorBoundary extends Component<Props, State> {
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(_error: Error): State {
+  static getDerivedStateFromError(error: Error): State {
+    console.error(error);
     return { hasError: true };
   }
 
