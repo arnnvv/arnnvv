@@ -116,3 +116,4 @@ export const MAX_CONTENT_LENGTH = 1_048_576 as const; // 1 MB
 export const MAX_NESTING_DEPTH = 20 as const;
 export const MAX_INLINE_TOKENS = 1000 as const;
 export const DANGEROUS_HTML_PATTERN = /<(\w+)[^>]*>|<\/\w+>/i;
+export const BLOGS_PER_PAGE = 4 as const;

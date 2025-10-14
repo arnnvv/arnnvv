@@ -3,6 +3,7 @@
 import { DatabaseError } from "@neondatabase/serverless";
 import { revalidatePath } from "next/cache";
 import { isUserAdmin } from "@/lib/auth";
+import { BLOGS_PER_PAGE } from "@/lib/constants";
 import { db } from "@/lib/db";
 import type { ActionResult, BlogPost, BlogSummary } from "@/lib/db/types";
 import { globalPOSTRateLimit } from "@/lib/request";
@@ -75,18 +76,36 @@ export async function writeBlog(formdata: FormData): Promise<ActionResult> {
   }
 }
 
-export async function getBlogSummaries(): Promise<BlogSummary[]> {
+export async function getBlogSummaries(page = 1): Promise<BlogSummary[]> {
   "use cache";
+  const limit = BLOGS_PER_PAGE;
+  const offset = (page - 1) * limit;
+
   try {
     const result = await db.query<BlogSummary>(
       `SELECT id, title, slug, created_at
        FROM arnnvv_blogs
-       ORDER BY created_at DESC`,
+       ORDER BY created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
     return result.rows;
   } catch (e) {
-    console.error(`Error fetching blog summaries: ${e}`);
+    console.error(`Error fetching blog summaries for page ${page}: ${e}`);
     return [];
+  }
+}
+
+export async function getBlogCount(): Promise<number> {
+  "use cache";
+  try {
+    const result = await db.query<{ count: string }>(
+      "SELECT COUNT(*) FROM arnnvv_blogs",
+    );
+    return Number.parseInt(result.rows[0].count, 10);
+  } catch (e) {
+    console.error(`Error fetching blog count: ${e}`);
+    return 0;
   }
 }
 
