@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     cacheComponents: true,
+    turbopackFileSystemCacheForBuild: true,
   },
   images: {
     remotePatterns: [
