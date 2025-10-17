@@ -101,14 +101,16 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
       const endIndex = remaining.indexOf(marker, 3);
       if (endIndex !== -1) {
         const content = remaining.slice(3, endIndex);
-        tokens.push({
-          type: "boldItalic",
-          content,
-          children: tokenizeInlineContent(content, depth + 1),
-        });
-        position += endIndex + 3;
-        tokenCount++;
-        continue;
+        if (content.length > 0) {
+          tokens.push({
+            type: "boldItalic",
+            content,
+            children: tokenizeInlineContent(content, depth + 1),
+          });
+          position += endIndex + 3;
+          tokenCount++;
+          continue;
+        }
       }
     }
 
@@ -117,14 +119,16 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
       const endIndex = remaining.indexOf(marker, 2);
       if (endIndex !== -1) {
         const content = remaining.slice(2, endIndex);
-        tokens.push({
-          type: "bold",
-          content,
-          children: tokenizeInlineContent(content, depth + 1),
-        });
-        position += endIndex + 2;
-        tokenCount++;
-        continue;
+        if (content.length > 0) {
+          tokens.push({
+            type: "bold",
+            content,
+            children: tokenizeInlineContent(content, depth + 1),
+          });
+          position += endIndex + 2;
+          tokenCount++;
+          continue;
+        }
       }
     }
 
@@ -133,14 +137,16 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
       const endIndex = remaining.indexOf(marker, 1);
       if (endIndex !== -1) {
         const content = remaining.slice(1, endIndex);
-        tokens.push({
-          type: "italic",
-          content,
-          children: tokenizeInlineContent(content, depth + 1),
-        });
-        position += endIndex + 1;
-        tokenCount++;
-        continue;
+        if (content.length > 0) {
+          tokens.push({
+            type: "italic",
+            content,
+            children: tokenizeInlineContent(content, depth + 1),
+          });
+          position += endIndex + 1;
+          tokenCount++;
+          continue;
+        }
       }
     }
 
@@ -148,14 +154,16 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
       const endIndex = remaining.indexOf("~~", 2);
       if (endIndex !== -1) {
         const content = remaining.slice(2, endIndex);
-        tokens.push({
-          type: "strikethrough",
-          content,
-          children: tokenizeInlineContent(content, depth + 1),
-        });
-        position += endIndex + 2;
-        tokenCount++;
-        continue;
+        if (content.length > 0) {
+          tokens.push({
+            type: "strikethrough",
+            content,
+            children: tokenizeInlineContent(content, depth + 1),
+          });
+          position += endIndex + 2;
+          tokenCount++;
+          continue;
+        }
       }
     }
 
