@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 
+Sitemap: https://www.arnnvv.sbs/sitemap.xml
+
 User-agent: Twitterbot
 Allow: /

@@ -42,6 +42,8 @@ export const SOCIAL_LINKS = [
   },
 ] as const;
 
+export const APP_BASE_URL = "https://www.arnnvv.sbs" as const;
+
 export const FORMATTER_CONFIG = {
   styling: {
     header: [

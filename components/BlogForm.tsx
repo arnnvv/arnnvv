@@ -8,21 +8,20 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 
 export function BlogForm(): JSX.Element {
-  const titleId = useId();
-  const descriptionId = useId();
+  const id = useId();
 
   return (
     <ActionFormWrapper action={writeBlog}>
       <div className="space-y-4 sm:space-y-5 md:space-y-6">
         <div className="space-y-2">
           <label
-            htmlFor={titleId}
+            htmlFor={`title-${id}`}
             className="block text-sm font-medium text-gray-700 dark:text-zinc-300"
           >
             Title
           </label>
           <Input
-            id={titleId}
+            id={`title-${id}`}
             type="text"
             name="title"
             placeholder="Enter your blog title"
@@ -32,13 +31,13 @@ export function BlogForm(): JSX.Element {
         </div>
         <div className="space-y-2">
           <label
-            htmlFor={descriptionId}
+            htmlFor={`description-${id}`}
             className="block text-sm font-medium text-gray-700 dark:text-zinc-300"
           >
             Content
           </label>
           <Textarea
-            id={descriptionId}
+            id={`description-${id}`}
             placeholder="Write your blog post content here... (Markdown supported)"
             name="description"
             className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px] border-gray-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/90 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-lg text-gray-800 dark:text-zinc-200"

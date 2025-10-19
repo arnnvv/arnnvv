@@ -17,6 +17,7 @@ export type BlogSummary = {
   title: string;
   slug: string;
   created_at: Date;
+  updated_at: Date;
 };
 
 export type BlogPost = {
@@ -25,6 +26,7 @@ export type BlogPost = {
   slug: string;
   description: string;
   created_at: Date;
+  updated_at: Date;
 };
 
 export type Comment = {

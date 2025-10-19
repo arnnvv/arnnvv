@@ -1,11 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  cacheComponents: true,
   reactCompiler: {
     panicThreshold: "all_errors",
   },
   experimental: {
-    cacheComponents: true,
     turbopackFileSystemCacheForBuild: true,
   },
   images: {

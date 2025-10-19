@@ -83,7 +83,7 @@ export async function getBlogSummaries(page = 1): Promise<BlogSummary[]> {
 
   try {
     const result = await db.query<BlogSummary>(
-      `SELECT id, title, slug, created_at
+      `SELECT id, title, slug, created_at, updated_at
        FROM arnnvv_blogs
        ORDER BY created_at DESC
        LIMIT $1 OFFSET $2`,
@@ -115,7 +115,7 @@ export async function getBlogPostBySlug(
   "use cache";
   try {
     const result = await db.query<BlogPost>(
-      `SELECT id, title, slug, description, created_at
+      `SELECT id, title, slug, description, created_at, updated_at
        FROM arnnvv_blogs
        WHERE slug = $1
        LIMIT 1`,

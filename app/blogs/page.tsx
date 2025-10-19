@@ -10,8 +10,24 @@ import { wrapWordsWithTransition } from "@/lib/transitions";
 import { TransitionLink } from "@/lib/view-transition";
 
 export const metadata: Metadata = {
-  title: "My Writings",
-  description: "A collection of thoughts, stories, and articles.",
+  title: "My Writings | Arnav Sharma",
+  description:
+    "A collection of thoughts, stories, and articles on systems, software, and learning.",
+  alternates: {
+    canonical: `https://www.arnnvv.sbs/blogs`,
+  },
+  openGraph: {
+    title: "My Writings | Arnav Sharma",
+    description:
+      "A collection of thoughts, stories, and articles on systems, software, and learning.",
+    url: "https://www.arnnvv.sbs/blogs",
+    type: "website",
+  },
+  twitter: {
+    title: "My Writings | Arnav Sharma",
+    description:
+      "A collection of thoughts, stories, and articles on systems, software, and learning.",
+  },
 };
 
 async function BlogList({

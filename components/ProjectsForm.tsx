@@ -20,9 +20,7 @@ export function ProjectForm(): JSX.Element {
     { id: crypto.randomUUID(), link_type: "", url: "" },
   ]);
 
-  const titleId = useId();
-  const descriptionId = useId();
-  const technologiesId = useId();
+  const id = useId();
 
   const handleAddLink = () => {
     setDynamicLinks([
@@ -67,13 +65,13 @@ export function ProjectForm(): JSX.Element {
     >
       <div>
         <label
-          htmlFor={titleId}
+          htmlFor={`title-${id}`}
           className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
         >
           Project Title
         </label>
         <Input
-          id={titleId}
+          id={`title-${id}`}
           name="title"
           type="text"
           required
@@ -83,13 +81,13 @@ export function ProjectForm(): JSX.Element {
 
       <div>
         <label
-          htmlFor={descriptionId}
+          htmlFor={`description-${id}`}
           className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
         >
           Description
         </label>
         <Textarea
-          id={descriptionId}
+          id={`description-${id}`}
           name="description"
           rows={5}
           required
@@ -99,13 +97,13 @@ export function ProjectForm(): JSX.Element {
 
       <div>
         <label
-          htmlFor={technologiesId}
+          htmlFor={`tech-${id}`}
           className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
         >
           Technologies (comma-separated, e.g., Next.js, TypeScript, PostgreSQL)
         </label>
         <Input
-          id={technologiesId}
+          id={`tech-${id}`}
           name="technologies"
           type="text"
           className="dark:bg-zinc-800 dark:border-zinc-700"

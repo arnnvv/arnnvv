@@ -5,8 +5,23 @@ import { TransitionTitle } from "@/components/layout/TransitionTitle";
 import { ProjectCard } from "@/components/ProjectCard";
 
 export const metadata: Metadata = {
-  title: "My Work",
-  description: "An artist's gallery lol",
+  title: "My Work | Arnav Sharma",
+  description:
+    "A showcase of projects I've built, exploring systems, software, and robust design.",
+  alternates: {
+    canonical: `https://www.arnnvv.sbs/work`,
+  },
+  openGraph: {
+    title: "My Work | Arnav Sharma",
+    description:
+      "A showcase of projects I've built, exploring systems, software, and robust design.",
+    url: "https://www.arnnvv.sbs/work",
+  },
+  twitter: {
+    title: "My Work | Arnav Sharma",
+    description:
+      "A showcase of projects I've built, exploring systems, software, and robust design.",
+  },
 };
 
 function ProjectsGridSkeleton(): JSX.Element {

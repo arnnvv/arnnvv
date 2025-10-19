@@ -10,10 +10,40 @@ import type { BlogSummary } from "@/lib/db/types";
 import { wrapWordsWithTransition } from "@/lib/transitions";
 import { TransitionLink } from "@/lib/view-transition";
 
-export const metadata: Metadata = {
-  title: "My Writings",
-  description: "A collection of thoughts, stories, and articles.",
-};
+interface PaginatedBlogsPageProps {
+  params: Promise<{ page: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PaginatedBlogsPageProps): Promise<Metadata> {
+  const page = Number.parseInt((await params).page, 10);
+  if (Number.isNaN(page) || page < 1) {
+    return { title: "Invalid Page" };
+  }
+
+  const title = `My Writings - Page ${page} | Arnav Sharma`;
+  const description = `Page ${page} of my thoughts, stories, and articles.`;
+  const url = `https://www.arnnvv.sbs/blogs/page/${page}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "website",
+    },
+    twitter: {
+      title,
+      description,
+    },
+  };
+}
 
 async function BlogList({
   blogs,
@@ -82,11 +112,7 @@ async function BlogList({
 
 export default async function PaginatedBlogsPage({
   params,
-}: {
-  params: Promise<{
-    page: string;
-  }>;
-}): Promise<JSX.Element> {
+}: PaginatedBlogsPageProps): Promise<JSX.Element> {
   const { page } = await params;
   const pageNumber = Number.parseInt(page, 10);
 

@@ -1,5 +1,23 @@
+import type { Metadata } from "next";
 import { type JSX, Suspense } from "react";
 import { ContactFormContent, ContactFormSkeleton } from "@/components/Contact";
+
+export const metadata: Metadata = {
+  title: "Contact Me | Arnav Sharma",
+  description: "Get in touch. Send me a message through the contact form.",
+  alternates: {
+    canonical: `https://www.arnnvv.sbs/contact`,
+  },
+  openGraph: {
+    title: "Contact Me | Arnav Sharma",
+    description: "Get in touch. Send me a message through the contact form.",
+    url: "https://www.arnnvv.sbs/contact",
+  },
+  twitter: {
+    title: "Contact Me | Arnav Sharma",
+    description: "Get in touch. Send me a message through the contact form.",
+  },
+};
 
 export default function ContactForm(): JSX.Element {
   return (

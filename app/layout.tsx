@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import { ThemeProvider } from "next-themes";
-import type { JSX, ReactNode } from "react";
+import { type JSX, type ReactNode, useId } from "react";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { ThemeErrorBoundary } from "@/components/ThemeErrorBoundry";
@@ -84,8 +85,45 @@ export default function RootLayout({
 }: Readonly<{
   children: ReactNode;
 }>): JSX.Element {
+  const id = useId();
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    url: "https://www.arnnvv.sbs/",
+    name: "Arnav Sharma",
+    alternateName: "arnnvv",
+  };
+
+  const personSchema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: "Arnav Sharma",
+    url: "https://www.arnnvv.sbs/",
+    sameAs: [
+      "https://x.com/arnnnvvv",
+      "https://github.com/arnnvv",
+      "https://www.linkedin.com/in/arnav-sharma-142716261",
+    ],
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script
+          id={`script-one-${id}`}
+          type="application/ld+json"
+          strategy="beforeInteractive"
+        >
+          {JSON.stringify(websiteSchema)}
+        </Script>
+        <Script
+          id={`script-two-${id}`}
+          type="application/ld+json"
+          strategy="beforeInteractive"
+        >
+          {JSON.stringify(personSchema)}
+        </Script>
+      </head>
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
