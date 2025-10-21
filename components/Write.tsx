@@ -12,7 +12,7 @@ export async function Write(): Promise<JSX.Element | string> {
   }
 
   return (
-    <main className="flex-grow container mx-auto px-4 py-8">
+    <main className="grow container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto mb-16">
         <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center text-gray-900 dark:text-zinc-50">
           Write New Blog Post

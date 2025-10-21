@@ -154,7 +154,7 @@ function CommentItemComponent({
               </Button>
             )}
           </div>
-          <p className="mt-1 text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap break-words">
+          <p className="mt-1 text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap wrap-break-word">
             {linkifyText(comment.content)}
           </p>
           <div className="mt-2 flex items-center space-x-1 sm:space-x-3 flex-wrap">

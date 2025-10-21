@@ -4,8 +4,8 @@ function BlogsLoadingSkeleton(): JSX.Element {
   const skeletonItems = Array.from({ length: 3 }, (_, i) => `skeleton-${i}`);
 
   return (
-    <main className="flex-grow relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
+    <main className="grow relative overflow-hidden">
+      <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
       <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float" />
       <div
         className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"

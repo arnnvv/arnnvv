@@ -25,11 +25,11 @@ export function TransitionLink({
         </span>
         <span
           aria-hidden="true"
-          className="absolute inset-0 whitespace-nowrap bg-gradient-to-r from-primary/98 to-accent/98 bg-clip-text text-transparent"
+          className="absolute inset-0 whitespace-nowrap bg-linear-to-r from-primary/98 to-accent/98 bg-clip-text text-transparent"
         >
           {title}
         </span>
-        <span className="absolute left-0 bottom-0 w-full h-0.5 bg-gradient-to-r from-primary/98 to-accent/98 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+        <span className="absolute left-0 bottom-0 w-full h-0.5 bg-linear-to-r from-primary/98 to-accent/98 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
       </span>
       <svg
         className="ml-2 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 text-primary"

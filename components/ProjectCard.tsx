@@ -15,7 +15,7 @@ export function ProjectCard({
         </h2>
       </header>
 
-      <div className="text-sm text-gray-700 dark:text-zinc-300 mb-4 flex-grow">
+      <div className="text-sm text-gray-700 dark:text-zinc-300 mb-4 grow">
         <p className="whitespace-pre-wrap">{project.description}</p>
       </div>
 

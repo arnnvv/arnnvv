@@ -31,9 +31,9 @@ async function AuthControlsContent(): Promise<JSX.Element | string> {
     return (
       <a
         href="/login/google"
-        className="group gsi-material-button dark:[color-scheme:dark] bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-gray-100 border dark:border-zinc-500 rounded-full text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 hover:shadow-sm transition-all duration-200 relative overflow-hidden"
+        className="group gsi-material-button dark:scheme-dark bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-gray-100 border dark:border-zinc-500 rounded-full text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 hover:shadow-sm transition-all duration-200 relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-black dark:bg-white opacity-0 group-hover:opacity-[8%] group-focus:opacity-[12%] transition-opacity duration-200" />
+        <div className="absolute inset-0 bg-black dark:bg-white opacity-0 group-hover:opacity-8 group-focus:opacity-12 transition-opacity duration-200" />
         <div className="flex items-center">
           <div className="mr-1.5 sm:mr-2 md:mr-3 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5">
             <svg
@@ -103,7 +103,7 @@ async function AuthControlsContent(): Promise<JSX.Element | string> {
 export function Navbar(): JSX.Element {
   return (
     <nav className="relative backdrop-blur-md bg-background border-b border-border/50 py-2 sm:py-3 md:py-4 px-3 sm:px-4">
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
+      <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
 
       <div className="relative z-10 flex flex-row justify-between items-center">
         <div className="relative">
