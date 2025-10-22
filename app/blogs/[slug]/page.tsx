@@ -86,49 +86,12 @@ export async function generateMetadata({
   };
 }
 
-function BlogPostSkeleton(): JSX.Element {
-  return (
-    <main className="grow relative overflow-hidden">
-      <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
-      <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float" />
-      <div
-        className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
-        style={{ animationDelay: "2s" }}
-      />
-      <div className="container mx-auto px-4 py-12 relative z-10">
-        <div className="animate-pulse max-w-3xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="h-10 bg-muted rounded-lg w-3/4 mx-auto mb-4" />
-            <div className="h-6 bg-muted rounded w-1/2 mx-auto" />
-          </div>
-          <div className="space-y-4">
-            <div className="h-4 bg-muted rounded w-full" />
-            <div className="h-4 bg-muted rounded w-full" />
-            <div className="h-4 bg-muted rounded w-5/6" />
-            <div className="h-20 bg-muted rounded w-full mt-6" />
-            <div className="h-4 bg-muted rounded w-full" />
-            <div className="h-4 bg-muted rounded w-2/3" />
-            <div className="h-4 bg-muted rounded w-full mt-4" />
-            <div className="h-4 bg-muted rounded w-4/5" />
-          </div>
-          <div className="mt-16 pt-8 border-t border-border">
-            <div className="h-8 bg-muted rounded w-1/3 mb-6" />
-            <div className="space-y-4">
-              <div className="h-20 bg-muted/50 rounded-lg" />
-              <div className="h-16 bg-muted/30 rounded-lg" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
-}
-
 async function BlogPostContent({
   slug,
 }: {
   slug: string;
 }): Promise<JSX.Element> {
+  "use cache";
   const post = await getBlogPostBySlug(slug);
 
   if (!post) {
@@ -140,7 +103,7 @@ async function BlogPostContent({
     post.description.length > 150
       ? `${post.description.substring(0, 150).replace(/\s+\S*$/, "")}...`
       : post.description;
-  const imageUrl = `https://www.arnnvv.sbs/api/og?slug=${slug}`;
+  const imageUrl = `https://www.arnnvv.sbs/api/og?slug=${post.slug}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -169,42 +132,23 @@ async function BlogPostContent({
   return (
     <>
       <Script
-        id={`blog-schema-${slug}`}
+        id={`blog-schema-${post.slug}`}
         type="application/ld+json"
         strategy="beforeInteractive"
       >
         {JSON.stringify(jsonLd)}
       </Script>
-      <main className="grow relative overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
-        <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float" />
-        <div
-          className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
-          style={{ animationDelay: "2s" }}
-        />
-        <div className="container mx-auto px-4 py-12 relative z-10">
-          <article className="prose prose-zinc dark:prose-invert lg:prose-xl mx-auto">
-            <header className="mb-8 text-center not-prose">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-zinc-50 mb-2">
-                {wrapWordsWithTransition(post.title, `blog-title-${post.slug}`)}
-              </h1>
-              <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
-                Published on {formatDate(post.created_at)}
-              </p>
-            </header>
-            <div>{formattedDescription}</div>
-          </article>
-          <div className="max-w-4xl mx-auto mt-16">
-            <Suspense
-              fallback={
-                <div className="h-64 bg-muted/20 rounded animate-pulse" />
-              }
-            >
-              <CommentSection blogId={post.id} />
-            </Suspense>
-          </div>
-        </div>
-      </main>
+      <article className="prose prose-zinc dark:prose-invert lg:prose-xl mx-auto">
+        <header className="mb-8 text-center not-prose">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-zinc-50 mb-2">
+            {wrapWordsWithTransition(post.title, `blog-title-${post.slug}`)}
+          </h1>
+          <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
+            Published on {formatDate(post.created_at)}
+          </p>
+        </header>
+        <div>{formattedDescription}</div>
+      </article>
     </>
   );
 }
@@ -213,10 +157,33 @@ export default async function BlogPostPage({
   params,
 }: BlogPostPageProps): Promise<JSX.Element> {
   const { slug } = await params;
+  const post = await getBlogPostBySlug(slug);
+
+  if (!post) {
+    notFound();
+  }
 
   return (
-    <Suspense fallback={<BlogPostSkeleton />}>
-      <BlogPostContent slug={slug} />
-    </Suspense>
+    <main className="grow relative overflow-hidden">
+      <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
+      <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float" />
+      <div
+        className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
+        style={{ animationDelay: "2s" }}
+      />
+      <div className="container mx-auto px-4 py-12 relative z-10">
+        <BlogPostContent slug={slug} />
+
+        <div className="max-w-4xl mx-auto mt-16">
+          <Suspense
+            fallback={
+              <div className="h-64 bg-muted/20 rounded animate-pulse" />
+            }
+          >
+            <CommentSection blogId={post.id} />
+          </Suspense>
+        </div>
+      </div>
+    </main>
   );
 }
