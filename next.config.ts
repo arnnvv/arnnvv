@@ -5,9 +5,6 @@ const nextConfig: NextConfig = {
   reactCompiler: {
     panicThreshold: "all_errors",
   },
-  experimental: {
-    turbopackFileSystemCacheForBuild: true,
-  },
   images: {
     remotePatterns: [
       {
