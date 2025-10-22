@@ -1,12 +1,6 @@
 import Image from "next/image";
 import { cache, type JSX, type ReactNode } from "react";
-import {
-  FORMATTER_CONFIG as CONFIG,
-  DANGEROUS_HTML_PATTERN,
-  MAX_CONTENT_LENGTH,
-  MAX_INLINE_TOKENS,
-  MAX_NESTING_DEPTH,
-} from "./constants";
+import { FORMATTER_CONFIG as CONFIG, PARSING_TIMEOUT_MS } from "./constants";
 import type {
   ContentBlock,
   InlineToken,
@@ -14,40 +8,126 @@ import type {
   ListItem,
 } from "./db/types";
 
+const SECURITY_CONFIG = {
+  allowedImageDomains: ["*"] as string[],
+  allowedLinkDomains: ["*"] as string[],
+
+  dangerousProtocols: /^(javascript|data|vbscript|file|ftp|tel):/i,
+
+  safeProtocols: {
+    link: /^(https?:|mailto:|#$)/i,
+    image: /^(https?:)/i,
+  },
+
+  maxUrlLength: 2048,
+
+  maxNestingDepth: 10,
+  maxInlineTokens: 1000,
+  maxContentLength: 100000,
+} as const;
+
 function sanitizeTextContent(text: string): string {
-  return text.replace(DANGEROUS_HTML_PATTERN, "");
+  if (!text || typeof text !== "string") return "";
+
+  return text
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+    .replace(/\uFEFF/g, "");
 }
 
-function sanitizeUrl(raw: string | undefined | null): string {
-  const DANGEROUS_PROTOCOLS = /^(javascript|data|vbscript|file|ftp):/i;
-  const SAFE_PROTOCOLS = /^(https:|http:|mailto:)$/i;
-  const SAFE_RELATIVE_PREFIXES = /^\/|^\.\/|^\.\.\/|^#/;
+function isDomainAllowed(hostname: string, allowedDomains: string[]): boolean {
+  if (allowedDomains.includes("*")) return true;
+  if (allowedDomains.length === 0) return false;
 
+  return allowedDomains.some((allowed) => {
+    if (allowed.startsWith("*.")) {
+      const baseDomain = allowed.slice(2);
+      return hostname === baseDomain || hostname.endsWith("." + baseDomain);
+    }
+    return hostname === allowed;
+  });
+}
+
+function sanitizeUrl(
+  raw: string | undefined | null,
+  type: "link" | "image" = "link",
+): string {
   if (!raw) return "#";
 
   const urlStr = String(raw).trim();
 
-  if (DANGEROUS_PROTOCOLS.test(urlStr)) {
+  if (urlStr.length > SECURITY_CONFIG.maxUrlLength) {
+    console.warn("URL exceeds maximum length");
     return "#";
   }
 
-  if (SAFE_RELATIVE_PREFIXES.test(urlStr)) {
+  if (SECURITY_CONFIG.dangerousProtocols.test(urlStr)) {
+    console.warn("Blocked dangerous protocol:", urlStr.substring(0, 50));
+    return "#";
+  }
+
+  if (/^\/[^\/]|^\.\.?\/|^#/.test(urlStr)) {
+    if (urlStr.includes("..")) {
+      const normalized = urlStr
+        .replace(/\/\.\.\//g, "/")
+        .replace(/\/\.\//g, "/");
+      return normalized;
+    }
     return urlStr;
   }
 
   try {
     const url = new URL(urlStr);
-    if (SAFE_PROTOCOLS.test(url.protocol)) {
-      return url.href;
+
+    const protocolRegex =
+      type === "image"
+        ? SECURITY_CONFIG.safeProtocols.image
+        : SECURITY_CONFIG.safeProtocols.link;
+
+    if (!protocolRegex.test(url.protocol)) {
+      console.warn("Blocked unsafe protocol:", url.protocol);
+      return "#";
     }
-    return "#";
-  } catch {
+
+    if (type === "image" && url.protocol === "mailto:") {
+      return "#";
+    }
+
+    const allowedDomains =
+      type === "image"
+        ? SECURITY_CONFIG.allowedImageDomains
+        : SECURITY_CONFIG.allowedLinkDomains;
+
+    if (!isDomainAllowed(url.hostname, allowedDomains)) {
+      console.warn("Blocked domain not in allowlist:", url.hostname);
+      return "#";
+    }
+
+    const sanitizedHref = url.href.replace(/[\x00-\x1F\x7F]/g, "");
+
+    return sanitizedHref;
+  } catch (e) {
+    console.warn(`Invalid URL format: ${e}`, urlStr.substring(0, 50));
     return urlStr.startsWith("#") ? urlStr : "#";
   }
 }
 
+function withTimeout<T>(fn: () => T, timeoutMs: number, fallback: T): T {
+  const startTime = Date.now();
+  try {
+    const result = fn();
+    if (Date.now() - startTime > timeoutMs) {
+      console.error("Operation exceeded timeout");
+      return fallback;
+    }
+    return result;
+  } catch (error) {
+    console.error("Operation failed:", error);
+    return fallback;
+  }
+}
+
 function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
-  if (depth > MAX_NESTING_DEPTH) {
+  if (depth > SECURITY_CONFIG.maxNestingDepth) {
     return [{ type: "text", content: sanitizeTextContent(text) }];
   }
 
@@ -55,18 +135,29 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
   let position = 0;
   let tokenCount = 0;
 
-  while (position < text.length && tokenCount < MAX_INLINE_TOKENS) {
+  const maxIterations = text.length * 2;
+  let iterations = 0;
+
+  while (
+    position < text.length &&
+    tokenCount < SECURITY_CONFIG.maxInlineTokens
+  ) {
+    if (++iterations > maxIterations) {
+      console.error("Tokenization exceeded max iterations");
+      break;
+    }
+
     const remaining = text.slice(position);
 
     if (remaining.startsWith("***") || remaining.startsWith("___")) {
       const marker = remaining.slice(0, 3);
       const endIndex = remaining.indexOf(marker, 3);
-      if (endIndex !== -1) {
+      if (endIndex !== -1 && endIndex < 1000) {
         const content = remaining.slice(3, endIndex);
-        if (content.length > 0) {
+        if (content.length > 0 && content.length < 500) {
           tokens.push({
             type: "boldItalic",
-            content,
+            content: sanitizeTextContent(content),
             children: tokenizeInlineContent(content, depth + 1),
           });
           position += endIndex + 3;
@@ -79,12 +170,12 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
     if (remaining.startsWith("**") || remaining.startsWith("__")) {
       const marker = remaining.slice(0, 2);
       const endIndex = remaining.indexOf(marker, 2);
-      if (endIndex !== -1) {
+      if (endIndex !== -1 && endIndex < 1000) {
         const content = remaining.slice(2, endIndex);
-        if (content.length > 0) {
+        if (content.length > 0 && content.length < 500) {
           tokens.push({
             type: "bold",
-            content,
+            content: sanitizeTextContent(content),
             children: tokenizeInlineContent(content, depth + 1),
           });
           position += endIndex + 2;
@@ -97,12 +188,12 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
     if (remaining.startsWith("*") || remaining.startsWith("_")) {
       const marker = remaining[0];
       const endIndex = remaining.indexOf(marker, 1);
-      if (endIndex !== -1) {
+      if (endIndex !== -1 && endIndex < 1000) {
         const content = remaining.slice(1, endIndex);
-        if (content.length > 0) {
+        if (content.length > 0 && content.length < 500) {
           tokens.push({
             type: "italic",
-            content,
+            content: sanitizeTextContent(content),
             children: tokenizeInlineContent(content, depth + 1),
           });
           position += endIndex + 1;
@@ -114,12 +205,12 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
 
     if (remaining.startsWith("~~")) {
       const endIndex = remaining.indexOf("~~", 2);
-      if (endIndex !== -1) {
+      if (endIndex !== -1 && endIndex < 1000) {
         const content = remaining.slice(2, endIndex);
-        if (content.length > 0) {
+        if (content.length > 0 && content.length < 500) {
           tokens.push({
             type: "strikethrough",
-            content,
+            content: sanitizeTextContent(content),
             children: tokenizeInlineContent(content, depth + 1),
           });
           position += endIndex + 2;
@@ -131,7 +222,7 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
 
     if (remaining.startsWith("`")) {
       const endIndex = remaining.indexOf("`", 1);
-      if (endIndex !== -1) {
+      if (endIndex !== -1 && endIndex < 500) {
         const content = remaining.slice(1, endIndex);
         tokens.push({
           type: "code",
@@ -148,26 +239,30 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
       const closeBracket = remaining.indexOf("]");
       const openParen = remaining.indexOf("(", closeBracket);
 
-      if (closeBracket !== -1 && openParen === closeBracket + 1) {
+      if (
+        closeBracket !== -1 &&
+        closeBracket < 200 &&
+        openParen === closeBracket + 1
+      ) {
         const closeParen = remaining.indexOf(")", openParen);
-        if (closeParen !== -1) {
+        if (closeParen !== -1 && closeParen < 500) {
           const textOrAlt = remaining.slice(isImage ? 2 : 1, closeBracket);
           const urlPart = remaining.slice(openParen + 1, closeParen);
           const [src, ...titleParts] = urlPart.split(/\s+/);
-          const title = titleParts.join(" ").replace(/"/g, "");
+          const title = titleParts.join(" ").replace(/["']/g, "");
 
           if (isImage) {
             tokens.push({
               type: "image",
               alt: sanitizeTextContent(textOrAlt),
-              url: sanitizeUrl(src),
+              url: sanitizeUrl(src, "image"),
               title: sanitizeTextContent(title),
             });
           } else {
             tokens.push({
               type: "link",
               content: sanitizeTextContent(textOrAlt),
-              url: sanitizeUrl(src),
+              url: sanitizeUrl(src, "link"),
               title: sanitizeTextContent(title),
               children: tokenizeInlineContent(textOrAlt, depth + 1),
             });
@@ -262,6 +357,13 @@ function renderInlineTokens(
         );
 
       case "link":
+        if (token.url === "#") {
+          return (
+            <span key={key} className={CONFIG.styling.inline.link}>
+              {renderInlineTokens(token.children || [], `${key}-l`)}
+            </span>
+          );
+        }
         return (
           <a
             key={key}
@@ -269,13 +371,20 @@ function renderInlineTokens(
             title={token.title}
             className={CONFIG.styling.inline.link}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener noreferrer nofollow"
           >
             {renderInlineTokens(token.children || [], `${key}-l`)}
           </a>
         );
 
       case "image":
+        if (token.url === "#" || !token.url) {
+          return (
+            <span key={key} className={CONFIG.styling.inline.image}>
+              [Image blocked: invalid URL]
+            </span>
+          );
+        }
         return (
           <span
             key={key}
@@ -283,7 +392,7 @@ function renderInlineTokens(
             title={token.title}
           >
             <Image
-              src={token.url || "#"}
+              src={token.url}
               alt={token.alt || ""}
               fill
               className={CONFIG.styling.image.image}
@@ -327,7 +436,7 @@ function renderList(list: ListBlock): JSX.Element {
                 checked={isChecked}
                 readOnly
                 className={CONFIG.styling.list.checkbox}
-                aria-label={`Task item: ${content}`}
+                aria-label={`Task item: ${sanitizeTextContent(content)}`}
               />
             )}
             {renderInlineContent(content, item.key)}
@@ -349,6 +458,7 @@ function renderTable(
     if (align === "text-right") return "text-right";
     return "text-left";
   };
+
   return (
     <div key={table.key} className={CONFIG.styling.table.container}>
       <table className={CONFIG.styling.table.table}>
@@ -376,7 +486,7 @@ function renderTable(
                 <td
                   key={`${table.key}-td-${rowIndex}-${cellIndex}`}
                   className={`${CONFIG.styling.table.td} ${getAlignmentClass(
-                    table.alignments[cellIndex],
+                    table.alignments[cellIndex] || "text-left",
                   )}`}
                 >
                   {renderInlineContent(
@@ -413,7 +523,9 @@ function renderBlock(block: ContentBlock): JSX.Element | null {
     case "code": {
       return (
         <pre key={block.key} className={CONFIG.styling.codeBlock.pre}>
-          <code className={CONFIG.styling.codeBlock.code}>{block.content}</code>
+          <code className={CONFIG.styling.codeBlock.code}>
+            {sanitizeTextContent(block.content)}
+          </code>
         </pre>
       );
     }
@@ -434,20 +546,30 @@ function renderBlock(block: ContentBlock): JSX.Element | null {
       return renderTable(block);
     }
     case "image": {
+      const sanitizedSrc = sanitizeUrl(block.src, "image");
+      if (sanitizedSrc === "#") {
+        return (
+          <figure key={block.key} className={CONFIG.styling.image.figure}>
+            <div className={CONFIG.styling.image.container}>
+              [Image blocked: invalid or disallowed URL]
+            </div>
+          </figure>
+        );
+      }
       return (
         <figure key={block.key} className={CONFIG.styling.image.figure}>
           <div className={CONFIG.styling.image.container}>
             <Image
-              src={sanitizeUrl(block.src)}
-              alt={block.alt}
-              title={block.title}
+              src={sanitizedSrc}
+              alt={sanitizeTextContent(block.alt)}
+              title={sanitizeTextContent(block.title ?? "")}
               fill
               className={CONFIG.styling.image.image}
             />
           </div>
           {block.title && (
             <figcaption className={CONFIG.styling.image.caption}>
-              {block.title}
+              {sanitizeTextContent(block.title)}
             </figcaption>
           )}
         </figure>
@@ -461,20 +583,27 @@ function renderBlock(block: ContentBlock): JSX.Element | null {
 
 function getIndent(line: string): number {
   const match = line.match(/^\s*/);
-  return match ? match[0].length : 0;
+  return match ? Math.min(match[0].length, 100) : 0;
 }
 
 function parseToBlocks(content: string): ContentBlock[] {
   const lines = content.replace(/\r\n?/g, "\n").split("\n");
   const blocks: ContentBlock[] = [];
   let i = 0;
-  while (i < lines.length) {
+
+  const maxBlocks = 10000;
+  let blockCount = 0;
+
+  while (i < lines.length && blockCount < maxBlocks) {
+    blockCount++;
     const line = lines[i];
     const key = `block-${i}`;
+
     if (line.trim() === "") {
       i++;
       continue;
     }
+
     if (CONFIG.regex.codeFence.test(line)) {
       const codeLines: string[] = [];
       i++;
@@ -482,10 +611,15 @@ function parseToBlocks(content: string): ContentBlock[] {
         codeLines.push(lines[i]);
         i++;
       }
-      blocks.push({ type: "code", key, content: codeLines.join("\n") });
+      blocks.push({
+        type: "code",
+        key,
+        content: codeLines.join("\n").slice(0, 50000),
+      });
       i++;
       continue;
     }
+
     const headerMatch = line.match(CONFIG.regex.header);
     if (headerMatch) {
       blocks.push({
@@ -497,9 +631,10 @@ function parseToBlocks(content: string): ContentBlock[] {
       i++;
       continue;
     }
+
     if (CONFIG.regex.blockquote.test(line)) {
       const bqLines: string[] = [];
-      while (i < lines.length) {
+      while (i < lines.length && bqLines.length < 1000) {
         const currentLine = lines[i];
         if (CONFIG.regex.blockquote.test(currentLine)) {
           bqLines.push(currentLine.replace(/^>\s?/, ""));
@@ -522,16 +657,19 @@ function parseToBlocks(content: string): ContentBlock[] {
       });
       continue;
     }
+
     if (CONFIG.regex.hr.test(line)) {
       blocks.push({ type: "hr", key });
       i++;
       continue;
     }
+
     if (CONFIG.regex.listItem.test(line)) {
       const listStack: { list: ListBlock; indent: number }[] = [];
       let listEndIndex = i;
       while (
         listEndIndex < lines.length &&
+        listEndIndex - i < 1000 &&
         (lines[listEndIndex].trim() === "" ||
           CONFIG.regex.listItem.test(lines[listEndIndex]))
       ) {
@@ -539,10 +677,12 @@ function parseToBlocks(content: string): ContentBlock[] {
       }
       const listLines = lines.slice(i, listEndIndex);
       i = listEndIndex;
+
       listLines.forEach((itemLine, index) => {
         if (itemLine.trim() === "") return;
         const match = itemLine.match(CONFIG.regex.listItem);
         if (!match) return;
+
         const indent = getIndent(itemLine);
         const marker = match[2];
         const content = match[3];
@@ -588,6 +728,7 @@ function parseToBlocks(content: string): ContentBlock[] {
       }
       continue;
     }
+
     const imageMatch = line.match(CONFIG.regex.image);
     if (imageMatch) {
       const [, alt = "", src = "", title = ""] = imageMatch;
@@ -595,6 +736,7 @@ function parseToBlocks(content: string): ContentBlock[] {
       i++;
       continue;
     }
+
     if (
       CONFIG.regex.tableRow.test(line) &&
       i + 1 < lines.length &&
@@ -604,6 +746,7 @@ function parseToBlocks(content: string): ContentBlock[] {
       let temp_i = i + 1;
       while (
         temp_i < lines.length &&
+        tableLines.length < 500 &&
         CONFIG.regex.tableRow.test(lines[temp_i])
       ) {
         tableLines.push(lines[temp_i]);
@@ -612,7 +755,7 @@ function parseToBlocks(content: string): ContentBlock[] {
       const headers = tableLines[0]
         .split("|")
         .slice(1, -1)
-        .map((s) => s.trim());
+        .map((s) => s.trim().slice(0, 200));
       const alignments = tableLines[1]
         .split("|")
         .slice(1, -1)
@@ -626,16 +769,18 @@ function parseToBlocks(content: string): ContentBlock[] {
         rowLine
           .split("|")
           .slice(1, -1)
-          .map((s) => s.trim()),
+          .map((s) => s.trim().slice(0, 200)),
       );
       blocks.push({ type: "table", key, headers, alignments, rows });
       i = temp_i;
       continue;
     }
+
     const paraLines: string[] = [line];
     i++;
     while (
       i < lines.length &&
+      paraLines.length < 100 &&
       lines[i].trim() !== "" &&
       !Object.values(CONFIG.regex).some((r) => r.test(lines[i]))
     ) {
@@ -644,6 +789,7 @@ function parseToBlocks(content: string): ContentBlock[] {
     }
     blocks.push({ type: "paragraph", key, content: paraLines.join("\n") });
   }
+
   return blocks;
 }
 
@@ -653,23 +799,46 @@ const _formatContentUncached = (
   if (!content) {
     return [];
   }
-  if (content.length > MAX_CONTENT_LENGTH) {
-    console.error("Content exceeds maximum length and will not be rendered.");
+
+  if (content.length > SECURITY_CONFIG.maxContentLength) {
+    console.error(
+      `Content exceeds maximum length of ${SECURITY_CONFIG.maxContentLength}`,
+    );
     return [
-      <p key="error-length" style={{ color: "red" }}>
-        Error: Content is too large to display.
+      <p key="error-length" style={{ color: "red", fontFamily: "monospace" }}>
+        Error: Content exceeds size limit.
       </p>,
     ];
   }
 
   try {
-    const blocks = parseToBlocks(content);
+    const blocks = withTimeout(
+      () => parseToBlocks(content),
+      PARSING_TIMEOUT_MS,
+      [],
+    );
+
+    if (blocks.length === 0 && content.trim().length > 0) {
+      console.error("Parsing failed or timed out");
+      return [
+        <p
+          key="error-timeout"
+          style={{ color: "red", fontFamily: "monospace" }}
+        >
+          Error: Content could not be processed.
+        </p>,
+      ];
+    }
+
     return blocks.map((block) => renderBlock(block));
   } catch (error) {
-    console.error("Error formatting content:", error);
+    console.error("Content formatting error:", error);
     return [
-      <p key="error-formatting" style={{ color: "red" }}>
-        Error: Failed to format content.
+      <p
+        key="error-formatting"
+        style={{ color: "red", fontFamily: "monospace" }}
+      >
+        Error: Unable to render content.
       </p>,
     ];
   }
