@@ -7,50 +7,12 @@ import {
   MAX_INLINE_TOKENS,
   MAX_NESTING_DEPTH,
 } from "./constants";
-import type { ContentBlock, ListBlock, ListItem } from "./db/types";
-
-type TextToken = {
-  type: "text";
-  content: string;
-};
-
-type StyledToken = {
-  type: "bold" | "italic" | "boldItalic" | "strikethrough";
-  content: string;
-  children?: InlineToken[];
-};
-
-type CodeToken = {
-  type: "code";
-  content: string;
-};
-
-type LinkToken = {
-  type: "link";
-  content: string;
-  url: string;
-  title?: string;
-  children?: InlineToken[];
-};
-
-type ImageToken = {
-  type: "image";
-  alt: string;
-  url: string;
-  title?: string;
-};
-
-type LinebreakToken = {
-  type: "linebreak";
-};
-
-type InlineToken =
-  | TextToken
-  | StyledToken
-  | CodeToken
-  | LinkToken
-  | ImageToken
-  | LinebreakToken;
+import type {
+  ContentBlock,
+  InlineToken,
+  ListBlock,
+  ListItem,
+} from "./db/types";
 
 function sanitizeTextContent(text: string): string {
   return text.replace(DANGEROUS_HTML_PATTERN, "");

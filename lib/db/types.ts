@@ -172,3 +172,46 @@ export enum SmtpState {
   QUIT,
   DONE,
 }
+
+type TextToken = {
+  type: "text";
+  content: string;
+};
+
+type StyledToken = {
+  type: "bold" | "italic" | "boldItalic" | "strikethrough";
+  content: string;
+  children?: InlineToken[];
+};
+
+type CodeToken = {
+  type: "code";
+  content: string;
+};
+
+type LinkToken = {
+  type: "link";
+  content: string;
+  url: string;
+  title?: string;
+  children?: InlineToken[];
+};
+
+type ImageToken = {
+  type: "image";
+  alt: string;
+  url: string;
+  title?: string;
+};
+
+type LinebreakToken = {
+  type: "linebreak";
+};
+
+export type InlineToken =
+  | TextToken
+  | StyledToken
+  | CodeToken
+  | LinkToken
+  | ImageToken
+  | LinebreakToken;
