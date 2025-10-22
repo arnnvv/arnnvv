@@ -41,7 +41,7 @@ function isDomainAllowed(hostname: string, allowedDomains: string[]): boolean {
   return allowedDomains.some((allowed) => {
     if (allowed.startsWith("*.")) {
       const baseDomain = allowed.slice(2);
-      return hostname === baseDomain || hostname.endsWith("." + baseDomain);
+      return hostname === baseDomain || hostname.endsWith(`.${baseDomain}`);
     }
     return hostname === allowed;
   });
@@ -65,7 +65,7 @@ function sanitizeUrl(
     return "#";
   }
 
-  if (/^\/[^\/]|^\.\.?\/|^#/.test(urlStr)) {
+  if (/^\/[^/]|^\.\.?\/|^#/.test(urlStr)) {
     if (urlStr.includes("..")) {
       const normalized = urlStr
         .replace(/\/\.\.\//g, "/")
@@ -102,8 +102,12 @@ function sanitizeUrl(
       return "#";
     }
 
-    const sanitizedHref = url.href.replace(/[\x00-\x1F\x7F]/g, "");
-
+    const sanitizedHref = Array.from(url.href)
+      .filter((ch) => {
+        const code = ch.charCodeAt(0);
+        return code >= 0x20 && code !== 0x7f;
+      })
+      .join("");
     return sanitizedHref;
   } catch (e) {
     console.warn(`Invalid URL format: ${e}`, urlStr.substring(0, 50));
