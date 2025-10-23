@@ -109,7 +109,6 @@ export function Navbar(): JSX.Element {
         <div className="relative">
           <Link
             href="/"
-            prefetch={false}
             className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
             aria-label="Home"
           >
