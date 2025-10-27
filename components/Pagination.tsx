@@ -1,7 +1,5 @@
-import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import type { JSX } from "react";
-import { Button } from "@/components/ui/button";
 
 interface PaginationProps {
   currentPage: number;
@@ -14,9 +12,7 @@ export function Pagination({
   totalPages,
   basePath,
 }: PaginationProps): JSX.Element | null {
-  if (totalPages <= 1) {
-    return null;
-  }
+  if (totalPages <= 1) return null;
 
   const hasPreviousPage = currentPage > 1;
   const hasNextPage = currentPage < totalPages;
@@ -26,37 +22,25 @@ export function Pagination({
   const nextPageHref = `${basePath}/${currentPage + 1}`;
 
   return (
-    <div className="mt-12 flex items-center justify-between">
+    <div className="mt-12 flex items-center justify-between text-sm text-muted-foreground">
       {hasPreviousPage ? (
-        <Button asChild variant="outline">
-          <Link href={prevPageHref}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Previous
-          </Link>
-        </Button>
-      ) : (
-        <Button variant="outline" disabled>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+        <Link href={prevPageHref} className="hover:underline">
           Previous
-        </Button>
+        </Link>
+      ) : (
+        <span className="opacity-50 cursor-not-allowed">Previous</span>
       )}
 
-      <span className="text-sm text-muted-foreground">
+      <span>
         Page {currentPage} of {totalPages}
       </span>
 
       {hasNextPage ? (
-        <Button asChild variant="outline">
-          <Link href={nextPageHref}>
-            Next
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      ) : (
-        <Button variant="outline" disabled>
+        <Link href={nextPageHref} className="hover:underline">
           Next
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
+        </Link>
+      ) : (
+        <span className="opacity-50 cursor-not-allowed">Next</span>
       )}
     </div>
   );

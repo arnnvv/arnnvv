@@ -1,6 +1,6 @@
 "use client";
 
-import NextLink, { type LinkProps } from "next/link";
+import Link, { type LinkProps } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
@@ -127,5 +127,5 @@ export const TransitionLink = forwardRef<
     [onClick, href, pathname, router, startViewTransition],
   );
 
-  return <NextLink href={href} onClick={handleClick} ref={ref} {...props} />;
+  return <Link href={href} onClick={handleClick} ref={ref} {...props} />;
 });

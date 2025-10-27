@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Script from "next/script";
-import { type JSX, Suspense } from "react";
+import { cache, type JSX, Suspense } from "react";
 import { getBlogPostBySlug } from "@/app/actions/blog-actions";
 import { CommentSection } from "@/components/CommentSection";
 import { formatDate } from "@/lib/date";
@@ -14,144 +14,142 @@ interface BlogPostPageProps {
   }>;
 }
 
-export async function generateMetadata({
-  params,
-}: BlogPostPageProps): Promise<Metadata> {
-  "use cache";
-  const { slug } = await params;
-  const post = await getBlogPostBySlug(slug);
+export const generateMetadata = cache(
+  async ({ params }: BlogPostPageProps): Promise<Metadata> => {
+    "use cache";
+    const { slug } = await params;
+    const post = await getBlogPostBySlug(slug);
 
-  if (!post) {
+    if (!post) {
+      return {
+        title: "Post Not Found",
+      };
+    }
+
+    const excerpt =
+      post.description.length > 150
+        ? `${post.description.substring(0, 150).replace(/\s+\S*$/, "")}...`
+        : post.description;
+
+    const imageUrl = `https://www.arnnvv.sbs/api/og?slug=${slug}`;
+
     return {
-      title: "Post Not Found",
-    };
-  }
-
-  const excerpt =
-    post.description.length > 150
-      ? `${post.description.substring(0, 150).replace(/\s+\S*$/, "")}...`
-      : post.description;
-
-  const imageUrl = `https://www.arnnvv.sbs/api/og?slug=${slug}`;
-
-  return {
-    title: post.title,
-    description: excerpt,
-    alternates: {
-      canonical: `https://www.arnnvv.sbs/blogs/${post.slug}`,
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
+      title: post.title,
+      description: excerpt,
+      alternates: {
+        canonical: `https://www.arnnvv.sbs/blogs/${post.slug}`,
+      },
+      robots: {
         index: true,
         follow: true,
-        "max-video-preview": -1,
-        "max-image-preview": "large",
-        "max-snippet": -1,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
       },
-    },
-    openGraph: {
-      title: post.title,
+      openGraph: {
+        title: post.title,
+        description: excerpt,
+        type: "article",
+        publishedTime: post.created_at.toISOString(),
+        modifiedTime: post.updated_at.toISOString(),
+        authors: ["Arnav Sharma"],
+        url: `https://www.arnnvv.sbs/blogs/${post.slug}`,
+        images: [
+          {
+            url: imageUrl,
+            alt: post.title,
+            type: "image/jpeg",
+          },
+        ],
+        siteName: "arnnvv",
+      },
+      twitter: {
+        title: post.title,
+        description: excerpt,
+        card: "summary_large_image",
+        images: [
+          {
+            url: imageUrl,
+            alt: post.title,
+            type: "image/jpeg",
+          },
+        ],
+        creator: "@arnnnvvv",
+        creatorId: "@arnnnvvv",
+        site: "@arnnnvvv",
+      },
+    };
+  },
+);
+
+const BlogPostContent = cache(
+  async ({ slug }: { slug: string }): Promise<JSX.Element> => {
+    "use cache";
+    const post = await getBlogPostBySlug(slug);
+
+    if (!post) {
+      notFound();
+    }
+
+    const formattedDescription = formatContent(post.description);
+    const excerpt =
+      post.description.length > 150
+        ? `${post.description.substring(0, 150).replace(/\s+\S*$/, "")}...`
+        : post.description;
+    const imageUrl = `https://www.arnnvv.sbs/api/og?slug=${post.slug}`;
+
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: post.title,
       description: excerpt,
-      type: "article",
-      publishedTime: post.created_at.toISOString(),
-      modifiedTime: post.updated_at.toISOString(),
-      authors: ["Arnav Sharma"],
-      url: `https://www.arnnvv.sbs/blogs/${post.slug}`,
-      images: [
-        {
-          url: imageUrl,
-          alt: post.title,
-          type: "image/jpeg",
-        },
-      ],
-      siteName: "arnnvv",
-    },
-    twitter: {
-      title: post.title,
-      description: excerpt,
-      card: "summary_large_image",
-      images: [
-        {
-          url: imageUrl,
-          alt: post.title,
-          type: "image/jpeg",
-        },
-      ],
-      creator: "@arnnnvvv",
-      creatorId: "@arnnnvvv",
-      site: "@arnnnvvv",
-    },
-  };
-}
+      image: imageUrl,
+      author: {
+        "@type": "Person",
+        name: "Arnav Sharma",
+        url: "https://www.arnnvv.sbs",
+      },
+      publisher: {
+        "@type": "Person",
+        name: "Arnav Sharma",
+        url: "https://www.arnnvv.sbs",
+      },
+      datePublished: post.created_at.toISOString(),
+      dateModified: post.updated_at.toISOString(),
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": `https://www.arnnvv.sbs/blogs/${post.slug}`,
+      },
+    };
 
-async function BlogPostContent({
-  slug,
-}: {
-  slug: string;
-}): Promise<JSX.Element> {
-  "use cache";
-  const post = await getBlogPostBySlug(slug);
-
-  if (!post) {
-    notFound();
-  }
-
-  const formattedDescription = formatContent(post.description);
-  const excerpt =
-    post.description.length > 150
-      ? `${post.description.substring(0, 150).replace(/\s+\S*$/, "")}...`
-      : post.description;
-  const imageUrl = `https://www.arnnvv.sbs/api/og?slug=${post.slug}`;
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: excerpt,
-    image: imageUrl,
-    author: {
-      "@type": "Person",
-      name: "Arnav Sharma",
-      url: "https://www.arnnvv.sbs",
-    },
-    publisher: {
-      "@type": "Person",
-      name: "Arnav Sharma",
-      url: "https://www.arnnvv.sbs",
-    },
-    datePublished: post.created_at.toISOString(),
-    dateModified: post.updated_at.toISOString(),
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": `https://www.arnnvv.sbs/blogs/${post.slug}`,
-    },
-  };
-
-  return (
-    <>
-      <Script
-        id={`blog-schema-${post.slug}`}
-        type="application/ld+json"
-        strategy="beforeInteractive"
-      >
-        {JSON.stringify(jsonLd)}
-      </Script>
-      <article className="prose prose-zinc dark:prose-invert lg:prose-xl mx-auto">
-        <header className="mb-8 text-center not-prose">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-zinc-50 mb-2">
-            {wrapWordsWithTransition(post.title, `blog-title-${post.slug}`)}
-          </h1>
-          <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
-            Published on {formatDate(post.created_at)}
-          </p>
-        </header>
-        <div>{formattedDescription}</div>
-      </article>
-    </>
-  );
-}
+    return (
+      <>
+        <Script
+          id={`blog-schema-${post.slug}`}
+          type="application/ld+json"
+          strategy="beforeInteractive"
+        >
+          {JSON.stringify(jsonLd)}
+        </Script>
+        <article className="prose prose-zinc dark:prose-invert lg:prose-xl mx-auto">
+          <header className="mb-8 text-center not-prose">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-zinc-50 mb-2">
+              {wrapWordsWithTransition(post.title, `blog-title-${post.slug}`)}
+            </h1>
+            <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
+              Published on {formatDate(post.created_at)}
+            </p>
+          </header>
+          <div>{formattedDescription}</div>
+        </article>
+      </>
+    );
+  },
+);
 
 export default async function BlogPostPage({
   params,

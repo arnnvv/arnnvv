@@ -72,39 +72,19 @@ async function BlogList({
         <TransitionLink
           key={blog.id}
           href={`/blogs/${blog.slug}`}
-          className="block"
+          className="block group"
         >
-          <article
-            className="group relative p-6 rounded-2xl border border-border bg-card/50 backdrop-blur-sm hover:bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 cursor-pointer"
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            <div className="flex items-start justify-between mb-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1 pr-4">
+          <article style={{ animationDelay: `${index * 0.1}s` }}>
+            <div className="relative inline-block">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground transition-colors duration-300 group-hover:text-primary">
                 {wrapWordsWithTransition(blog.title, `blog-title-${blog.slug}`)}
               </h2>
-              <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
+              <span className="absolute left-0 -bottom-1 w-full h-0.5 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
             </div>
-            <div className="flex items-center text-sm text-muted-foreground">
+            <div className="mt-2 flex items-center text-sm text-muted-foreground">
               <time dateTime={blog.created_at.toISOString()}>
                 {formatDate(blog.created_at)}
               </time>
-              <span className="mx-2">•</span>
             </div>
           </article>
         </TransitionLink>

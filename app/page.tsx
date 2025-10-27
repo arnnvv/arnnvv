@@ -7,10 +7,7 @@ export default function Home(): JSX.Element {
     <AnimatedPageWrapper className="items-center justify-center px-4 py-8 md:p-0">
       <div className="max-w-2xl w-full p-6 sm:p-8 text-center">
         <div className="mb-8 space-y-1">
-          <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6 border border-primary/20">
-            <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse" />
-            Beyond the screen
-          </div>
+          <div className="mb-6" />
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
             Hey there, I&apos;m Arnav
           </h1>
