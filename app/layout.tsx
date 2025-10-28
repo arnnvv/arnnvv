@@ -2,12 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import Script from "next/script";
-import { ThemeProvider } from "next-themes";
 import { type JSX, type ReactNode, useId } from "react";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { ThemeErrorBoundary } from "@/components/ThemeErrorBoundry";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { THEME_STORAGE_KEY } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ViewTransitionsProvider } from "@/lib/view-transition";
 
@@ -80,6 +81,23 @@ const fontSans = Inter({
   display: "swap",
 });
 
+const ThemeLoaderScript = `
+  (function() {
+    try {
+      const themeKey = '${THEME_STORAGE_KEY}';
+      const storedTheme = localStorage.getItem(themeKey);
+
+      if (storedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else if (storedTheme !== 'light') {
+        localStorage.removeItem(themeKey);
+      }
+    } catch (e) {
+      console.error('Failed to load theme from localStorage', e);
+    }
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -109,6 +127,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <Script id={`script-zero-${id}`}>{ThemeLoaderScript}</Script>
         <Script
           id={`script-one-${id}`}
           type="application/ld+json"
@@ -132,13 +151,7 @@ export default function RootLayout({
       >
         <ViewTransitionsProvider>
           <ThemeErrorBoundary>
-            <ThemeProvider
-              attribute="class"
-              storageKey="theme"
-              defaultTheme="light"
-              enableSystem={false}
-              themes={["light", "dark"]}
-            >
+            <ThemeProvider>
               <div className="min-h-screen flex flex-col relative">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px] pointer-events-none opacity-30" />
                 <Navbar />

@@ -1,11 +1,11 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import type { CSSProperties, JSX } from "react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
+import { useTheme } from "../ThemeProvider";
 
 export const Toaster = ({ ...props }: ToasterProps): JSX.Element => {
-  const { theme = "system" } = useTheme();
+  const { theme } = useTheme();
 
   return (
     <Sonner

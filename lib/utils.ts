@@ -22,7 +22,7 @@ export function cn(...inputs: ClassValue[]): string {
       if (flattened) classes.push(flattened);
     } else if (typeof input === "object") {
       for (const key in input) {
-        if (Object.prototype.hasOwnProperty.call(input, key) && input[key]) {
+        if (Object.hasOwn(input, key) && input[key]) {
           classes.push(key);
         }
       }

@@ -1,8 +1,8 @@
 import {
   Children,
+  type ComponentProps,
   cloneElement,
   isValidElement,
-  type ComponentProps,
   type JSX,
   type ReactElement,
 } from "react";
