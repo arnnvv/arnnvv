@@ -53,7 +53,7 @@ export function Button({
   size = "default",
   asChild = false,
   ...props
-}: ButtonProps): JSX.Element {
+}: ButtonProps): JSX.Element | null {
   if (asChild) {
     const { children, ...restProps } = props;
     const childElement = Children.only(children) as ReactElement;
@@ -62,7 +62,7 @@ export function Button({
       console.error(
         "Button 'asChild' prop requires a single valid React element child.",
       );
-      return <></>;
+      return null;
     }
 
     return cloneElement(childElement, {
