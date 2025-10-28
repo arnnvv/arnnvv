@@ -72,15 +72,27 @@ async function BlogList({
           className="block group"
         >
           <article style={{ animationDelay: `${index * 0.1}s` }}>
-            <div className="relative inline-block">
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground transition-colors duration-300 group-hover:text-primary">
-                {wrapWordsWithTransition(blog.title, `blog-title-${blog.slug}`)}
-              </h2>
-              <span className="absolute left-0 -bottom-1 w-full h-0.5 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-            </div>
-            <div className="mt-2 flex items-center text-sm text-muted-foreground">
-              <time dateTime={blog.created_at.toISOString()}>
-                {formatDate(blog.created_at)}
+            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+              <div className="relative inline-block">
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground transition-colors duration-300 group-hover:text-primary">
+                  {wrapWordsWithTransition(
+                    blog.title,
+                    `blog-title-${blog.slug}`,
+                  )}
+                </h2>
+                <span className="absolute left-0 -bottom-1 w-full h-0.5 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+              </div>
+              <time
+                dateTime={blog.created_at.toISOString()}
+                className="text-sm text-muted-foreground shrink-0"
+              >
+                <span
+                  style={{
+                    viewTransitionName: `blog-date-${blog.slug}`,
+                  }}
+                >
+                  {formatDate(blog.created_at)}
+                </span>
               </time>
             </div>
           </article>

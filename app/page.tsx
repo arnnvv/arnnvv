@@ -7,7 +7,7 @@ export default function Home(): JSX.Element {
     <AnimatedPageWrapper className="items-center justify-center px-4 py-8 md:p-0">
       <div className="max-w-2xl w-full p-6 sm:p-8 text-center">
         <div className="mb-8 space-y-1">
-          <div className="mb-6" />
+          <div className="mb-12" />
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
             Hey there, I&apos;m Arnav
           </h1>

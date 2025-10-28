@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import type { JSX } from "react";
 
@@ -24,11 +25,15 @@ export function Pagination({
   return (
     <div className="mt-12 flex items-center justify-between text-sm text-muted-foreground">
       {hasPreviousPage ? (
-        <Link href={prevPageHref} className="hover:underline">
+        <Link href={prevPageHref} className="flex items-center hover:underline">
+          <ChevronLeft className="h-4 w-4 mr-1" />
           Previous
         </Link>
       ) : (
-        <span className="opacity-50 cursor-not-allowed">Previous</span>
+        <span className="flex items-center opacity-50 cursor-not-allowed">
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Previous
+        </span>
       )}
 
       <span>
@@ -36,11 +41,15 @@ export function Pagination({
       </span>
 
       {hasNextPage ? (
-        <Link href={nextPageHref} className="hover:underline">
+        <Link href={nextPageHref} className="flex items-center hover:underline">
           Next
+          <ChevronRight className="h-4 w-4 ml-1" />
         </Link>
       ) : (
-        <span className="opacity-50 cursor-not-allowed">Next</span>
+        <span className="flex items-center opacity-50 cursor-not-allowed">
+          Next
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </span>
       )}
     </div>
   );

@@ -141,7 +141,14 @@ const BlogPostContent = cache(
               {wrapWordsWithTransition(post.title, `blog-title-${post.slug}`)}
             </h1>
             <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
-              Published on {formatDate(post.created_at)}
+              Published on{" "}
+              <span
+                style={{
+                  viewTransitionName: `blog-date-${post.slug}`,
+                }}
+              >
+                {formatDate(post.created_at)}
+              </span>
             </p>
           </header>
           <div>{formattedDescription}</div>
