@@ -114,6 +114,8 @@ export const SMTP_CODES = {
 } as const;
 
 export const CONNECTION_TIMEOUT = 10000 as const;
+export const MAX_BUFFER_SIZE = 65536;
+export const MAX_LINE_LENGTH = 1024;
 export const MAX_CONTENT_LENGTH = 1_048_576 as const; // 1 MB
 export const MAX_NESTING_DEPTH = 20 as const;
 export const MAX_INLINE_TOKENS = 1000 as const;
