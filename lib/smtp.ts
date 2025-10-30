@@ -78,7 +78,7 @@ export async function sendEmail(
       console.debug(`[SMTP SERVER] S: ${response}`);
       const code = parseInt(response.substring(0, 3), 10);
 
-      if (isNaN(code)) {
+      if (Number.isNaN(code)) {
         throw new SmtpError("Received invalid response from server.", 500);
       }
 
