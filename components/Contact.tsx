@@ -47,7 +47,7 @@ export async function ContactFormContent(): Promise<JSX.Element | string> {
             <Textarea
               placeholder="Message"
               name="message"
-              className="min-h-[120px] sm:min-h-[140px] md:min-h-[160px] border-gray-200 dark:border-zinc-800 bg-secondary dark:bg-zinc-900/90 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-lg text-gray-500 dark:text-zinc-200"
+              className="min-h-[120px] sm:min-h-[140px] md:min-h-40 border-gray-200 dark:border-zinc-800 bg-secondary dark:bg-zinc-900/90 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-lg text-gray-500 dark:text-zinc-200"
               required
             />
           </div>
