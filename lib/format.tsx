@@ -191,18 +191,20 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
 
     if (remaining.startsWith("*") || remaining.startsWith("_")) {
       const marker = remaining[0];
-      const endIndex = remaining.indexOf(marker, 1);
-      if (endIndex !== -1 && endIndex < 1000) {
-        const content = remaining.slice(1, endIndex);
-        if (content.length > 0 && content.length < 500) {
-          tokens.push({
-            type: "italic",
-            content: sanitizeTextContent(content),
-            children: tokenizeInlineContent(content, depth + 1),
-          });
-          position += endIndex + 1;
-          tokenCount++;
-          continue;
+      if (marker) {
+        const endIndex = remaining.indexOf(marker, 1);
+        if (endIndex !== -1 && endIndex < 1000) {
+          const content = remaining.slice(1, endIndex);
+          if (content.length > 0 && content.length < 500) {
+            tokens.push({
+              type: "italic",
+              content: sanitizeTextContent(content),
+              children: tokenizeInlineContent(content, depth + 1),
+            });
+            position += endIndex + 1;
+            tokenCount++;
+            continue;
+          }
         }
       }
     }
@@ -252,28 +254,32 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
         if (closeParen !== -1 && closeParen < 500) {
           const textOrAlt = remaining.slice(isImage ? 2 : 1, closeBracket);
           const urlPart = remaining.slice(openParen + 1, closeParen);
-          const [src, ...titleParts] = urlPart.split(/\s+/);
+          const urlParts = urlPart.split(/\s+/);
+          const src = urlParts[0];
+          const titleParts = urlParts.slice(1);
           const title = titleParts.join(" ").replace(/["']/g, "");
 
-          if (isImage) {
-            tokens.push({
-              type: "image",
-              alt: sanitizeTextContent(textOrAlt),
-              url: sanitizeUrl(src, "image"),
-              title: sanitizeTextContent(title),
-            });
-          } else {
-            tokens.push({
-              type: "link",
-              content: sanitizeTextContent(textOrAlt),
-              url: sanitizeUrl(src, "link"),
-              title: sanitizeTextContent(title),
-              children: tokenizeInlineContent(textOrAlt, depth + 1),
-            });
+          if (src) {
+            if (isImage) {
+              tokens.push({
+                type: "image",
+                alt: sanitizeTextContent(textOrAlt),
+                url: sanitizeUrl(src, "image"),
+                title: sanitizeTextContent(title),
+              });
+            } else {
+              tokens.push({
+                type: "link",
+                content: sanitizeTextContent(textOrAlt),
+                url: sanitizeUrl(src, "link"),
+                title: sanitizeTextContent(title),
+                children: tokenizeInlineContent(textOrAlt, depth + 1),
+              });
+            }
+            position += closeParen + 1;
+            tokenCount++;
+            continue;
           }
-          position += closeParen + 1;
-          tokenCount++;
-          continue;
         }
       }
     }
@@ -302,9 +308,10 @@ function tokenizeInlineContent(text: string, depth = 0): InlineToken[] {
       position += nextSpecial;
       tokenCount++;
     } else {
+      const char = remaining[0];
       tokens.push({
         type: "text",
-        content: sanitizeTextContent(remaining[0]),
+        content: sanitizeTextContent(char ?? ""),
       });
       position += 1;
       tokenCount++;
@@ -430,8 +437,8 @@ function renderList(list: ListBlock): JSX.Element {
     >
       {list.items.map((item) => {
         const taskMatch = item.content.match(CONFIG.regex.taskListItem);
-        const content = taskMatch ? taskMatch[2] : item.content;
-        const isChecked = taskMatch ? taskMatch[1] === "x" : false;
+        const content = taskMatch?.[2] ?? item.content;
+        const isChecked = taskMatch?.[1] === "x";
         return (
           <li key={item.key} className={CONFIG.styling.list.listItem}>
             {taskMatch && (
@@ -472,7 +479,7 @@ function renderTable(
               <th
                 key={`${table.key}-th-${index}`}
                 className={`${CONFIG.styling.table.th} ${getAlignmentClass(
-                  table.alignments[index],
+                  table.alignments[index] ?? "text-left",
                 )}`}
               >
                 {renderInlineContent(header, `${table.key}-th-${index}`)}
@@ -490,7 +497,7 @@ function renderTable(
                 <td
                   key={`${table.key}-td-${rowIndex}-${cellIndex}`}
                   className={`${CONFIG.styling.table.td} ${getAlignmentClass(
-                    table.alignments[cellIndex] || "text-left",
+                    table.alignments[cellIndex] ?? "text-left",
                   )}`}
                 >
                   {renderInlineContent(
@@ -511,8 +518,10 @@ function renderBlock(block: ContentBlock): JSX.Element | null {
   switch (block.type) {
     case "header": {
       const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
+      const className = CONFIG.styling.header[block.level - 1];
+      if (!className) return null;
       return (
-        <Tag key={block.key} className={CONFIG.styling.header[block.level - 1]}>
+        <Tag key={block.key} className={className}>
           {renderInlineContent(block.content, block.key)}
         </Tag>
       );
@@ -587,7 +596,7 @@ function renderBlock(block: ContentBlock): JSX.Element | null {
 
 function getIndent(line: string): number {
   const match = line.match(/^\s*/);
-  return match ? Math.min(match[0].length, 100) : 0;
+  return match?.[0] ? Math.min(match[0].length, 100) : 0;
 }
 
 function parseToBlocks(content: string): ContentBlock[] {
@@ -601,6 +610,10 @@ function parseToBlocks(content: string): ContentBlock[] {
   while (i < lines.length && blockCount < maxBlocks) {
     blockCount++;
     const line = lines[i];
+    if (line === undefined) {
+      i++;
+      continue;
+    }
     const key = `block-${i}`;
 
     if (line.trim() === "") {
@@ -611,8 +624,14 @@ function parseToBlocks(content: string): ContentBlock[] {
     if (CONFIG.regex.codeFence.test(line)) {
       const codeLines: string[] = [];
       i++;
-      while (i < lines.length && !CONFIG.regex.codeFence.test(lines[i])) {
-        codeLines.push(lines[i]);
+      while (i < lines.length) {
+        const currentLine = lines[i];
+        if (
+          currentLine === undefined ||
+          CONFIG.regex.codeFence.test(currentLine)
+        )
+          break;
+        codeLines.push(currentLine);
         i++;
       }
       blocks.push({
@@ -626,32 +645,40 @@ function parseToBlocks(content: string): ContentBlock[] {
 
     const headerMatch = line.match(CONFIG.regex.header);
     if (headerMatch) {
-      blocks.push({
-        type: "header",
-        key,
-        level: Math.min(headerMatch[1].length, 6),
-        content: headerMatch[2],
-      });
-      i++;
-      continue;
+      const levelText = headerMatch[1];
+      const contentText = headerMatch[2];
+      if (levelText && contentText) {
+        blocks.push({
+          type: "header",
+          key,
+          level: Math.min(levelText.length, 6),
+          content: contentText,
+        });
+        i++;
+        continue;
+      }
     }
 
     if (CONFIG.regex.blockquote.test(line)) {
       const bqLines: string[] = [];
       while (i < lines.length && bqLines.length < 1000) {
         const currentLine = lines[i];
+        if (currentLine === undefined) break;
         if (CONFIG.regex.blockquote.test(currentLine)) {
           bqLines.push(currentLine.replace(/^>\s?/, ""));
           i++;
-        } else if (
-          currentLine.trim() === "" &&
-          i + 1 < lines.length &&
-          CONFIG.regex.blockquote.test(lines[i + 1])
-        ) {
-          bqLines.push("");
-          i++;
         } else {
-          break;
+          const nextLine = lines[i + 1];
+          if (
+            currentLine.trim() === "" &&
+            nextLine !== undefined &&
+            CONFIG.regex.blockquote.test(nextLine)
+          ) {
+            bqLines.push("");
+            i++;
+          } else {
+            break;
+          }
         }
       }
       blocks.push({
@@ -671,13 +698,17 @@ function parseToBlocks(content: string): ContentBlock[] {
     if (CONFIG.regex.listItem.test(line)) {
       const listStack: { list: ListBlock; indent: number }[] = [];
       let listEndIndex = i;
-      while (
-        listEndIndex < lines.length &&
-        listEndIndex - i < 1000 &&
-        (lines[listEndIndex].trim() === "" ||
-          CONFIG.regex.listItem.test(lines[listEndIndex]))
-      ) {
-        listEndIndex++;
+      while (listEndIndex < lines.length && listEndIndex - i < 1000) {
+        const currentLine = lines[listEndIndex];
+        if (currentLine === undefined) break;
+        if (
+          currentLine.trim() === "" ||
+          CONFIG.regex.listItem.test(currentLine)
+        ) {
+          listEndIndex++;
+        } else {
+          break;
+        }
       }
       const listLines = lines.slice(i, listEndIndex);
       i = listEndIndex;
@@ -690,22 +721,23 @@ function parseToBlocks(content: string): ContentBlock[] {
         const indent = getIndent(itemLine);
         const marker = match[2];
         const content = match[3];
+        if (marker === undefined || content === undefined) return;
         const newItem: ListItem = {
           key: `${key}-item-${index}`,
           content: content,
         };
 
-        while (
-          listStack.length > 0 &&
-          indent < listStack[listStack.length - 1].indent
-        ) {
-          listStack.pop();
+        while (listStack.length > 0) {
+          const topOfStack = listStack[listStack.length - 1];
+          if (topOfStack && indent < topOfStack.indent) {
+            listStack.pop();
+          } else {
+            break;
+          }
         }
 
-        if (
-          listStack.length === 0 ||
-          indent > listStack[listStack.length - 1].indent
-        ) {
+        const topOfStack = listStack[listStack.length - 1];
+        if (!topOfStack || indent > topOfStack.indent) {
           const listType = marker.match(/\d/) ? "ol" : "ul";
           const start = listType === "ol" ? parseInt(marker, 10) : undefined;
           const newList: ListBlock = {
@@ -715,20 +747,23 @@ function parseToBlocks(content: string): ContentBlock[] {
             items: [newItem],
           };
 
-          if (listStack.length > 0) {
-            const parentList = listStack[listStack.length - 1].list;
+          if (topOfStack) {
+            const parentList = topOfStack.list;
             const lastParentItem =
               parentList.items[parentList.items.length - 1];
-            lastParentItem.children = newList;
+            if (lastParentItem) {
+              lastParentItem.children = newList;
+            }
           }
           listStack.push({ list: newList, indent });
         } else {
-          listStack[listStack.length - 1].list.items.push(newItem);
+          topOfStack.list.items.push(newItem);
         }
       });
 
-      if (listStack.length > 0) {
-        blocks.push({ type: "list", ...listStack[0].list });
+      const rootList = listStack[0];
+      if (rootList) {
+        blocks.push({ type: "list", ...rootList.list });
       }
       continue;
     }
@@ -741,54 +776,65 @@ function parseToBlocks(content: string): ContentBlock[] {
       continue;
     }
 
+    const nextLine = lines[i + 1];
     if (
       CONFIG.regex.tableRow.test(line) &&
-      i + 1 < lines.length &&
-      CONFIG.regex.tableSeparator.test(lines[i + 1])
+      nextLine !== undefined &&
+      CONFIG.regex.tableSeparator.test(nextLine)
     ) {
       const tableLines = [line];
       let temp_i = i + 1;
-      while (
-        temp_i < lines.length &&
-        tableLines.length < 500 &&
-        CONFIG.regex.tableRow.test(lines[temp_i])
-      ) {
-        tableLines.push(lines[temp_i]);
+      while (temp_i < lines.length && tableLines.length < 500) {
+        const currentLine = lines[temp_i];
+        if (
+          currentLine === undefined ||
+          !CONFIG.regex.tableRow.test(currentLine)
+        )
+          break;
+        tableLines.push(currentLine);
         temp_i++;
       }
-      const headers = tableLines[0]
-        .split("|")
-        .slice(1, -1)
-        .map((s) => s.trim().slice(0, 200));
-      const alignments = tableLines[1]
-        .split("|")
-        .slice(1, -1)
-        .map((s) => {
-          const cell = s.trim();
-          if (cell.startsWith(":") && cell.endsWith(":")) return "text-center";
-          if (cell.endsWith(":")) return "text-right";
-          return "text-left";
-        });
-      const rows = tableLines.slice(2).map((rowLine) =>
-        rowLine
+      const headerLine = tableLines[0];
+      const separatorLine = tableLines[1];
+      if (headerLine && separatorLine) {
+        const headers = headerLine
           .split("|")
           .slice(1, -1)
-          .map((s) => s.trim().slice(0, 200)),
-      );
-      blocks.push({ type: "table", key, headers, alignments, rows });
-      i = temp_i;
-      continue;
+          .map((s) => s.trim().slice(0, 200));
+        const alignments = separatorLine
+          .split("|")
+          .slice(1, -1)
+          .map((s) => {
+            const cell = s.trim();
+            if (cell.startsWith(":") && cell.endsWith(":"))
+              return "text-center";
+            if (cell.endsWith(":")) return "text-right";
+            return "text-left";
+          });
+        const rows = tableLines.slice(2).map((rowLine) =>
+          rowLine
+            .split("|")
+            .slice(1, -1)
+            .map((s) => s.trim().slice(0, 200)),
+        );
+        blocks.push({ type: "table", key, headers, alignments, rows });
+        i = temp_i;
+        continue;
+      }
     }
 
     const paraLines: string[] = [line];
     i++;
-    while (
-      i < lines.length &&
-      paraLines.length < 100 &&
-      lines[i].trim() !== "" &&
-      !Object.values(CONFIG.regex).some((r) => r.test(lines[i]))
-    ) {
-      paraLines.push(lines[i]);
+    while (i < lines.length && paraLines.length < 100) {
+      const currentLine = lines[i];
+      if (
+        currentLine === undefined ||
+        currentLine.trim() === "" ||
+        Object.values(CONFIG.regex).some((r) => r.test(currentLine))
+      ) {
+        break;
+      }
+      paraLines.push(currentLine);
       i++;
     }
     blocks.push({ type: "paragraph", key, content: paraLines.join("\n") });

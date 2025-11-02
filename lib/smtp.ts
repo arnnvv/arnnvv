@@ -137,11 +137,11 @@ export async function sendEmail(
             if (code !== SMTP_CODES.DATA_READY)
               throw new SmtpError("Server not ready for data", code);
 
-            const fromUser = sanitizeHeader(mail.from.split("@")[0]);
+            const fromUser = sanitizeHeader(mail.from);
             const safeBody = mail.text.replace(/^\./gm, "..");
 
             const emailData = [
-              `From: "${fromUser}" <${sanitizeHeader(mail.from)}>`,
+              `From: "arnnvv.sbs" <${fromUser}>`,
               `To: <${sanitizeHeader(mail.to)}>`,
               `Subject: ${sanitizeHeader(mail.subject)}`,
               "Content-Type: text/plain; charset=utf-8",

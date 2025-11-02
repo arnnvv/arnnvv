@@ -19,7 +19,11 @@ export async function upsertUserFromGoogleProfile(
   `;
   try {
     const res = await db.query<User>(query, [googleId, email, name, picture]);
-    return res.rows[0];
+    const user = res.rows[0];
+    if (!user) {
+      throw new Error("Database did not return user after upsert operation.");
+    }
+    return user;
   } catch (error) {
     console.error(`Error upserting user: ${error}`);
     throw new Error("Could not create or update user profile.");

@@ -70,17 +70,20 @@ async function getVerificationKey(
   );
 }
 
+function splitToken(token: string): [string, string, string] {
+  const parts = token.split(".");
+  if (parts.length !== 3) {
+    throw new Error("Invalid ID Token format");
+  }
+  return parts as [string, string, string];
+}
+
 export async function validateIdToken(
   token: string,
   clientId: string,
   nonce: string,
 ): Promise<object> {
-  const parts = token.split(".");
-  if (parts.length !== 3) {
-    throw new Error("Invalid ID Token format");
-  }
-
-  const [headerB64, payloadB64, signatureB64] = parts;
+  const [headerB64, payloadB64, signatureB64] = splitToken(token);
 
   const headerRaw = new TextDecoder().decode(
     decodeBase64urlIgnorePadding(headerB64),
@@ -90,7 +93,7 @@ export async function validateIdToken(
   );
   const header = JSON.parse(headerRaw);
   const payload = JSON.parse(payloadRaw);
-  const signature: BufferSource = decodeBase64urlIgnorePadding(signatureB64);
+  const signature = decodeBase64urlIgnorePadding(signatureB64);
 
   const key = await getVerificationKey(header.kid);
   if (!key) {

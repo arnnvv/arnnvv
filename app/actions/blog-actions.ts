@@ -54,7 +54,15 @@ export async function writeBlog(formdata: FormData): Promise<ActionResult> {
       [title.trim(), slug, content.trim()],
     );
 
-    const { id: newBlogId, slug: newBlogSlug } = result.rows[0];
+    const newBlog = result.rows[0];
+    if (!newBlog) {
+      return {
+        success: false,
+        message: "Database did not return new blog post after insertion.",
+      };
+    }
+
+    const { id: newBlogId, slug: newBlogSlug } = newBlog;
     revalidatePath("/blogs");
     revalidatePath(`/blogs/${newBlogSlug}`);
     revalidateTag("blogs", "max");
@@ -111,7 +119,11 @@ export const getBlogCount = cache(async (): Promise<number> => {
     const result = await db.query<{ count: string }>(
       "SELECT COUNT(*) FROM arnnvv_blogs",
     );
-    return Number.parseInt(result.rows[0].count, 10);
+    const blogCount = result.rows[0];
+    if (!blogCount) {
+      return 0;
+    }
+    return Number.parseInt(blogCount.count, 10);
   } catch (e) {
     console.error(`Error fetching blog count: ${e}`);
     return 0;
@@ -131,7 +143,7 @@ export const getBlogPostBySlug = cache(
          LIMIT 1`,
         [slug],
       );
-      if (result.rowCount === 0) {
+      if (result.rowCount === 0 || !result.rows[0]) {
         return null;
       }
       return result.rows[0];

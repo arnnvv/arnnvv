@@ -76,8 +76,9 @@ export async function addCommentAction(
         "SELECT slug FROM arnnvv_blogs WHERE id = $1",
         [blogId],
       );
-      if (blogPost.rows.length > 0) {
-        revalidatePath(`/blogs/${blogPost.rows[0].slug}`);
+      const post = blogPost.rows[0];
+      if (post) {
+        revalidatePath(`/blogs/${post.slug}`);
       } else {
         revalidatePath("/blogs");
       }
@@ -206,7 +207,8 @@ export async function toggleLikeCommentAction(
       "SELECT COUNT(*) FROM arnnvv_comment_likes WHERE comment_id = $1",
       [commentId],
     );
-    const newLikeCount = Number.parseInt(likeCountResult.rows[0].count, 10);
+    const row = likeCountResult.rows[0];
+    const newLikeCount = row ? Number.parseInt(row.count, 10) : 0;
 
     return {
       success: true,
@@ -247,12 +249,13 @@ export async function deleteCommentAction(
       [commentId],
     );
 
-    if (commentResult.rowCount === 0) {
+    const commentData = commentResult.rows[0];
+    if (!commentData) {
       return { success: false, message: "Comment not found." };
     }
 
-    const commentOwnerId = commentResult.rows[0].user_id;
-    const blogIdOfComment = commentResult.rows[0].blog_id;
+    const commentOwnerId = commentData.user_id;
+    const blogIdOfComment = commentData.blog_id;
 
     if (commentOwnerId !== user.id && !isUserAdmin(user)) {
       return {
@@ -277,8 +280,9 @@ export async function deleteCommentAction(
       "SELECT slug FROM arnnvv_blogs WHERE id = $1",
       [blogIdOfComment],
     );
-    if (blogPost.rows.length > 0) {
-      revalidatePath(`/blogs/${blogPost.rows[0].slug}`);
+    const post = blogPost.rows[0];
+    if (post) {
+      revalidatePath(`/blogs/${post.slug}`);
     } else {
       revalidatePath("/blogs");
     }
