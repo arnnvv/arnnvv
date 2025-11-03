@@ -1,7 +1,7 @@
 import { type JSX, type ReactNode, Suspense } from "react";
 import { PaginatedBlogsLoadingSkeleton } from "@/components/PaginatedBlogPageSkeleton";
 
-export default function BlogsLayout({
+export default function BlogLayout({
   children,
 }: {
   children: ReactNode;
