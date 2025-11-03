@@ -12,10 +12,12 @@ export function PaginatedBlogsLoadingSkeleton(): JSX.Element {
         style={{ animationDelay: "2s" }}
       />
 
-      <div className="container mx-auto px-4 py-12 relative z-10">
+      <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
         <div className="max-w-4xl mx-auto">
           <header className="text-center mb-16">
-            <div className="h-12 bg-muted rounded-lg w-3/4 mx-auto mb-4 animate-pulse" />
+            <h1 className="text-4xl sm:text-5xl font-bold leading-tight bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
+              My Writings
+            </h1>
           </header>
 
           <div className="space-y-8">
