@@ -1,7 +1,11 @@
 import type { JSX } from "react";
+import { BLOGS_PER_PAGE } from "@/lib/constants";
 
 export function PaginatedBlogsLoadingSkeleton(): JSX.Element {
-  const skeletonItems = Array.from({ length: 3 }, (_, i) => `skeleton-${i}`);
+  const skeletonItems = Array.from(
+    { length: BLOGS_PER_PAGE },
+    (_, i) => `skeleton-${i}`,
+  );
 
   return (
     <div className="space-y-8">
