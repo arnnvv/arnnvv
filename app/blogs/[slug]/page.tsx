@@ -5,6 +5,7 @@ import { cache, type JSX, Suspense } from "react";
 import { getBlogPostBySlug } from "@/app/actions/blog-actions";
 import { CommentSection } from "@/components/CommentSection";
 import { formatDate } from "@/lib/date";
+import { db } from "@/lib/db";
 import { formatContent } from "@/lib/format";
 import { wrapWordsWithTransition } from "@/lib/transitions";
 
@@ -12,6 +13,21 @@ interface BlogPostPageProps {
   params: Promise<{
     slug: string;
   }>;
+}
+
+export async function generateStaticParams() {
+  try {
+    const result = await db.query<{ slug: string }>(
+      "SELECT slug FROM arnnvv_blogs ORDER BY created_at DESC",
+    );
+
+    return result.rows.map((post) => ({
+      slug: post.slug,
+    }));
+  } catch (error) {
+    console.error("Error generating static params:", error);
+    return [];
+  }
 }
 
 export const generateMetadata = cache(
