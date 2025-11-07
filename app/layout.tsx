@@ -127,7 +127,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script id={`script-zero-${id}`}>{ThemeLoaderScript}</Script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: ThemeLoaderScript,
+          }}
+        />
         <Script
           id={`script-one-${id}`}
           type="application/ld+json"
