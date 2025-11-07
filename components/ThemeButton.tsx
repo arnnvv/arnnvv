@@ -5,7 +5,7 @@ import type { JSX } from "react";
 import { useTheme } from "./ThemeProvider";
 
 export function ThemeButton(): JSX.Element {
-  const { theme, toggleTheme } = useTheme();
+  const { toggleTheme } = useTheme();
 
   return (
     <button
@@ -14,7 +14,9 @@ export function ThemeButton(): JSX.Element {
       type="button"
       onMouseDown={toggleTheme}
     >
-      {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
+      <Sun size={24} className="hidden dark:block" />
+      <Moon size={24} className="block dark:hidden" />
+      <span className="sr-only">Toggle theme</span>
     </button>
   );
 }
