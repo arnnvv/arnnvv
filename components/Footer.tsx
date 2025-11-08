@@ -9,7 +9,7 @@ export function Footer(): JSX.Element {
 
       <div className="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
         <div className="text-xs sm:text-sm text-gray-400 dark:text-zinc-400">
-          © arnav
+          &copy; arnav
         </div>
         <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm tracking-tight">
           <Link

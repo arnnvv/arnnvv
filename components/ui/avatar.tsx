@@ -2,121 +2,97 @@
 
 import Image from "next/image";
 import {
-  Children,
   type ComponentProps,
-  cloneElement,
-  type FC,
-  isValidElement,
+  createContext,
   type JSX,
-  type ReactElement,
+  useContext,
+  useEffect,
   useState,
 } from "react";
 import { cn } from "@/lib/utils";
 
-type AvatarRootProps = ComponentProps<"div">;
-type AvatarImageProps = ComponentProps<typeof Image> & {
-  _setImageStatus?: (status: ImageStatus) => void;
-};
-type AvatarFallbackProps = ComponentProps<"span">;
 type ImageStatus = "loading" | "success" | "error";
 
-function Avatar({
-  className,
-  children,
-  ...props
-}: AvatarRootProps): JSX.Element {
-  const childrenArray = Children.toArray(children);
-  const hasImage = childrenArray.some(
-    (child) =>
-      isValidElement(child) &&
-      ((child.type as FC)?.displayName === "AvatarImage" ||
-        child.type === AvatarImage),
-  );
+interface AvatarContextValue {
+  imageStatus: ImageStatus;
+  setImageStatus: (status: ImageStatus) => void;
+}
 
-  const [imageStatus, setImageStatus] = useState<ImageStatus>(
-    hasImage ? "loading" : "error",
-  );
+const AvatarContext = createContext<AvatarContextValue | null>(null);
 
-  const processedChildren = childrenArray.map((child) => {
-    if (!isValidElement(child)) {
-      return child;
-    }
+const useAvatarContext = () => {
+  const context = useContext(AvatarContext);
+  if (!context) {
+    throw new Error("useAvatarContext must be used within an Avatar provider");
+  }
+  return context;
+};
 
-    if (
-      (child.type as FC)?.displayName === "AvatarImage" ||
-      child.type === AvatarImage
-    ) {
-      return cloneElement(child as ReactElement<AvatarImageProps>, {
-        _setImageStatus: setImageStatus,
-      });
-    }
+type AvatarRootProps = ComponentProps<"div">;
 
-    if (
-      (child.type as FC)?.displayName === "AvatarFallback" ||
-      child.type === AvatarFallback
-    ) {
-      if (imageStatus === "success") {
-        return null;
-      }
-      return child;
-    }
-
-    return child;
-  });
+function Avatar({ className, ...props }: AvatarRootProps): JSX.Element {
+  const [imageStatus, setImageStatus] = useState<ImageStatus>("loading");
 
   return (
-    <div
-      data-slot="avatar"
-      className={cn(
-        "relative flex size-8 shrink-0 overflow-hidden rounded-full",
-        className,
-      )}
-      {...props}
-    >
-      {processedChildren}
-    </div>
+    <AvatarContext.Provider value={{ imageStatus, setImageStatus }}>
+      <div
+        data-slot="avatar"
+        className={cn(
+          "relative flex size-8 shrink-0 overflow-hidden rounded-full",
+          className,
+        )}
+        {...props}
+      />
+    </AvatarContext.Provider>
   );
 }
 
+type AvatarImageProps = ComponentProps<typeof Image>;
+
 function AvatarImage({
   className,
-  _setImageStatus,
   onLoadingComplete,
   onError,
   alt,
   ...props
 }: AvatarImageProps): JSX.Element {
+  const { setImageStatus } = useAvatarContext();
+
+  useEffect(() => {
+    setImageStatus("loading");
+    return () => setImageStatus("loading");
+  }, [setImageStatus]);
+
   return (
     <Image
       data-slot="avatar-image"
       className={cn("aspect-square size-full", className)}
       alt={alt}
       onLoadingComplete={(result) => {
-        if (_setImageStatus) {
-          _setImageStatus("success");
-        }
-        if (onLoadingComplete) {
-          onLoadingComplete(result);
-        }
+        setImageStatus("success");
+        onLoadingComplete?.(result);
       }}
       onError={(event) => {
-        if (_setImageStatus) {
-          _setImageStatus("error");
-        }
-        if (onError) {
-          onError(event);
-        }
+        setImageStatus("error");
+        onError?.(event);
       }}
       {...props}
     />
   );
 }
-AvatarImage.displayName = "AvatarImage";
+
+type AvatarFallbackProps = ComponentProps<"span">;
 
 function AvatarFallback({
   className,
   ...props
-}: AvatarFallbackProps): JSX.Element {
+}: AvatarFallbackProps): JSX.Element | null {
+  const { imageStatus } = useAvatarContext();
+
+  if (imageStatus === "success") {
+    return null;
+  }
+
   return (
     <span
       data-slot="avatar-fallback"
@@ -128,6 +104,5 @@ function AvatarFallback({
     />
   );
 }
-AvatarFallback.displayName = "AvatarFallback";
 
 export { Avatar, AvatarImage, AvatarFallback };

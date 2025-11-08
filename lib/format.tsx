@@ -1,30 +1,16 @@
 import Image from "next/image";
 import { cache, type JSX, type ReactNode } from "react";
-import { FORMATTER_CONFIG as CONFIG, PARSING_TIMEOUT_MS } from "./constants";
+import {
+  FORMATTER_CONFIG as CONFIG,
+  PARSING_TIMEOUT_MS,
+  SECURITY_CONFIG,
+} from "./constants";
 import type {
   ContentBlock,
   InlineToken,
   ListBlock,
   ListItem,
 } from "./db/types";
-
-const SECURITY_CONFIG = {
-  allowedImageDomains: ["*"] as string[],
-  allowedLinkDomains: ["*"] as string[],
-
-  dangerousProtocols: /^(javascript|data|vbscript|file|ftp|tel):/i,
-
-  safeProtocols: {
-    link: /^(https?:|mailto:|#$)/i,
-    image: /^(https?:)/i,
-  },
-
-  maxUrlLength: 2048,
-
-  maxNestingDepth: 10,
-  maxInlineTokens: 1000,
-  maxContentLength: 100000,
-} as const;
 
 function sanitizeTextContent(text: string): string {
   if (!text || typeof text !== "string") return "";

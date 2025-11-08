@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
-import { type JSX, Suspense } from "react";
-import { ContactFormContent, ContactFormSkeleton } from "@/components/Contact";
+import type { JSX } from "react";
+import { ActionFormWrapper } from "@/components/ActionFormWrapper";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { sendEmailAtn } from "../actions/contact-actions";
 
 export const metadata: Metadata = {
   title: "Contact Me | Arnav Sharma",
@@ -30,9 +34,37 @@ export default function ContactForm(): JSX.Element {
       />
 
       <div className="relative z-10 w-full">
-        <Suspense fallback={<ContactFormSkeleton />}>
-          <ContactFormContent />
-        </Suspense>
+        <div className="w-full max-w-sm sm:max-w-md mx-auto">
+          <ActionFormWrapper action={sendEmailAtn}>
+            <div className="space-y-4 sm:space-y-5 md:space-y-6">
+              <div className="space-y-2">
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="Your Email"
+                  className="border-gray-200 dark:border-zinc-800 bg-secondary dark:bg-zinc-900/90 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-lg text-gray-500 dark:text-zinc-200"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Message"
+                  name="message"
+                  className="min-h-[120px] sm:min-h-[140px] md:min-h-40 border-gray-200 dark:border-zinc-800 bg-secondary dark:bg-zinc-900/90 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-lg text-gray-500 dark:text-zinc-200"
+                  required
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-secondary dark:bg-zinc-900 text-gray-600 dark:text-zinc-200 hover:bg-accent hover:text-blue-500 dark:hover:text-blue-400 border border-gray-200 dark:border-zinc-800 dark:hover:border-blue-400 transition-colors duration-200 rounded-lg shadow-sm"
+              >
+                Send
+              </Button>
+            </div>
+          </ActionFormWrapper>
+        </div>
       </div>
     </main>
   );

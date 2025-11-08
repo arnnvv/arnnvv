@@ -113,6 +113,24 @@ export const SMTP_CODES = {
   GOODBYE: 221,
 } as const;
 
+export const SECURITY_CONFIG = {
+  allowedImageDomains: ["*"] as string[],
+  allowedLinkDomains: ["*"] as string[],
+
+  dangerousProtocols: /^(javascript|data|vbscript|file|ftp|tel):/i,
+
+  safeProtocols: {
+    link: /^(https?:|mailto:|#$)/i,
+    image: /^(https?:)/i,
+  },
+
+  maxUrlLength: 2048,
+
+  maxNestingDepth: 10,
+  maxInlineTokens: 1000,
+  maxContentLength: 100000,
+} as const;
+
 export const CONNECTION_TIMEOUT = 10000 as const;
 export const MAX_BUFFER_SIZE = 65536 as const;
 export const MAX_LINE_LENGTH = 1024 as const;
