@@ -153,3 +153,93 @@ export const getBlogPostBySlug = cache(
     }
   },
 );
+
+export async function editBlog(formData: FormData): Promise<ActionResult> {
+  if (!(await globalPOSTRateLimit())) {
+    return { success: false, message: "Rate limit exceeded." };
+  }
+
+  const { user } = await getCurrentSession();
+  if (!isUserAdmin(user)) {
+    return { success: false, message: "Not authorized." };
+  }
+
+  const blogId = Number(formData.get("blogId"));
+  const title = formData.get("title") as string;
+  const content = formData.get("description") as string;
+
+  if (Number.isNaN(blogId)) {
+    return { success: false, message: "Invalid Blog ID." };
+  }
+  if (!title || title.trim().length === 0) {
+    return { success: false, message: "Title is required." };
+  }
+  if (!content || content.trim().length === 0) {
+    return { success: false, message: "Content is required." };
+  }
+
+  const newSlug = slugify(title.trim());
+
+  try {
+    const oldBlogResult = await db.query<{ slug: string }>(
+      `SELECT slug FROM arnnvv_blogs WHERE id = $1`,
+      [blogId],
+    );
+    const oldSlug = oldBlogResult.rows[0]?.slug;
+
+    if (!oldSlug) {
+      return { success: false, message: "Blog to edit not found." };
+    }
+
+    await db.query(
+      `UPDATE arnnvv_blogs SET title = $1, slug = $2, description = $3, updated_at = now() WHERE id = $4`,
+      [title.trim(), newSlug, content.trim(), blogId],
+    );
+
+    if (oldSlug !== newSlug) {
+      revalidatePath(`/blogs/${oldSlug}`);
+    }
+    revalidatePath(`/blogs/${newSlug}`);
+    revalidatePath("/blogs", "layout");
+    revalidateTag("blogs", "max");
+
+    return { success: true, message: "Blog updated successfully!" };
+  } catch (e) {
+    console.error(`Error editing blog: ${e}`);
+    if (e instanceof DatabaseError && e.code === "23505") {
+      return {
+        success: false,
+        message:
+          "A blog with a similar title already exists. Please try a different title.",
+      };
+    }
+    return {
+      success: false,
+      message: "Error updating blog. Please try again.",
+    };
+  }
+}
+
+export const getAllBlogSummariesForEditing = cache(
+  async (): Promise<{ id: number; title: string }[]> => {
+    const { user } = await getCurrentSession();
+    if (!isUserAdmin(user)) return [];
+    const result = await db.query<{ id: number; title: string }>(
+      `SELECT id, title FROM arnnvv_blogs ORDER BY created_at DESC`,
+    );
+    return result.rows;
+  },
+);
+
+export async function getBlogForEditing(
+  blogId: number,
+): Promise<BlogPost | null> {
+  "use server";
+  const { user } = await getCurrentSession();
+  if (!isUserAdmin(user)) return null;
+  const result = await db.query<BlogPost>(
+    `SELECT id, title, slug, description, created_at, updated_at FROM arnnvv_blogs WHERE id = $1`,
+    [blogId],
+  );
+  return result.rows[0] ?? null;
+}
