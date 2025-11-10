@@ -11,6 +11,18 @@ const nextConfig: NextConfig = {
     turbopackMinify: true,
     turbopackImportTypeBytes: true,
     optimizeCss: true,
+    cssChunking: "strict",
+    optimizePackageImports: [
+      "@neondatabase/serverless",
+      "@radix-ui/react-dropdown-menu",
+      "@upstash/redis",
+      "lucide-react",
+      "next",
+      "react",
+      "react-dom",
+      "sonner",
+      "tailwind-merge",
+    ],
   },
   images: {
     remotePatterns: [
