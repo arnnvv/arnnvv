@@ -26,32 +26,25 @@ export const metadata: Metadata = {
 
 function ProjectsGridSkeleton(): JSX.Element {
   const skeletonItems = Array.from(
-    { length: 6 },
+    { length: 4 },
     (_, i) => `project-skeleton-${i}`,
   );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-pulse">
+    <div className="max-w-4xl mx-auto w-full space-y-12 animate-pulse">
       {skeletonItems.map((id, index) => (
         <div
           key={id}
-          className="p-6 rounded-2xl border border-border bg-card/50 backdrop-blur-sm"
+          className="space-y-4"
           style={{ animationDelay: `${index * 0.1}s` }}
         >
-          <div className="h-8 bg-muted rounded-lg w-3/4 mb-4" />
-          <div className="space-y-3 mb-6">
-            <div className="h-4 bg-muted rounded w-full" />
-            <div className="h-4 bg-muted rounded w-full" />
-            <div className="h-4 bg-muted rounded w-2/3" />
-          </div>
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="h-7 bg-muted rounded-lg w-1/2" />
+          <div className="h-4 bg-muted rounded w-full" />
+          <div className="h-4 bg-muted rounded w-5/6" />
+          <div className="flex flex-wrap gap-2 pt-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-6 bg-muted rounded-full w-16" />
+              <div key={i} className="h-6 bg-muted rounded-full w-20" />
             ))}
-          </div>
-          <div className="flex gap-3">
-            <div className="h-8 bg-muted rounded w-20" />
-            <div className="h-8 bg-muted rounded w-16" />
           </div>
         </div>
       ))}
@@ -94,7 +87,7 @@ async function ProjectsGrid(): Promise<JSX.Element> {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="max-w-4xl mx-auto w-full space-y-12">
       {projects.map((project, index) => (
         <div
           key={project.id}
@@ -121,7 +114,7 @@ export default function WorkPage(): JSX.Element {
         className="absolute top-1/2 left-1/4 w-16 h-16 bg-primary/5 rounded-full blur-lg animate-float"
         style={{ animationDelay: "1.5s" }}
       />
-      <div className="container mx-auto px-4 pt-20 pb-12 relative z-10">
+      <div className="container mx-auto px-4 pt-20 pb-16 sm:pb-24 relative z-10">
         <header className="text-center mb-16">
           <TransitionTitle
             title="My Work"

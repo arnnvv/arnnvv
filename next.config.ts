@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     turbopackFileSystemCacheForDev: true,
     turbopackFileSystemCacheForBuild: true,
     turbopackMinify: true,
+    turbopackRemoveUnusedExports: true,
     turbopackImportTypeBytes: true,
     optimizeCss: true,
     cssChunking: "strict",
