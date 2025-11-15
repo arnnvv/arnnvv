@@ -31,10 +31,10 @@ export async function createSession(
     user_id: userId,
     expires_at: new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000),
   };
-  await db.query(
-    "INSERT INTO arnnvv_sessions (id, user_id, expires_at) VALUES ($1, $2, $3)",
-    [session.id, session.user_id, session.expires_at],
-  );
+  await db`
+    INSERT INTO arnnvv_sessions (id, user_id, expires_at)
+    VALUES (${session.id}, ${session.user_id}, ${session.expires_at})
+  `;
   return session;
 }
 
@@ -46,8 +46,7 @@ export async function validateSessionToken(
     await sha256(new TextEncoder().encode(token)),
   );
 
-  const sessionAndUserResult = await db.query(
-    `
+  const sessionAndUserResult = await db`
       SELECT
         s.user_id,
         s.expires_at,
@@ -58,21 +57,21 @@ export async function validateSessionToken(
         u.picture
       FROM arnnvv_sessions s
       JOIN arnnvv_users u ON s.user_id = u.id
-      WHERE s.id = $1 LIMIT 1
-    `,
-    [sessionId],
-  );
+      WHERE s.id = ${sessionId} LIMIT 1
+    `;
 
-  if (sessionAndUserResult.rowCount === 0) {
+  if (sessionAndUserResult.length === 0) {
     return { session: null, user: null };
   }
 
-  const data = sessionAndUserResult.rows[0];
+  const data = sessionAndUserResult[0] as Session &
+    User & { user_id_from_users_table: number };
+
   const now = Date.now();
-  const expiresAtMs = data.expires_at.getTime();
+  const expiresAtMs = new Date(data.expires_at).getTime();
 
   if (now >= expiresAtMs) {
-    await db.query("DELETE FROM arnnvv_sessions WHERE id = $1", [sessionId]);
+    await db`DELETE FROM arnnvv_sessions WHERE id = ${sessionId}`;
     return { session: null, user: null };
   }
 
@@ -87,16 +86,13 @@ export async function validateSessionToken(
   const session: Session = {
     id: sessionId,
     user_id: user.id,
-    expires_at: data.expires_at,
+    expires_at: new Date(data.expires_at),
   };
 
   const refreshThresholdMs = SESSION_REFRESH_THRESHOLD_SECONDS * 1000;
   if (now >= expiresAtMs - refreshThresholdMs) {
     const newExpiresAt = new Date(now + SESSION_MAX_AGE_SECONDS * 1000);
-    await db.query("UPDATE arnnvv_sessions SET expires_at = $1 WHERE id = $2", [
-      newExpiresAt,
-      session.id,
-    ]);
+    await db`UPDATE arnnvv_sessions SET expires_at = ${newExpiresAt} WHERE id = ${session.id}`;
     session.expires_at = newExpiresAt;
   }
 
@@ -104,5 +100,5 @@ export async function validateSessionToken(
 }
 
 export async function invalidateSession(sessionId: string): Promise<void> {
-  await db.query("DELETE FROM arnnvv_sessions WHERE id = $1", [sessionId]);
+  await db`DELETE FROM arnnvv_sessions WHERE id = ${sessionId}`;
 }

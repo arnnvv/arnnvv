@@ -8,10 +8,13 @@ type SitemapBlogSummary = {
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const blogsResult = await db.query<SitemapBlogSummary>(
-    "SELECT slug, updated_at FROM arnnvv_blogs ORDER BY updated_at DESC",
-  );
-  const blogUrls = blogsResult.rows.map((blog) => ({
+  const blogsResult = await db`
+    SELECT slug, updated_at FROM arnnvv_blogs ORDER BY updated_at DESC
+  `;
+
+  const blogs = blogsResult as SitemapBlogSummary[];
+
+  const blogUrls = blogs.map((blog) => ({
     url: `${APP_BASE_URL}/blogs/${blog.slug}`,
     lastModified: blog.updated_at,
     changeFrequency: "monthly" as const,

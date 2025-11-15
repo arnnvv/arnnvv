@@ -17,11 +17,13 @@ interface BlogPostPageProps {
 
 export async function generateStaticParams() {
   try {
-    const result = await db.query<{ slug: string }>(
-      "SELECT slug FROM arnnvv_blogs ORDER BY created_at DESC",
-    );
+    const result = (await db`
+      SELECT slug
+      FROM arnnvv_blogs
+      ORDER BY created_at DESC
+    `) as Array<{ slug: string }>;
 
-    return result.rows.map((post) => ({
+    return result.map((post) => ({
       slug: post.slug,
     }));
   } catch (error) {

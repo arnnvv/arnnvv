@@ -10,17 +10,18 @@ export async function GET(request: Request): Promise<Response> {
     return new Response("Missing slug", { status: 400 });
   }
 
-  const result = await db.query<BlogPost>(
-    `SELECT id, title, slug, description, created_at
-       FROM arnnvv_blogs
-       WHERE slug = $1
-       LIMIT 1`,
-    [slug],
-  );
-  if (result.rowCount === 0) {
+  const result = await db`
+    SELECT id, title, slug, description, created_at
+    FROM arnnvv_blogs
+    WHERE slug = ${slug}
+    LIMIT 1
+  `;
+
+  if (result.length === 0) {
     return new Response("Post not found", { status: 404 });
   }
-  const post = result.rows[0];
+
+  const post = result[0] as BlogPost | undefined;
 
   if (!post) {
     return new Response("Post not found", { status: 404 });

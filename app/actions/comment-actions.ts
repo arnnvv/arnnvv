@@ -51,11 +51,12 @@ export async function addCommentAction(
   }
 
   try {
-    const result = await db.query<CommentWithDetails>(
-      `
+    const result = await db`
       WITH inserted_comment AS (
           INSERT INTO arnnvv_comments (blog_id, user_id, content, parent_comment_id)
-          VALUES ($1, $2, $3, $4)
+          VALUES (${blogId}, ${user.id}, ${content.trim()}, ${
+            parentCommentId ?? null
+          })
           RETURNING id, blog_id, user_id, content, parent_comment_id, created_at, updated_at
       )
       SELECT
@@ -67,16 +68,15 @@ export async function addCommentAction(
           0 AS reply_count
       FROM inserted_comment ic
       JOIN arnnvv_users u ON ic.user_id = u.id;
-      `,
-      [blogId, user.id, content.trim(), parentCommentId ?? null],
-    );
+      `;
 
-    if (result.rowCount === 1) {
-      const blogPost = await db.query<{ slug: string }>(
-        "SELECT slug FROM arnnvv_blogs WHERE id = $1",
-        [blogId],
-      );
-      const post = blogPost.rows[0];
+    const comments = result as CommentWithDetails[];
+
+    if (comments.length === 1) {
+      const blogPost = await db`
+        SELECT slug FROM arnnvv_blogs WHERE id = ${blogId}
+      `;
+      const post = blogPost[0] as { slug: string } | undefined;
       if (post) {
         revalidatePath(`/blogs/${post.slug}`);
       } else {
@@ -85,7 +85,7 @@ export async function addCommentAction(
       return {
         success: true,
         message: "Comment added.",
-        comment: result.rows[0],
+        comment: comments[0],
       };
     }
     throw new Error("Failed to add comment.");
@@ -105,8 +105,7 @@ export async function getCommentsForBlogAction(
   const currentUserId = currentUser?.id;
 
   try {
-    const result = await db.query<CommentWithDetails>(
-      `
+    const result = await db`
       SELECT
           c.id, c.blog_id, c.user_id, c.parent_comment_id, c.content, c.created_at, c.updated_at,
           u.name AS user_name,
@@ -115,16 +114,16 @@ export async function getCommentsForBlogAction(
           c.reply_count,
           EXISTS(
               SELECT 1 FROM arnnvv_comment_likes cl_user
-              WHERE cl_user.comment_id = c.id AND cl_user.user_id = $2
+              WHERE cl_user.comment_id = c.id AND cl_user.user_id = ${
+                currentUserId ?? null
+              }
           ) AS is_liked_by_current_user
       FROM arnnvv_comments c
       JOIN arnnvv_users u ON c.user_id = u.id
-      WHERE c.blog_id = $1 AND c.parent_comment_id IS NULL
+      WHERE c.blog_id = ${blogId} AND c.parent_comment_id IS NULL
       ORDER BY c.created_at ASC;
-      `,
-      [blogId, currentUserId ?? null],
-    );
-    return result.rows;
+      `;
+    return result as CommentWithDetails[];
   } catch (e) {
     console.error(`Error fetching top-level comments: ${e}`);
     return [];
@@ -138,8 +137,7 @@ export async function getRepliesForCommentAction(
   const currentUserId = currentUser?.id;
 
   try {
-    const result = await db.query<CommentWithDetails>(
-      `
+    const result = await db`
       SELECT
           c.id, c.blog_id, c.user_id, c.parent_comment_id, c.content, c.created_at, c.updated_at,
           u.name AS user_name,
@@ -148,16 +146,16 @@ export async function getRepliesForCommentAction(
           c.reply_count,
           EXISTS(
               SELECT 1 FROM arnnvv_comment_likes cl_user
-              WHERE cl_user.comment_id = c.id AND cl_user.user_id = $2
+              WHERE cl_user.comment_id = c.id AND cl_user.user_id = ${
+                currentUserId ?? null
+              }
           ) AS is_liked_by_current_user
       FROM arnnvv_comments c
       JOIN arnnvv_users u ON c.user_id = u.id
-      WHERE c.parent_comment_id = $1
+      WHERE c.parent_comment_id = ${parentCommentId}
       ORDER BY c.created_at ASC;
-      `,
-      [parentCommentId, currentUserId ?? null],
-    );
-    return result.rows;
+      `;
+    return result as CommentWithDetails[];
   } catch (e) {
     console.error(
       `Error fetching replies for comment ${parentCommentId}: ${e}`,
@@ -182,32 +180,28 @@ export async function toggleLikeCommentAction(
   }
 
   try {
-    const existingLike = await db.query(
-      "SELECT 1 FROM arnnvv_comment_likes WHERE user_id = $1 AND comment_id = $2",
-      [user.id, commentId],
-    );
+    const existingLike = await db`
+      SELECT 1 FROM arnnvv_comment_likes WHERE user_id = ${user.id} AND comment_id = ${commentId}
+    `;
 
     let isLikedAfterToggle: boolean;
 
-    if ((existingLike.rowCount ?? 0) > 0) {
-      await db.query(
-        "DELETE FROM arnnvv_comment_likes WHERE user_id = $1 AND comment_id = $2",
-        [user.id, commentId],
-      );
+    if (existingLike.length > 0) {
+      await db`
+        DELETE FROM arnnvv_comment_likes WHERE user_id = ${user.id} AND comment_id = ${commentId}
+      `;
       isLikedAfterToggle = false;
     } else {
-      await db.query(
-        "INSERT INTO arnnvv_comment_likes (user_id, comment_id) VALUES ($1, $2)",
-        [user.id, commentId],
-      );
+      await db`
+        INSERT INTO arnnvv_comment_likes (user_id, comment_id) VALUES (${user.id}, ${commentId})
+      `;
       isLikedAfterToggle = true;
     }
 
-    const likeCountResult = await db.query<{ count: string }>(
-      "SELECT COUNT(*) FROM arnnvv_comment_likes WHERE comment_id = $1",
-      [commentId],
-    );
-    const row = likeCountResult.rows[0];
+    const likeCountResult = await db`
+      SELECT COUNT(*) FROM arnnvv_comment_likes WHERE comment_id = ${commentId}
+    `;
+    const row = likeCountResult[0] as { count: string } | undefined;
     const newLikeCount = row ? Number.parseInt(row.count, 10) : 0;
 
     return {
@@ -244,12 +238,13 @@ export async function deleteCommentAction(
   }
 
   try {
-    const commentResult = await db.query<{ user_id: number; blog_id: number }>(
-      "SELECT user_id, blog_id FROM arnnvv_comments WHERE id = $1",
-      [commentId],
-    );
+    const commentResult = await db`
+      SELECT user_id, blog_id FROM arnnvv_comments WHERE id = ${commentId}
+    `;
 
-    const commentData = commentResult.rows[0];
+    const commentData = commentResult[0] as
+      | { user_id: number; blog_id: number }
+      | undefined;
     if (!commentData) {
       return { success: false, message: "Comment not found." };
     }
@@ -264,23 +259,14 @@ export async function deleteCommentAction(
       };
     }
 
-    const deleteOp = await db.query(
-      "DELETE FROM arnnvv_comments WHERE id = $1",
-      [commentId],
-    );
+    await db`
+      DELETE FROM arnnvv_comments WHERE id = ${commentId}
+    `;
 
-    if (deleteOp.rowCount === 0) {
-      return {
-        success: false,
-        message: "Failed to delete comment or comment already deleted.",
-      };
-    }
-
-    const blogPost = await db.query<{ slug: string }>(
-      "SELECT slug FROM arnnvv_blogs WHERE id = $1",
-      [blogIdOfComment],
-    );
-    const post = blogPost.rows[0];
+    const blogPost = await db`
+      SELECT slug FROM arnnvv_blogs WHERE id = ${blogIdOfComment}
+    `;
+    const post = blogPost[0] as { slug: string } | undefined;
     if (post) {
       revalidatePath(`/blogs/${post.slug}`);
     } else {

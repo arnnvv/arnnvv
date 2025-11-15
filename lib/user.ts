@@ -7,9 +7,10 @@ export async function upsertUserFromGoogleProfile(
   name: string,
   picture: string,
 ): Promise<User> {
-  const query = `
+  try {
+    const users = await db`
     INSERT INTO arnnvv_users (google_id, email, name, picture)
-    VALUES ($1, $2, $3, $4)
+    VALUES (${googleId}, ${email}, ${name}, ${picture})
     ON CONFLICT (google_id)
     DO UPDATE SET
       name = EXCLUDED.name,
@@ -17,12 +18,12 @@ export async function upsertUserFromGoogleProfile(
       email = EXCLUDED.email
     RETURNING id, google_id, email, name, picture;
   `;
-  try {
-    const res = await db.query<User>(query, [googleId, email, name, picture]);
-    const user = res.rows[0];
+    const user = users[0] as User | undefined;
+
     if (!user) {
       throw new Error("Database did not return user after upsert operation.");
     }
+
     return user;
   } catch (error) {
     console.error(`Error upserting user: ${error}`);

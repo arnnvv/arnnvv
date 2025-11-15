@@ -77,75 +77,65 @@ export async function addProjectAction(
     };
   }
 
-  const client = await db.connect();
   try {
-    await client.query("BEGIN");
+    const results = await db.transaction([
+      db`INSERT INTO arnnvv_projects (title, description)
+          VALUES (${title.trim()}, ${description.trim()})
+          RETURNING id`,
 
-    const projectInsertResult = await client.query<{ id: number }>(
-      `INSERT INTO arnnvv_projects (title, description)
-       VALUES ($1, $2)
-       RETURNING id`,
-      [title.trim(), description.trim()],
-    );
+      ...(technologiesArray.length > 0
+        ? [
+            db`INSERT INTO arnnvv_project_technologies (project_id, technology)
+               SELECT (SELECT id FROM arnnvv_projects WHERE title = ${title.trim()} LIMIT 1), unnest(${technologiesArray}::text[])`,
+          ]
+        : []),
 
-    if (
-      projectInsertResult.rowCount === 0 ||
-      !projectInsertResult.rows[0]?.id
-    ) {
-      throw new Error("Failed to insert project main details.");
-    }
-    const projectId = projectInsertResult.rows[0].id;
+      ...(parsedLinks.length > 0
+        ? [
+            db`INSERT INTO arnnvv_project_links (project_id, link_type, url)
+               SELECT
+                 (SELECT id FROM arnnvv_projects WHERE title = ${title.trim()} LIMIT 1),
+                 link_type,
+                 url
+               FROM jsonb_to_recordset(${JSON.stringify(parsedLinks)}::jsonb)
+               AS x(link_type text, url text)`,
+          ]
+        : []),
+    ]);
 
-    if (technologiesArray.length > 0) {
-      const techValues = technologiesArray
-        .map((_, index) => `($1, $${index + 2})`)
-        .join(",");
-      const techParams = [projectId, ...technologiesArray];
-      await client.query(
-        `INSERT INTO arnnvv_project_technologies (project_id, technology) VALUES ${techValues}`,
-        techParams,
-      );
-    }
-
-    if (parsedLinks.length > 0) {
-      const linkValues = parsedLinks
-        .map((_, index) => `($1, $${index * 2 + 2}, $${index * 2 + 3})`)
-        .join(",");
-      const linkParams: (string | number)[] = [projectId];
-      for (const link of parsedLinks) {
-        linkParams.push(link.link_type, link.url);
-      }
-      await client.query(
-        `INSERT INTO arnnvv_project_links (project_id, link_type, url) VALUES ${linkValues}`,
-        linkParams,
-      );
+    const firstResult = results[0];
+    if (!firstResult || firstResult.length === 0) {
+      throw new Error("Failed to insert project - no result returned.");
     }
 
-    await client.query("COMMIT");
+    const projectId = firstResult[0]?.id;
+    if (!projectId) {
+      throw new Error("Failed to insert project - no ID returned.");
+    }
+
     revalidatePath("/work");
     return { success: true, message: "Project added successfully!" };
   } catch (e) {
-    await client.query("ROLLBACK");
-    console.error(`Error adding project with transaction: ${e}`);
+    console.error(`Error adding project: ${e}`);
+
     if (e instanceof DatabaseError && e.code === "23505") {
       return {
         success: false,
         message: "A project with this title already exists.",
       };
     }
+
     return {
       success: false,
       message: "Error adding project. Please try again.",
     };
-  } finally {
-    client.release();
   }
 }
 
 export async function getProjectsAction(): Promise<ProjectWithDetails[]> {
   "use cache";
   try {
-    const query = `
+    const results = await db`
       WITH project_techs AS (
         SELECT
           project_id,
@@ -169,8 +159,8 @@ export async function getProjectsAction(): Promise<ProjectWithDetails[]> {
       LEFT JOIN project_techs pt ON p.id = pt.project_id
       LEFT JOIN project_links_agg pl ON p.id = pl.project_id
     `;
-    const result = await db.query<ProjectWithDetails>(query);
-    return result.rows;
+
+    return results as ProjectWithDetails[];
   } catch (e) {
     console.error(`Error fetching projects with details: ${e}`);
     return [];
