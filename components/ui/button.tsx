@@ -1,11 +1,12 @@
 import {
   Children,
-  type ComponentProps,
   cloneElement,
+  type ComponentProps,
   isValidElement,
   type JSX,
   type ReactElement,
 } from "react";
+
 import { cn } from "@/lib/utils";
 
 const baseStyles =

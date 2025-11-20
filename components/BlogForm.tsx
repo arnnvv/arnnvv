@@ -1,7 +1,9 @@
 "use client";
 
 import { type JSX, useId } from "react";
+
 import { writeBlog } from "@/app/actions/blog-actions";
+
 import { ActionFormWrapper } from "./ActionFormWrapper";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -25,7 +27,7 @@ export function BlogForm(): JSX.Element {
             type="text"
             name="title"
             placeholder="Enter your blog title"
-            className="border-gray-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/90 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-lg text-gray-800 dark:text-zinc-200"
+            className="rounded-lg border-gray-300 bg-white/80 text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200 dark:focus:border-blue-400 dark:focus:ring-blue-400"
             required
           />
         </div>
@@ -40,13 +42,13 @@ export function BlogForm(): JSX.Element {
             id={`description-${id}`}
             placeholder="Write your blog post content here... (Markdown supported)"
             name="description"
-            className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px] border-gray-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/90 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-lg text-gray-800 dark:text-zinc-200"
+            className="min-h-[200px] rounded-lg border-gray-300 bg-white/80 text-gray-800 focus:border-blue-500 focus:ring-blue-500 sm:min-h-[250px] md:min-h-[300px] dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200 dark:focus:border-blue-400 dark:focus:ring-blue-400"
             required
           />
         </div>
         <Button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold transition-colors duration-200 rounded-lg shadow-sm"
+          className="w-full rounded-lg bg-blue-600 font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
         >
           Create Blog Post
         </Button>

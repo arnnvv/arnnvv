@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Script from "next/script";
 import { cache, type JSX, Suspense } from "react";
+
 import { getBlogPostBySlug } from "@/app/actions/blog-actions";
 import { CommentSection } from "@/components/CommentSection";
 import { formatDate } from "@/lib/date";
@@ -154,11 +155,11 @@ const BlogPostContent = cache(
           {JSON.stringify(jsonLd)}
         </Script>
         <article className="prose prose-zinc dark:prose-invert lg:prose-xl mx-auto">
-          <header className="mb-8 text-center not-prose">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-zinc-50 mb-2">
+          <header className="not-prose mb-8 text-center">
+            <h1 className="mb-2 text-3xl font-bold text-gray-900 sm:text-4xl md:text-5xl dark:text-zinc-50">
               {wrapWordsWithTransition(post.title, `blog-title-${post.slug}`)}
             </h1>
-            <p className="text-md text-gray-500 dark:text-zinc-400 mt-2">
+            <p className="text-md mt-2 text-gray-500 dark:text-zinc-400">
               Published on{" "}
               <span
                 style={{
@@ -187,20 +188,20 @@ export default async function BlogPostPage({
   }
 
   return (
-    <main className="grow relative overflow-hidden">
-      <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
-      <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float" />
+    <main className="relative grow overflow-hidden">
+      <div className="from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 absolute inset-0 bg-linear-to-br via-transparent" />
+      <div className="bg-primary/10 animate-float absolute top-20 left-10 h-20 w-20 rounded-full blur-xl" />
       <div
-        className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
+        className="bg-accent/10 animate-float absolute right-10 bottom-20 h-32 w-32 rounded-full blur-xl"
         style={{ animationDelay: "2s" }}
       />
-      <div className="container mx-auto px-4 py-12 relative z-10">
+      <div className="relative z-10 container mx-auto px-4 py-12">
         <BlogPostContent slug={slug} />
 
-        <div className="max-w-4xl mx-auto mt-16">
+        <div className="mx-auto mt-16 max-w-4xl">
           <Suspense
             fallback={
-              <div className="h-64 bg-muted/20 rounded animate-pulse" />
+              <div className="bg-muted/20 h-64 animate-pulse rounded" />
             }
           >
             <CommentSection blogId={post.id} />

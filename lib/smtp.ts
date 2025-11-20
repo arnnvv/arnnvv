@@ -1,5 +1,6 @@
 import { Buffer } from "node:buffer";
 import { connect } from "node:tls";
+
 import {
   CONNECTION_TIMEOUT,
   MAX_BUFFER_SIZE,
@@ -10,6 +11,16 @@ import { type MailOptions, type SmtpConfig, SmtpState } from "./db/types";
 
 function sanitizeHeader(input: string): string {
   return input.replace(/[\r\n\x00-\x1F\x7F]/g, "").trim();
+}
+
+function debug(message: string) {
+  if (
+    process.env.NODE_ENV === "development" ||
+    process.env["DEBUG"] === "true"
+  ) {
+    // eslint-disable-next-line no-console
+    console.debug(message);
+  }
 }
 
 class SmtpError extends Error {
@@ -70,12 +81,13 @@ export async function sendEmail(
         state === SmtpState.AUTH_USER || state === SmtpState.AUTH_PASS
           ? "[REDACTED]"
           : cmd;
-      console.debug(`[SMTP CLIENT] C: ${logCmd}`);
+
+      debug(`[SMTP CLIENT] C: ${logCmd}`);
       socket.write(`${cmd}\r\n`);
     }
 
     const processResponse = (response: string) => {
-      console.debug(`[SMTP SERVER] S: ${response}`);
+      debug(`[SMTP SERVER] S: ${response}`);
       const code = parseInt(response.substring(0, 3), 10);
 
       if (Number.isNaN(code)) {
@@ -202,7 +214,7 @@ export async function sendEmail(
         if (line.length > 0 && line.charAt(3) !== "-") {
           processResponse(line);
         } else if (line.length > 0) {
-          console.debug(`[SMTP SERVER] S: ${line}`);
+          debug(`[SMTP SERVER] S: ${line}`);
         }
       }
     });

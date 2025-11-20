@@ -8,6 +8,7 @@ import {
   Trigger as DropdownMenuTrigger_dropdown,
 } from "@radix-ui/react-dropdown-menu";
 import type { ComponentProps, JSX } from "react";
+
 import { cn } from "@/lib/utils";
 
 function DropdownMenu({
@@ -72,7 +73,7 @@ function DropdownMenuItem({
 
 export {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuTrigger,
 };

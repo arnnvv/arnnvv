@@ -1,8 +1,10 @@
-import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import { type JSX, type ReactNode, useId } from "react";
+
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { ThemeErrorBoundary } from "@/components/ThemeErrorBoundry";
@@ -149,15 +151,15 @@ export default function RootLayout({
       </head>
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased",
+          "bg-background min-h-screen font-sans antialiased",
           fontSans.variable,
         )}
       >
         <ViewTransitionsProvider>
           <ThemeErrorBoundary>
             <ThemeProvider>
-              <div className="min-h-screen flex flex-col relative">
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px] pointer-events-none opacity-30" />
+              <div className="relative flex min-h-screen flex-col">
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px] opacity-30" />
                 <Navbar />
                 {children}
                 <Footer />

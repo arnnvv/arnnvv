@@ -1,5 +1,6 @@
 import type NextLink from "next/link";
 import type { ComponentProps, JSX } from "react";
+
 import { wrapWordsWithTransition } from "@/lib/transitions";
 import { TransitionLink as BaseTransitionLink } from "@/lib/view-transition";
 
@@ -25,14 +26,14 @@ export function TransitionLink({
         </span>
         <span
           aria-hidden="true"
-          className="absolute inset-0 whitespace-nowrap bg-linear-to-r from-primary/98 to-accent/98 bg-clip-text text-transparent"
+          className="from-primary/98 to-accent/98 absolute inset-0 bg-linear-to-r bg-clip-text whitespace-nowrap text-transparent"
         >
           {title}
         </span>
-        <span className="absolute left-0 bottom-0 w-full h-0.5 bg-linear-to-r from-primary/98 to-accent/98 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+        <span className="from-primary/98 to-accent/98 absolute bottom-0 left-0 h-0.5 w-full origin-left scale-x-0 transform bg-linear-to-r transition-transform duration-300 group-hover:scale-x-100" />
       </span>
       <svg
-        className="ml-2 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 text-primary"
+        className="text-primary ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

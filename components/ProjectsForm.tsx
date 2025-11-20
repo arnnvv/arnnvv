@@ -2,6 +2,7 @@
 
 import { PlusCircle, Trash2 } from "lucide-react";
 import { type JSX, useId, useRef, useState } from "react";
+
 import { addProjectAction } from "@/app/actions/project-actions";
 import { ActionFormWrapper } from "@/components/ActionFormWrapper";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ export function ProjectForm(): JSX.Element {
       <div>
         <label
           htmlFor={`title-${id}`}
-          className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
+          className="mb-1 block text-sm font-medium text-gray-700 dark:text-zinc-300"
         >
           Project Title
         </label>
@@ -75,14 +76,14 @@ export function ProjectForm(): JSX.Element {
           name="title"
           type="text"
           required
-          className="dark:bg-zinc-800 dark:border-zinc-700"
+          className="dark:border-zinc-700 dark:bg-zinc-800"
         />
       </div>
 
       <div>
         <label
           htmlFor={`description-${id}`}
-          className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
+          className="mb-1 block text-sm font-medium text-gray-700 dark:text-zinc-300"
         >
           Description
         </label>
@@ -91,14 +92,14 @@ export function ProjectForm(): JSX.Element {
           name="description"
           rows={5}
           required
-          className="dark:bg-zinc-800 dark:border-zinc-700"
+          className="dark:border-zinc-700 dark:bg-zinc-800"
         />
       </div>
 
       <div>
         <label
           htmlFor={`tech-${id}`}
-          className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
+          className="mb-1 block text-sm font-medium text-gray-700 dark:text-zinc-300"
         >
           Technologies (comma-separated, e.g., Next.js, TypeScript, PostgreSQL)
         </label>
@@ -106,16 +107,16 @@ export function ProjectForm(): JSX.Element {
           id={`tech-${id}`}
           name="technologies"
           type="text"
-          className="dark:bg-zinc-800 dark:border-zinc-700"
+          className="dark:border-zinc-700 dark:bg-zinc-800"
         />
       </div>
 
       <div>
-        <h3 className="text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+        <h3 className="mb-2 text-sm font-medium text-gray-700 dark:text-zinc-300">
           Project Links
         </h3>
         {dynamicLinks.map((link) => (
-          <div key={link.id} className="flex items-center gap-2 mb-2">
+          <div key={link.id} className="mb-2 flex items-center gap-2">
             <Input
               type="text"
               placeholder="Link Type (e.g., GitHub, Live Demo)"
@@ -123,21 +124,21 @@ export function ProjectForm(): JSX.Element {
               onChange={(e) =>
                 handleLinkChange(link.id, "link_type", e.target.value)
               }
-              className="flex-1 dark:bg-zinc-800 dark:border-zinc-700"
+              className="flex-1 dark:border-zinc-700 dark:bg-zinc-800"
             />
             <Input
               type="url"
               placeholder="Link URL"
               value={link.url}
               onChange={(e) => handleLinkChange(link.id, "url", e.target.value)}
-              className="flex-1 dark:bg-zinc-800 dark:border-zinc-700"
+              className="flex-1 dark:border-zinc-700 dark:bg-zinc-800"
             />
             <Button
               type="button"
               variant="ghost"
               size="icon"
               onClick={() => handleRemoveLink(link.id)}
-              className="text-red-500 hover:text-red-600 p-1"
+              className="p-1 text-red-500 hover:text-red-600"
               aria-label="Remove link"
             >
               <Trash2 size={18} />

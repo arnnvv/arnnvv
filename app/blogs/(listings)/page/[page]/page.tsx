@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import type { JSX } from "react";
+
 import { getBlogCount, getBlogSummaries } from "@/app/actions/blog-actions";
 import { Pagination } from "@/components/Pagination";
 import { BLOGS_PER_PAGE } from "@/lib/constants";
@@ -53,8 +54,8 @@ async function BlogList({
 }): Promise<JSX.Element> {
   if (blogs.length === 0) {
     return (
-      <div className="text-center py-16">
-        <h3 className="text-lg font-semibold text-foreground mb-2">
+      <div className="py-16 text-center">
+        <h3 className="text-foreground mb-2 text-lg font-semibold">
           No posts on this page
         </h3>
         <p className="text-muted-foreground">
@@ -70,22 +71,22 @@ async function BlogList({
         <TransitionLink
           key={blog.id}
           href={`/blogs/${blog.slug}`}
-          className="block group"
+          className="group block"
         >
           <article style={{ animationDelay: `${index * 0.1}s` }}>
             <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
               <div className="relative inline-block">
-                <h2 className="text-xl sm:text-2xl font-bold text-foreground transition-colors duration-300 group-hover:text-primary">
+                <h2 className="text-foreground group-hover:text-primary text-xl font-bold transition-colors duration-300 sm:text-2xl">
                   {wrapWordsWithTransition(
                     blog.title,
                     `blog-title-${blog.slug}`,
                   )}
                 </h2>
-                <span className="absolute left-0 -bottom-1 w-full h-0.5 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                <span className="bg-primary absolute -bottom-1 left-0 h-0.5 w-full origin-left scale-x-0 transform transition-transform duration-300 group-hover:scale-x-100" />
               </div>
               <time
                 dateTime={blog.created_at.toISOString()}
-                className="text-sm text-muted-foreground shrink-0"
+                className="text-muted-foreground shrink-0 text-sm"
               >
                 <span
                   style={{

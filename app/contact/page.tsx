@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
+
 import { ActionFormWrapper } from "@/components/ActionFormWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+
 import { sendEmailAtn } from "../actions/contact-actions";
 
 export const metadata: Metadata = {
@@ -25,16 +27,16 @@ export const metadata: Metadata = {
 
 export default function ContactForm(): JSX.Element {
   return (
-    <main className="grow relative overflow-hidden flex items-center py-6 sm:py-8 md:py-12 px-4">
-      <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
-      <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float" />
+    <main className="relative flex grow items-center overflow-hidden px-4 py-6 sm:py-8 md:py-12">
+      <div className="from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 absolute inset-0 bg-linear-to-br via-transparent" />
+      <div className="bg-primary/10 animate-float absolute top-20 left-10 h-20 w-20 rounded-full blur-xl" />
       <div
-        className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
+        className="bg-accent/10 animate-float absolute right-10 bottom-20 h-32 w-32 rounded-full blur-xl"
         style={{ animationDelay: "2s" }}
       />
 
       <div className="relative z-10 w-full">
-        <div className="w-full max-w-sm sm:max-w-md mx-auto">
+        <div className="mx-auto w-full max-w-sm sm:max-w-md">
           <ActionFormWrapper action={sendEmailAtn}>
             <div className="space-y-4 sm:space-y-5 md:space-y-6">
               <div className="space-y-2">
@@ -42,7 +44,7 @@ export default function ContactForm(): JSX.Element {
                   type="email"
                   name="email"
                   placeholder="Your Email"
-                  className="border-gray-200 dark:border-zinc-800 bg-secondary dark:bg-zinc-900/90 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-lg text-gray-500 dark:text-zinc-200"
+                  className="bg-secondary rounded-lg border-gray-200 text-gray-500 focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-200 dark:focus:border-blue-400 dark:focus:ring-blue-400"
                   required
                 />
               </div>
@@ -51,14 +53,14 @@ export default function ContactForm(): JSX.Element {
                 <Textarea
                   placeholder="Message"
                   name="message"
-                  className="min-h-[120px] sm:min-h-[140px] md:min-h-40 border-gray-200 dark:border-zinc-800 bg-secondary dark:bg-zinc-900/90 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-lg text-gray-500 dark:text-zinc-200"
+                  className="bg-secondary min-h-[120px] rounded-lg border-gray-200 text-gray-500 focus:border-blue-500 focus:ring-blue-500 sm:min-h-[140px] md:min-h-40 dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-200 dark:focus:border-blue-400 dark:focus:ring-blue-400"
                   required
                 />
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-secondary dark:bg-zinc-900 text-gray-600 dark:text-zinc-200 hover:bg-accent hover:text-blue-500 dark:hover:text-blue-400 border border-gray-200 dark:border-zinc-800 dark:hover:border-blue-400 transition-colors duration-200 rounded-lg shadow-sm"
+                className="bg-secondary hover:bg-accent w-full rounded-lg border border-gray-200 text-gray-600 shadow-sm transition-colors duration-200 hover:text-blue-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-blue-400 dark:hover:text-blue-400"
               >
                 Send
               </Button>

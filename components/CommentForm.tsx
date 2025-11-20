@@ -1,6 +1,7 @@
 "use client";
 
 import { type JSX, type KeyboardEvent, useRef } from "react";
+
 import { addCommentAction } from "@/app/actions/comment-actions";
 import { ActionFormWrapper } from "@/components/ActionFormWrapper";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ export function CommentForm({
 
   if (!currentUser) {
     return (
-      <p className="text-sm text-gray-500 dark:text-zinc-400 my-4">
+      <p className="my-4 text-sm text-gray-500 dark:text-zinc-400">
         Please{" "}
         <a href="/login/google" className="text-blue-500 hover:underline">
           log in
@@ -67,7 +68,7 @@ export function CommentForm({
         placeholder={placeholder}
         rows={3}
         required
-        className="mb-2 bg-secondary dark:bg-zinc-800 border-gray-200 dark:border-zinc-700"
+        className="bg-secondary mb-2 border-gray-200 dark:border-zinc-700 dark:bg-zinc-800"
         minLength={1}
         maxLength={1000}
         onKeyDown={handleKeyDown}

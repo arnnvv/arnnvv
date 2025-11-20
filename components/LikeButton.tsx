@@ -3,6 +3,7 @@
 import { Heart } from "lucide-react";
 import { type JSX, useState, useTransition } from "react";
 import { toast } from "sonner";
+
 import { toggleLikeCommentAction } from "@/app/actions/comment-actions";
 import { Button } from "@/components/ui/button";
 import type { User } from "@/lib/db/types";
@@ -59,10 +60,10 @@ export function LikeButton({
       onMouseDown={handleLike}
       disabled={isPending || !currentUser}
       className={cn(
-        "flex items-center gap-1 p-1 h-auto text-xs",
+        "flex h-auto items-center gap-1 p-1 text-xs",
         isLiked
           ? "text-red-500 hover:text-red-600"
-          : "text-gray-500 dark:text-zinc-400 hover:text-red-500",
+          : "text-gray-500 hover:text-red-500 dark:text-zinc-400",
       )}
       aria-pressed={isLiked}
       aria-label={isLiked ? "Unlike comment" : "Like comment"}

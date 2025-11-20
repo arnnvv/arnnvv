@@ -1,7 +1,9 @@
 "use client";
 
 import { type JSX, useMemo, useState } from "react";
+
 import type { CommentWithDetails, User } from "@/lib/db/types";
+
 import { CommentItem } from "./CommentItem";
 
 export function CommentList({
@@ -62,7 +64,7 @@ export function CommentList({
 
   if (topLevelComments.length === 0) {
     return (
-      <p className="text-sm text-gray-500 dark:text-zinc-400 my-4">
+      <p className="my-4 text-sm text-gray-500 dark:text-zinc-400">
         Be the first to comment!
       </p>
     );

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { type JSX, memo, useCallback, useState, useTransition } from "react";
 import { toast } from "sonner";
+
 import {
   deleteCommentAction,
   getRepliesForCommentAction,
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date";
 import type { CommentWithDetails, User } from "@/lib/db/types";
 import { linkifyText } from "@/lib/linkify";
+
 import { CommentForm } from "./CommentForm";
 import { LikeButton } from "./LikeButton";
 
@@ -116,10 +118,10 @@ function CommentItemComponent({
 
   return (
     <div
-      className={`py-3 ${depth > 0 ? "pl-4 sm:pl-6 border-l border-gray-200 dark:border-zinc-700 ml-4 sm:ml-6" : ""}`}
+      className={`py-3 ${depth > 0 ? "ml-4 border-l border-gray-200 pl-4 sm:ml-6 sm:pl-6 dark:border-zinc-700" : ""}`}
     >
       <div className="flex items-start space-x-3">
-        <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0">
+        <Avatar className="h-8 w-8 shrink-0 sm:h-10 sm:w-10">
           <AvatarImage src={comment.user_picture} alt={comment.user_name} />
           <AvatarFallback>
             {comment.user_name?.charAt(0).toUpperCase() || (
@@ -127,13 +129,13 @@ function CommentItemComponent({
             )}
           </AvatarFallback>
         </Avatar>
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <p className="text-sm font-semibold text-gray-800 dark:text-zinc-100 truncate">
+              <p className="truncate text-sm font-semibold text-gray-800 dark:text-zinc-100">
                 {comment.user_name}
               </p>
-              <p className="text-xs text-gray-500 dark:text-zinc-400 shrink-0">
+              <p className="shrink-0 text-xs text-gray-500 dark:text-zinc-400">
                 {formatDate(comment.created_at)}
               </p>
             </div>
@@ -141,7 +143,7 @@ function CommentItemComponent({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 p-1 text-gray-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 shrink-0"
+                className="h-7 w-7 shrink-0 p-1 text-gray-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400"
                 onMouseDown={handleDelete}
                 disabled={isDeleting}
                 aria-label="Delete comment"
@@ -154,10 +156,10 @@ function CommentItemComponent({
               </Button>
             )}
           </div>
-          <p className="mt-1 text-sm text-gray-700 dark:text-zinc-300 whitespace-pre-wrap wrap-break-word">
+          <p className="mt-1 text-sm wrap-break-word whitespace-pre-wrap text-gray-700 dark:text-zinc-300">
             {linkifyText(comment.content)}
           </p>
-          <div className="mt-2 flex items-center space-x-1 sm:space-x-3 flex-wrap">
+          <div className="mt-2 flex flex-wrap items-center space-x-1 sm:space-x-3">
             <LikeButton
               commentId={comment.id}
               initialLikeCount={comment.like_count}
@@ -169,7 +171,7 @@ function CommentItemComponent({
                 variant="ghost"
                 size="sm"
                 onMouseDown={() => setShowReplyForm(!showReplyForm)}
-                className="flex items-center gap-1 p-1 h-auto text-xs text-gray-500 dark:text-zinc-400 hover:text-blue-500"
+                className="flex h-auto items-center gap-1 p-1 text-xs text-gray-500 hover:text-blue-500 dark:text-zinc-400"
                 aria-expanded={showReplyForm}
                 aria-label="Reply to comment"
               >
@@ -183,7 +185,7 @@ function CommentItemComponent({
                 size="sm"
                 onMouseDown={toggleReplies}
                 disabled={isLoadingReplies}
-                className="flex items-center gap-1 p-1 h-auto text-xs text-gray-500 dark:text-zinc-400 hover:text-blue-500"
+                className="flex h-auto items-center gap-1 p-1 text-xs text-gray-500 hover:text-blue-500 dark:text-zinc-400"
                 aria-expanded={areRepliesVisible}
                 aria-label={areRepliesVisible ? "Hide replies" : "View replies"}
               >
@@ -238,7 +240,7 @@ function CommentItemComponent({
         loadedReplies.length === 0 &&
         currentReplyCount > 0 &&
         !isLoadingReplies && (
-          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-2 pl-8 sm:pl-10">
+          <p className="mt-2 pl-8 text-xs text-gray-400 sm:pl-10 dark:text-zinc-500">
             No replies found or they may have been deleted.
           </p>
         )}

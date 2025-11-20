@@ -1,7 +1,9 @@
 import { type JSX, Suspense } from "react";
+
 import { getCurrentSession } from "@/app/actions/auth-actions";
 import { getCommentsForBlogAction } from "@/app/actions/comment-actions";
 import type { User } from "@/lib/db/types";
+
 import { CommentForm } from "./CommentForm";
 import { CommentList } from "./CommentList";
 
@@ -9,15 +11,15 @@ function CommentListSkeleton(): JSX.Element {
   const skeletonItems = Array.from({ length: 3 }, (_, i) => `skeleton-${i}`);
 
   return (
-    <div className="space-y-6 animate-pulse">
+    <div className="animate-pulse space-y-6">
       {skeletonItems.map((id) => (
         <div
           key={id}
-          className="p-4 border border-gray-200 dark:border-zinc-700 rounded-lg shadow-sm"
+          className="rounded-lg border border-gray-200 p-4 shadow-sm dark:border-zinc-700"
         >
-          <div className="h-6 bg-gray-300 dark:bg-zinc-600 rounded w-3/4 mb-2" />
-          <div className="h-4 bg-gray-300 dark:bg-zinc-600 rounded w-1/2 mb-3" />
-          <div className="h-4 bg-gray-300 dark:bg-zinc-600 rounded w-1/4" />
+          <div className="mb-2 h-6 w-3/4 rounded bg-gray-300 dark:bg-zinc-600" />
+          <div className="mb-3 h-4 w-1/2 rounded bg-gray-300 dark:bg-zinc-600" />
+          <div className="h-4 w-1/4 rounded bg-gray-300 dark:bg-zinc-600" />
         </div>
       ))}
     </div>
@@ -51,9 +53,9 @@ export async function CommentSection({
   return (
     <section
       aria-labelledby="comments-heading"
-      className="mt-12 pt-8 border-t border-gray-200 dark:border-zinc-700"
+      className="mt-12 border-t border-gray-200 pt-8 dark:border-zinc-700"
     >
-      <h2 className="text-2xl font-semibold text-gray-800 dark:text-zinc-100 mb-6">
+      <h2 className="mb-6 text-2xl font-semibold text-gray-800 dark:text-zinc-100">
         Comments
       </h2>
 

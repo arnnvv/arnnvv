@@ -2,8 +2,10 @@
 
 import { type JSX, useId, useState, useTransition } from "react";
 import { toast } from "sonner";
+
 import { editBlog, getBlogForEditing } from "@/app/actions/blog-actions";
 import type { BlogPost } from "@/lib/db/types";
+
 import { ActionFormWrapper } from "./ActionFormWrapper";
 import { Spinner } from "./Spinner";
 import { Button } from "./ui/button";
@@ -47,7 +49,7 @@ export function BlogEditForm({
       <div>
         <label
           htmlFor={`blog-select-${id}`}
-          className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1"
+          className="mb-1 block text-sm font-medium text-gray-700 dark:text-zinc-300"
         >
           Select Blog to Edit
         </label>
@@ -55,7 +57,7 @@ export function BlogEditForm({
           id={`blog-select-${id}`}
           onChange={handleSelectChange}
           value={selectedBlogId}
-          className="block w-full rounded-md border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          className="border-input bg-background placeholder:text-muted-foreground focus:ring-ring block w-full rounded-md px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           disabled={isFetching}
         >
           <option value="">-- Select a blog --</option>
@@ -93,7 +95,7 @@ export function BlogEditForm({
                   type="text"
                   name="title"
                   defaultValue={blogToEdit.title}
-                  className="border-gray-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/90 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-lg text-gray-800 dark:text-zinc-200"
+                  className="rounded-lg border-gray-300 bg-white/80 text-gray-800 focus:border-blue-500 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200 dark:focus:border-blue-400 dark:focus:ring-blue-400"
                   required
                 />
               </div>
@@ -108,13 +110,13 @@ export function BlogEditForm({
                   id={`edit-description-${id}`}
                   name="description"
                   defaultValue={blogToEdit.description}
-                  className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px] border-gray-300 dark:border-zinc-700 bg-white/80 dark:bg-zinc-900/90 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 rounded-lg text-gray-800 dark:text-zinc-200"
+                  className="min-h-[200px] rounded-lg border-gray-300 bg-white/80 text-gray-800 focus:border-blue-500 focus:ring-blue-500 sm:min-h-[250px] md:min-h-[300px] dark:border-zinc-700 dark:bg-zinc-900/90 dark:text-zinc-200 dark:focus:border-blue-400 dark:focus:ring-blue-400"
                   required
                 />
               </div>
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold transition-colors duration-200 rounded-lg shadow-sm"
+                className="w-full rounded-lg bg-blue-600 font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               >
                 Update Blog Post
               </Button>

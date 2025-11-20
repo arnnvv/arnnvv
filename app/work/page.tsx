@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { type JSX, Suspense } from "react";
+
 import { getProjectsAction } from "@/app/actions/project-actions";
 import { TransitionTitle } from "@/components/layout/TransitionTitle";
 import { ProjectCard } from "@/components/ProjectCard";
@@ -31,19 +32,19 @@ function ProjectsGridSkeleton(): JSX.Element {
   );
 
   return (
-    <div className="max-w-4xl mx-auto w-full space-y-12 animate-pulse">
+    <div className="mx-auto w-full max-w-4xl animate-pulse space-y-12">
       {skeletonItems.map((id, index) => (
         <div
           key={id}
           className="space-y-4"
           style={{ animationDelay: `${index * 0.1}s` }}
         >
-          <div className="h-7 bg-muted rounded-lg w-1/2" />
-          <div className="h-4 bg-muted rounded w-full" />
-          <div className="h-4 bg-muted rounded w-5/6" />
+          <div className="bg-muted h-7 w-1/2 rounded-lg" />
+          <div className="bg-muted h-4 w-full rounded" />
+          <div className="bg-muted h-4 w-5/6 rounded" />
           <div className="flex flex-wrap gap-2 pt-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-6 bg-muted rounded-full w-20" />
+              <div key={i} className="bg-muted h-6 w-20 rounded-full" />
             ))}
           </div>
         </div>
@@ -57,10 +58,10 @@ async function ProjectsGrid(): Promise<JSX.Element> {
 
   if (projects.length === 0) {
     return (
-      <div className="text-center py-16">
-        <div className="w-24 h-24 mx-auto mb-6 bg-muted rounded-full flex items-center justify-center">
+      <div className="py-16 text-center">
+        <div className="bg-muted mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full">
           <svg
-            className="w-12 h-12 text-muted-foreground"
+            className="text-muted-foreground h-12 w-12"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -76,7 +77,7 @@ async function ProjectsGrid(): Promise<JSX.Element> {
             />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-foreground mb-2">
+        <h3 className="text-foreground mb-2 text-lg font-semibold">
           No projects yet
         </h3>
         <p className="text-muted-foreground">
@@ -87,7 +88,7 @@ async function ProjectsGrid(): Promise<JSX.Element> {
   }
 
   return (
-    <div className="max-w-4xl mx-auto w-full space-y-12">
+    <div className="mx-auto w-full max-w-4xl space-y-12">
       {projects.map((project, index) => (
         <div
           key={project.id}
@@ -103,23 +104,23 @@ async function ProjectsGrid(): Promise<JSX.Element> {
 
 export default function WorkPage(): JSX.Element {
   return (
-    <main className="grow relative overflow-hidden">
-      <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
-      <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float" />
+    <main className="relative grow overflow-hidden">
+      <div className="from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 absolute inset-0 bg-linear-to-br via-transparent" />
+      <div className="bg-primary/10 animate-float absolute top-20 left-10 h-20 w-20 rounded-full blur-xl" />
       <div
-        className="absolute bottom-20 right-10 w-32 h-32 bg-accent/10 rounded-full blur-xl animate-float"
+        className="bg-accent/10 animate-float absolute right-10 bottom-20 h-32 w-32 rounded-full blur-xl"
         style={{ animationDelay: "3s" }}
       />
       <div
-        className="absolute top-1/2 left-1/4 w-16 h-16 bg-primary/5 rounded-full blur-lg animate-float"
+        className="bg-primary/5 animate-float absolute top-1/2 left-1/4 h-16 w-16 rounded-full blur-lg"
         style={{ animationDelay: "1.5s" }}
       />
-      <div className="container mx-auto px-4 pt-20 pb-16 sm:pb-24 relative z-10">
-        <header className="text-center mb-16">
+      <div className="relative z-10 container mx-auto px-4 pt-20 pb-16 sm:pb-24">
+        <header className="mb-16 text-center">
           <TransitionTitle
             title="My Work"
             transitionName="page-title-work"
-            className="text-4xl sm:text-5xl font-bold leading-tight"
+            className="text-4xl leading-tight font-bold sm:text-5xl"
           />
         </header>
         <Suspense fallback={<ProjectsGridSkeleton />}>

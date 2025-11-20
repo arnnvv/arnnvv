@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2024",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
+    "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -18,7 +18,14 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
     "verbatimModuleSyntax": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnusedLabels": false,
     "plugins": [
       {
         "name": "next"

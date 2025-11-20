@@ -1,18 +1,19 @@
 import type { JSX } from "react";
+
 import { AnimatedPageWrapper } from "@/components/layout/AnimatedPageWrapper";
 import { TransitionLink } from "@/components/layout/TransitionLink";
 
 export default function Home(): JSX.Element {
   return (
     <AnimatedPageWrapper className="items-center justify-center px-4 py-8 md:p-0">
-      <div className="max-w-2xl w-full p-6 sm:p-8 text-center">
+      <div className="w-full max-w-2xl p-6 text-center sm:p-8">
         <div className="mb-8 space-y-1">
           <div className="mb-12" />
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h1 className="from-primary to-accent mb-4 bg-linear-to-r bg-clip-text text-2xl font-bold text-transparent sm:text-3xl md:text-4xl">
             Hey there, I&apos;m Arnav
           </h1>
         </div>
-        <div className="space-y-6 text-base sm:text-lg leading-relaxed">
+        <div className="space-y-6 text-base leading-relaxed sm:text-lg">
           <p className="text-muted-foreground">
             Currently navigating my undergrad at{" "}
             <span className="text-primary font-semibold">IIT Roorkee</span>,
@@ -32,7 +33,7 @@ export default function Home(): JSX.Element {
             tradeoffs, and about what matters.
           </p>
         </div>
-        <div className="mt-10 flex flex-col sm:flex-row gap-6 justify-center items-center text-base sm:text-lg">
+        <div className="mt-10 flex flex-col items-center justify-center gap-6 text-base sm:flex-row sm:text-lg">
           <TransitionLink
             href="/blogs"
             title="My Writings"
