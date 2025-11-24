@@ -9,6 +9,7 @@ import {
   useEffect,
   useState,
 } from "react";
+
 import { cn } from "@/lib/utils";
 
 type ImageStatus = "loading" | "success" | "error";
@@ -105,4 +106,4 @@ function AvatarFallback({
   );
 }
 
-export { Avatar, AvatarImage, AvatarFallback };
+export { Avatar, AvatarFallback, AvatarImage };

@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+
 import { db } from "@/lib/db";
 import type { BlogPost } from "@/lib/db/types";
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
+
 import { THEME_STORAGE_KEY } from "@/lib/constants";
 
 interface Props {
@@ -22,7 +23,7 @@ export class ThemeErrorBoundary extends Component<Props, State> {
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, _errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, _errorInfo: ErrorInfo) {
     if (error.message.includes("DOMTokenList")) {
       console.warn(
         `ThemeErrorBoundary caught a next-themes crash.
@@ -36,12 +37,12 @@ export class ThemeErrorBoundary extends Component<Props, State> {
       console.error(
         `ThemeErrorBoundary caught an unhandled error:
         ${error}
-        ${_errorInfo}`,
+        ${_errorInfo.componentStack}`,
       );
     }
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return this.props.children;
     }

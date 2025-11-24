@@ -95,7 +95,7 @@ export interface ListItem {
 export type ListBlock = {
   key: string;
   listType: "ul" | "ol";
-  start?: number;
+  start?: number | undefined;
   items: ListItem[];
 };
 

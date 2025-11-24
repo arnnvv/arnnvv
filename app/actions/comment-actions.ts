@@ -2,10 +2,12 @@
 
 import { DatabaseError } from "@neondatabase/serverless";
 import { revalidatePath } from "next/cache";
+
 import { isUserAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ActionResult, CommentWithDetails } from "@/lib/db/types";
 import { globalPOSTRateLimit } from "@/lib/request";
+
 import { getCurrentSession } from "./auth-actions";
 
 export async function addCommentAction(
@@ -73,6 +75,12 @@ export async function addCommentAction(
     const comments = result as CommentWithDetails[];
 
     if (comments.length === 1) {
+      const newComment = comments[0];
+      if (!newComment) {
+        throw new Error(
+          "Database returned length 1, but the item is undefined.",
+        );
+      }
       const blogPost = await db`
         SELECT slug FROM arnnvv_blogs WHERE id = ${blogId}
       `;
@@ -85,7 +93,7 @@ export async function addCommentAction(
       return {
         success: true,
         message: "Comment added.",
-        comment: comments[0],
+        comment: newComment,
       };
     }
     throw new Error("Failed to add comment.");

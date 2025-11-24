@@ -2,6 +2,7 @@
 
 import type { CSSProperties, JSX } from "react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
+
 import { useTheme } from "../ThemeProvider";
 
 export const Toaster = ({ ...props }: ToasterProps): JSX.Element => {
@@ -9,7 +10,7 @@ export const Toaster = ({ ...props }: ToasterProps): JSX.Element => {
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={theme}
       className="toaster group"
       style={
         {

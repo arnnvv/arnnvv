@@ -2,10 +2,12 @@
 
 import { DatabaseError } from "@neondatabase/serverless";
 import { revalidatePath } from "next/cache";
+
 import { isUserAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ActionResult, ProjectWithDetails } from "@/lib/db/types";
 import { globalPOSTRateLimit } from "@/lib/request";
+
 import { getCurrentSession } from "./auth-actions";
 
 export async function addProjectAction(
@@ -108,7 +110,7 @@ export async function addProjectAction(
       throw new Error("Failed to insert project - no result returned.");
     }
 
-    const projectId = firstResult[0]?.id;
+    const projectId = firstResult[0]?.["id"];
     if (!projectId) {
       throw new Error("Failed to insert project - no ID returned.");
     }

@@ -1,20 +1,21 @@
 import Link from "next/link";
 import type { JSX } from "react";
+
 import { SOCIAL_LINKS } from "@/lib/constants";
 
 export function Footer(): JSX.Element {
   return (
-    <footer className="relative backdrop-blur-md bg-background border-t border-border/50 py-2 sm:py-3 md:py-4 px-3 sm:px-4">
-      <div className="absolute inset-0 bg-linear-to-r from-accent/5 via-transparent to-primary/5 dark:from-accent/10 dark:to-primary/10" />
+    <footer className="bg-background border-border/50 relative border-t px-3 py-2 backdrop-blur-md sm:px-4 sm:py-3 md:py-4">
+      <div className="from-accent/5 to-primary/5 dark:from-accent/10 dark:to-primary/10 absolute inset-0 bg-linear-to-r via-transparent" />
 
-      <div className="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
-        <div className="text-xs sm:text-sm text-gray-400 dark:text-zinc-400">
+      <div className="relative z-10 flex flex-col items-center justify-between gap-2 sm:flex-row sm:gap-0">
+        <div className="text-xs text-gray-400 sm:text-sm dark:text-zinc-400">
           &copy; arnav
         </div>
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm tracking-tight">
+        <div className="flex flex-wrap justify-center gap-2 text-xs tracking-tight sm:gap-3 sm:text-sm md:gap-4">
           <Link
             href="/contact"
-            className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+            className="text-gray-400 transition-colors duration-200 hover:text-blue-500 dark:text-zinc-400 dark:hover:text-blue-400"
             aria-label="Contact me"
           >
             contact me
@@ -25,7 +26,7 @@ export function Footer(): JSX.Element {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+              className="text-gray-400 transition-colors duration-200 hover:text-blue-500 dark:text-zinc-400 dark:hover:text-blue-400"
             >
               {link.name}
             </a>

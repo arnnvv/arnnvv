@@ -101,7 +101,7 @@ function useViewTransitions() {
 
 export const TransitionLink = forwardRef<
   HTMLAnchorElement,
-  LinkProps & { children: ReactNode; className?: string }
+  LinkProps & { children: ReactNode; className?: string | undefined }
 >(function TransitionLink({ href, onClick, ...props }, ref) {
   const startViewTransition = useViewTransitions();
   const router = useRouter();

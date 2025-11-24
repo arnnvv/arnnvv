@@ -23,15 +23,15 @@ export function Pagination({
   const nextPageHref = `${basePath}/${currentPage + 1}`;
 
   return (
-    <div className="mt-12 flex items-center justify-between text-sm text-muted-foreground">
+    <div className="text-muted-foreground mt-12 flex items-center justify-between text-sm">
       {hasPreviousPage ? (
         <Link href={prevPageHref} className="flex items-center hover:underline">
-          <ChevronLeft className="h-4 w-4 mr-1" />
+          <ChevronLeft className="mr-1 h-4 w-4" />
           Previous
         </Link>
       ) : (
-        <span className="flex items-center opacity-50 cursor-not-allowed">
-          <ChevronLeft className="h-4 w-4 mr-1" />
+        <span className="flex cursor-not-allowed items-center opacity-50">
+          <ChevronLeft className="mr-1 h-4 w-4" />
           Previous
         </span>
       )}
@@ -43,12 +43,12 @@ export function Pagination({
       {hasNextPage ? (
         <Link href={nextPageHref} className="flex items-center hover:underline">
           Next
-          <ChevronRight className="h-4 w-4 ml-1" />
+          <ChevronRight className="ml-1 h-4 w-4" />
         </Link>
       ) : (
-        <span className="flex items-center opacity-50 cursor-not-allowed">
+        <span className="flex cursor-not-allowed items-center opacity-50">
           Next
-          <ChevronRight className="h-4 w-4 ml-1" />
+          <ChevronRight className="ml-1 h-4 w-4" />
         </span>
       )}
     </div>

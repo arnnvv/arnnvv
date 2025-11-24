@@ -1,4 +1,5 @@
 import type { ComponentProps, JSX } from "react";
+
 import { wrapWordsWithTransition } from "@/lib/transitions";
 
 interface TransitionTitleProps extends ComponentProps<"h1"> {

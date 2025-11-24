@@ -8,6 +8,7 @@ import {
   useEffect,
   useSyncExternalStore,
 } from "react";
+
 import { THEME_STORAGE_KEY } from "@/lib/constants";
 
 type Theme = "light" | "dark";

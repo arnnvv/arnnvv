@@ -1,6 +1,7 @@
 import { Home, LogOut, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { type JSX, Suspense } from "react";
+
 import { getCurrentSession, signOutAction } from "@/app/actions/auth-actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -10,13 +11,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { globalGETRateLimit } from "@/lib/request";
+
 import { SignOutFormComponent } from "./SignOutForm";
 import { ThemeButton } from "./ThemeButton";
 import { Button } from "./ui/button";
 
 function AuthControlsSkeleton(): JSX.Element {
   return (
-    <div className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 bg-gray-300 dark:bg-zinc-700 rounded-full animate-pulse" />
+    <div className="h-7 w-7 animate-pulse rounded-full bg-gray-300 sm:h-8 sm:w-8 md:h-10 md:w-10 dark:bg-zinc-700" />
   );
 }
 
@@ -31,11 +33,11 @@ async function AuthControlsContent(): Promise<JSX.Element | string> {
     return (
       <a
         href="/login/google"
-        className="group gsi-material-button dark:scheme-dark bg-gray-100 dark:bg-zinc-900 text-gray-700 dark:text-gray-100 border dark:border-zinc-500 rounded-full text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 hover:shadow-sm transition-all duration-200 relative overflow-hidden"
+        className="group gsi-material-button relative overflow-hidden rounded-full border bg-gray-100 px-2 py-1 text-xs text-gray-700 transition-all duration-200 hover:shadow-sm sm:px-3 sm:py-1.5 sm:text-sm md:px-4 md:py-2 dark:border-zinc-500 dark:bg-zinc-900 dark:text-gray-100 dark:scheme-dark"
       >
-        <div className="absolute inset-0 bg-black dark:bg-white opacity-0 group-hover:opacity-8 group-focus:opacity-12 transition-opacity duration-200" />
+        <div className="absolute inset-0 bg-black opacity-0 transition-opacity duration-200 group-hover:opacity-8 group-focus:opacity-12 dark:bg-white" />
         <div className="flex items-center">
-          <div className="mr-1.5 sm:mr-2 md:mr-3 w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5">
+          <div className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4 md:mr-3 md:h-5 md:w-5">
             <svg
               version="1.1"
               viewBox="0 0 48 48"
@@ -62,7 +64,7 @@ async function AuthControlsContent(): Promise<JSX.Element | string> {
               />
             </svg>
           </div>
-          <span className="font-medium text-xs sm:text-sm">Sign in</span>
+          <span className="text-xs font-medium sm:text-sm">Sign in</span>
           <span className="sr-only">Sign in with Google</span>
         </div>
       </a>
@@ -72,7 +74,7 @@ async function AuthControlsContent(): Promise<JSX.Element | string> {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 cursor-pointer">
+        <Avatar className="h-7 w-7 cursor-pointer sm:h-8 sm:w-8 md:h-10 md:w-10">
           <AvatarImage
             src={user.picture || "/default-avatar.png"}
             alt={`${user.name || "User"}'s avatar`}
@@ -102,17 +104,17 @@ async function AuthControlsContent(): Promise<JSX.Element | string> {
 
 export function Navbar(): JSX.Element {
   return (
-    <nav className="relative backdrop-blur-md bg-background border-b border-border/50 py-2 sm:py-3 md:py-4 px-3 sm:px-4">
-      <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-transparent to-accent/5 dark:from-primary/10 dark:to-accent/10" />
+    <nav className="bg-background border-border/50 relative border-b px-3 py-2 backdrop-blur-md sm:px-4 sm:py-3 md:py-4">
+      <div className="from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 absolute inset-0 bg-linear-to-r via-transparent" />
 
-      <div className="relative z-10 flex flex-row justify-between items-center">
+      <div className="relative z-10 flex flex-row items-center justify-between">
         <div className="relative">
           <Link
             href="/"
-            className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+            className="text-gray-400 transition-colors duration-200 hover:text-blue-500 dark:text-zinc-400 dark:hover:text-blue-400"
             aria-label="Home"
           >
-            <Home size={20} className="w-5 h-5 sm:w-6 sm:h-6" />
+            <Home size={20} className="h-5 w-5 sm:h-6 sm:w-6" />
           </Link>
         </div>
 

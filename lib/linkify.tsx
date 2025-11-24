@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+
 import { URL_REGEX } from "./constants";
 import { getSafeUrl, isImageUrl } from "./url";
 
@@ -23,7 +24,7 @@ export function linkifyText(text: string): ReactNode {
         parts.push(
           <div
             key={`img-container-${index}`}
-            className="relative w-full max-w-sm aspect-video my-2 rounded overflow-hidden"
+            className="relative my-2 aspect-video w-full max-w-sm overflow-hidden rounded"
           >
             <Image
               src={href}
@@ -40,7 +41,7 @@ export function linkifyText(text: string): ReactNode {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+            className="break-all text-blue-600 hover:underline dark:text-blue-400"
           >
             {urlString}
           </a>,

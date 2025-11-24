@@ -1,5 +1,6 @@
 import { Code2 } from "lucide-react";
 import type { JSX } from "react";
+
 import type { ProjectWithDetails } from "@/lib/db/types";
 
 export function ProjectCard({
@@ -20,7 +21,7 @@ export function ProjectCard({
   return (
     <article className="flex flex-col gap-2">
       <header>
-        <h2 className="text-xl sm:text-2xl font-bold text-foreground">
+        <h2 className="text-foreground text-xl font-bold sm:text-2xl">
           {project.title}
         </h2>
       </header>
@@ -30,12 +31,12 @@ export function ProjectCard({
       </p>
 
       {project.technologies && project.technologies.length > 0 && (
-        <div className="flex flex-wrap gap-2 items-center pt-2">
+        <div className="flex flex-wrap items-center gap-2 pt-2">
           <Code2 size={16} className="text-muted-foreground" />
           {project.technologies.map((tech) => (
             <span
               key={tech}
-              className="px-2.5 py-0.5 bg-secondary text-secondary-foreground text-xs rounded-full"
+              className="bg-secondary text-secondary-foreground rounded-full px-2.5 py-0.5 text-xs"
             >
               {tech}
             </span>
@@ -49,7 +50,7 @@ export function ProjectCard({
             href={githubLink.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+            className="text-sm font-medium text-blue-600 transition-colors hover:underline dark:text-blue-400"
           >
             Code
           </a>
@@ -59,7 +60,7 @@ export function ProjectCard({
             href={liveLink.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+            className="text-sm font-medium text-blue-600 transition-colors hover:underline dark:text-blue-400"
           >
             Live Link
           </a>

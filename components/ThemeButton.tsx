@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import type { JSX } from "react";
+
 import { useTheme } from "./ThemeProvider";
 
 export function ThemeButton(): JSX.Element {
@@ -9,7 +10,7 @@ export function ThemeButton(): JSX.Element {
 
   return (
     <button
-      className="text-gray-400 dark:text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-200"
+      className="text-gray-400 transition-colors duration-200 hover:text-blue-500 dark:text-zinc-400 dark:hover:text-blue-400"
       aria-label="Toggle theme"
       type="button"
       onMouseDown={toggleTheme}

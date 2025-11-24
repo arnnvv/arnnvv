@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { cache, type JSX, type ReactNode } from "react";
+
 import {
   FORMATTER_CONFIG as CONFIG,
   PARSING_TIMEOUT_MS,
